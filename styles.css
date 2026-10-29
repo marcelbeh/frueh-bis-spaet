@@ -133,3 +133,5 @@
 .nav-child.active:before{background:#1769e0}
 .nav-item:not(.nav-child){gap:13px}
 @media(max-width:760px){.nav-parent{padding:11px 13px}.nav-children{padding-left:18px}}
+
+.nav-children[hidden] { display: none !important; }
