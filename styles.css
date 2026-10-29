@@ -89,3 +89,5 @@
 .outlook-time-axis{grid-column:1;grid-row:2}
 .outlook-staff-column{grid-row:2}
 @media(max-width:760px){.outlook-calendar{grid-template-rows:76px 450px}}
+
+.setting-times{display:flex;gap:6px;flex-wrap:wrap}.setting-times input{min-width:105px;padding:8px}
