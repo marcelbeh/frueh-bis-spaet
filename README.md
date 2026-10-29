@@ -39,3 +39,12 @@ Du kannst `index.html` lokal öffnen oder GitHub Pages aktivieren: **Settings �
 2. Gruppen, Mitarbeitendenregeln und Dienstmodelle fachlich konkretisieren.
 3. Datenmodell und sichere Speicherung planen.
 4. Validierungsregeln und danach Optimierungslogik entwickeln.
+
+
+## Dienstplan-Vorbelegung und Wochenkopie
+
+- Über **Einstellungen** lassen sich Mindestbesetzungen für Nest, Sonnengruppe und Sternengruppe sowie Beginn und Ende der Standardmodelle Früh-, Haupt- und Spätdienst festlegen.
+- **Automatisch vorbelegen** erstellt einen bearbeitbaren Wochenentwurf aus den angelegten Mitarbeitenden und ihren Wochenstunden. Der Entwurf verteilt die Wochenstunden auf fünf Werktage und prüft Mindestbesetzungen in Zwei-Stunden-Fenstern.
+- **Woche kopieren** kopiert die Dienste der angezeigten Woche in die Folgewoche. Bereits vorhandene Dienste der Zielwoche werden nach Bestätigung ersetzt.
+- Wochenbezogene Dienste werden im Prototyp getrennt geführt.
+- Kriterien und Dienstpläne sind noch nicht dauerhaft gespeichert und gehen beim Neuladen verloren. Die automatische Vorbelegung berücksichtigt noch keine individuellen freien Tage, Abwesenheiten, Pausen, besondere Endzeiten oder gesetzlichen Ruhezeiten. Den Entwurf vor Nutzung immer manuell prüfen.
