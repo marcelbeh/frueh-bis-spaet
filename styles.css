@@ -246,3 +246,10 @@
 #blockForm .full{grid-column:1/-1}
 
 
+
+/* Einheitliche Dienstfarben nach Dienstart statt nach Früh-/Haupt-/Spätschicht oder Gruppe */
+.outlook-shift.service-normal{background:#d9f3e5;color:#176343;border-color:#a9dfc4}
+.outlook-shift.service-meeting{background:#eee5ff;color:#6741a5;border-color:#cdb8ff}
+.outlook-shift.service-supervision{background:#e0efff;color:#205fa8;border-color:#a8ccf7}
+.outlook-shift.service-church{background:#dff4e5;color:#216b43;border-color:#a6d9b6}
+.outlook-shift.service-other{background:#ffe1e2;color:#a82b35;border-color:#f2b3b8}
