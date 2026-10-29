@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f5f8fc">
   <title>Früh bis spät – Der Kita-Dienstplaner</title>
-  <link rel="stylesheet" href="./styles.css?v=outlook-grid-2">
+  <link rel="stylesheet" href="./styles.css?v=grouped-nav-1">
 </head>
 <body>
   <div class="app-shell">
@@ -14,14 +14,39 @@
         <span class="brand-mark" aria-label="Regenbogen">🌈</span><span><strong>Früh bis spät</strong><small>Der Kita-Dienstplaner</small></span>
       </a>
       <nav class="nav" aria-label="Hauptnavigation">
-        <button class="nav-item active" data-page="dashboard"><span>▦</span>Dashboard</button>
-        <button class="nav-item" data-page="dienstplan"><span>▤</span>Dienstplan</button>
-        <button class="nav-item" data-page="kalender"><span>▦</span>Kalender</button>
-        <button class="nav-item" data-page="mitarbeitende"><span>♙</span>Mitarbeitende</button>
-        <button class="nav-item" data-page="abwesenheiten"><span>◷</span>Urlaub & Abwesenheit</button>
-        <button class="nav-item" data-page="sondertermine"><span>✦</span>Sondertermine</button>
-        <button class="nav-item" data-page="auswertungen"><span>▥</span>Auswertungen</button>
-        <button class="nav-item" data-page="einstellungen"><span>⚙</span>Einstellungen</button>
+        <button class="nav-item active" data-page="dashboard"><span class="nav-icon">▦</span><span class="nav-label">Dashboard</span></button>
+        <div class="nav-group" data-nav-group="planung">
+          <button class="nav-parent" type="button" data-menu-toggle="planung" aria-expanded="true"><span class="nav-icon">▤</span><span class="nav-label">Dienstplanung</span><span class="nav-chevron">⌄</span></button>
+          <div class="nav-children" data-nav-children="planung">
+            <button class="nav-item nav-child" data-page="dienstplan">Wochenplan</button>
+            <button class="nav-item nav-child" data-page="kalender">Kalender</button>
+          </div>
+        </div>
+        <div class="nav-group" data-nav-group="personal">
+          <button class="nav-parent" type="button" data-menu-toggle="personal" aria-expanded="false"><span class="nav-icon">♙</span><span class="nav-label">Personal</span><span class="nav-chevron">⌄</span></button>
+          <div class="nav-children" data-nav-children="personal" hidden>
+            <button class="nav-item nav-child" data-page="mitarbeitende">Mitarbeitende</button>
+            <button class="nav-item nav-child" data-page="abwesenheiten">Urlaub &amp; Abwesenheit</button>
+          </div>
+        </div>
+        <div class="nav-group" data-nav-group="termine">
+          <button class="nav-parent" type="button" data-menu-toggle="termine" aria-expanded="false"><span class="nav-icon">✦</span><span class="nav-label">Termine</span><span class="nav-chevron">⌄</span></button>
+          <div class="nav-children" data-nav-children="termine" hidden>
+            <button class="nav-item nav-child" data-page="sondertermine">Sondertermine</button>
+          </div>
+        </div>
+        <div class="nav-group" data-nav-group="auswertung">
+          <button class="nav-parent" type="button" data-menu-toggle="auswertung" aria-expanded="false"><span class="nav-icon">▥</span><span class="nav-label">Auswertungen</span><span class="nav-chevron">⌄</span></button>
+          <div class="nav-children" data-nav-children="auswertung" hidden>
+            <button class="nav-item nav-child" data-page="auswertungen">Kennzahlen &amp; Dienstverteilung</button>
+          </div>
+        </div>
+        <div class="nav-group" data-nav-group="verwaltung">
+          <button class="nav-parent" type="button" data-menu-toggle="verwaltung" aria-expanded="false"><span class="nav-icon">⚙</span><span class="nav-label">Verwaltung</span><span class="nav-chevron">⌄</span></button>
+          <div class="nav-children" data-nav-children="verwaltung" hidden>
+            <button class="nav-item nav-child" data-page="einstellungen">Planungseinstellungen</button>
+          </div>
+        </div>
       </nav>
       <div class="sidebar-bottom"><span class="status-dot"></span> Prototyp · Beispieldaten</div>
     </aside>
@@ -42,6 +67,6 @@
       <div id="modalBody"></div>
     </section>
   </div>
-  <script src="./app.js?v=outlook-grid-2"></script>
+  <script src="./app.js?v=grouped-nav-1"></script>
 </body>
 </html>
