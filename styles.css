@@ -81,3 +81,11 @@
 .outlook-shift span{margin-top:4px;opacity:.86}
 .outlook-shift:hover{z-index:2;filter:saturate(1.1);box-shadow:0 2px 8px #172b4d20}
 @media(max-width:760px){.outlook-calendar{grid-template-columns:45px repeat(var(--staff-count),minmax(118px,1fr))}.outlook-staff-head{padding:7px 4px}.outlook-shift{left:2px;right:2px;padding:4px}.outlook-shift strong,.outlook-shift span{font-size:9px}.outlook-time-axis{height:450px}.outlook-staff-column{height:450px}}
+
+/* Explizite Positionierung verhindert, dass Mitarbeiter und Zeitachse in Zeilen statt Spalten umbrechen */
+.outlook-calendar{grid-auto-flow:row;grid-template-rows:76px 480px;align-items:stretch}
+.outlook-corner{grid-column:1;grid-row:1}
+.outlook-staff-head{grid-row:1}
+.outlook-time-axis{grid-column:1;grid-row:2}
+.outlook-staff-column{grid-row:2}
+@media(max-width:760px){.outlook-calendar{grid-template-rows:76px 450px}}
