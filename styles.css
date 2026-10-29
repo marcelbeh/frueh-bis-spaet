@@ -63,3 +63,21 @@
 .day-coverage small{font-size:8px}
 .day-coverage strong{font-size:12px}
 @media(max-width:760px){.day-calendar-list{padding:0 8px 10px;gap:10px}.day-calendar-head{align-items:flex-start;flex-direction:column}.day-coverage-strip{width:100%;max-width:none}.day-time-axis,.day-lane{grid-template-columns:112px minmax(700px,1fr)}.day-lane-person{padding:6px}.day-shift{padding:4px}.day-shift strong,.day-shift span{font-size:9px}}
+
+/* Outlook-Ansicht: Mitarbeitende als Spaltenkopf, Zeit senkrecht */
+.outlook-calendar-scroll{overflow-x:auto}
+.outlook-calendar{display:grid;grid-template-columns:55px repeat(var(--staff-count),minmax(132px,1fr));min-width:max-content;border-top:1px solid var(--line);border-left:1px solid var(--line)}
+.outlook-corner{background:#f8fafd;font-size:10px;font-weight:750;color:var(--muted);padding:12px 6px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:center}
+.outlook-staff-head{min-height:76px;padding:9px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;background:#f8fafd;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.outlook-staff-head strong{font-size:10px;line-height:1.25}
+.outlook-staff-head small{font-size:9px;color:var(--muted)}
+.outlook-time-axis{height:480px;position:relative;background:#fbfcfe;border-right:1px solid var(--line)}
+.outlook-time-axis span{position:absolute;right:5px;transform:translateY(-50%);font-size:9px;color:var(--muted);background:#fbfcfe;padding:1px}
+.outlook-time-axis span:last-child{transform:translateY(-100%)}
+.outlook-staff-column{height:480px;position:relative;border-right:1px solid var(--line);background:#fff;overflow:hidden}
+.outlook-time-grid{position:absolute;inset:0;background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(12.5% - 1px),#e9eef4 calc(12.5% - 1px),#e9eef4 12.5%);pointer-events:none}
+.outlook-shift{position:absolute;left:4px;right:4px;min-height:22px;overflow:hidden;border:1px solid rgba(30,80,130,.12);border-radius:6px;padding:5px 6px;text-align:left;cursor:pointer;z-index:1;line-height:1.2}
+.outlook-shift strong,.outlook-shift span{display:block;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.outlook-shift span{margin-top:4px;opacity:.86}
+.outlook-shift:hover{z-index:2;filter:saturate(1.1);box-shadow:0 2px 8px #172b4d20}
+@media(max-width:760px){.outlook-calendar{grid-template-columns:45px repeat(var(--staff-count),minmax(118px,1fr))}.outlook-staff-head{padding:7px 4px}.outlook-shift{left:2px;right:2px;padding:4px}.outlook-shift strong,.outlook-shift span{font-size:9px}.outlook-time-axis{height:450px}.outlook-staff-column{height:450px}}
