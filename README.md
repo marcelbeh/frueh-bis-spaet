@@ -27,7 +27,7 @@ Du kannst `index.html` lokal öffnen oder GitHub Pages aktivieren: **Settings �
 
 ## Wichtige Hinweise
 
-- Die Anwendung startet ohne Mitarbeitende, Dienste, Termine und Abwesenheiten. Die Gruppen Nest, Sonnengruppe und Sternengruppe bleiben als Ausgangskonfiguration erhalten. Mitarbeitende können selbst angelegt und wieder entfernt werden.
+- Die aktuelle Oberfläche startet mit zehn Beispieldatensätzen für Mitarbeitende in den drei Gruppen Nest, Sonnengruppe und Sternengruppe. Beispieldaten können bearbeitet oder entfernt werden.
 - Änderungen bleiben derzeit nur im Speicher der geöffneten Browser-Sitzung und gehen beim Neuladen verloren. Das gilt auch für neu angelegte oder entfernte Mitarbeitende.
 - Es gibt noch keine Anmeldung, Datenbank, echte Dienstplanoptimierung oder rechtliche Arbeitszeitprüfung.
 - Keine echten personenbezogenen Daten in diesem Prototyp verwenden.
@@ -43,7 +43,7 @@ Du kannst `index.html` lokal öffnen oder GitHub Pages aktivieren: **Settings �
 
 ## Dienstplan-Vorbelegung und Wochenkopie
 
-- Über **Einstellungen** lassen sich Mindestbesetzungen für Nest, Sonnengruppe und Sternengruppe sowie Beginn und Ende der Standardmodelle Früh-, Haupt- und Spätdienst festlegen.
+- Über **Einstellungen** lassen sich Beginn und Ende der allgemeinen Rahmenzeit sowie die Mindestbesetzung je Gruppe festlegen. Es gibt einen normalen Diensttyp und kategorisierte Sonderdienste.
 - **Automatisch vorbelegen** erstellt einen bearbeitbaren Wochenentwurf aus den angelegten Mitarbeitenden und ihren Wochenstunden. Der Entwurf verteilt die Wochenstunden auf fünf Werktage und prüft Mindestbesetzungen in Zwei-Stunden-Fenstern.
 - **Woche kopieren** kopiert die Dienste der angezeigten Woche in die Folgewoche. Bereits vorhandene Dienste der Zielwoche werden nach Bestätigung ersetzt.
 - Wochenbezogene Dienste werden im Prototyp getrennt geführt.
