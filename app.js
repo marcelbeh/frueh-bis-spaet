@@ -1,6 +1,17 @@
 const $ = (s, root=document) => root.querySelector(s);
 const $$ = (s, root=document) => [...root.querySelectorAll(s)];
-let names = [];
+let names = [
+ {name:"Anna Schmidt",initials:"AS",group:"Nest",hours:25,vacation:32,special:0,meetings:0,supervision:0,color:"green",employment:"Teilzeit"},
+ {name:"Lisa Hoffmann",initials:"LH",group:"Nest",hours:30,vacation:32,special:0,meetings:0,supervision:0,color:"yellow",employment:"Teilzeit"},
+ {name:"Julia Weber",initials:"JW",group:"Nest",hours:39,vacation:32,special:0,meetings:0,supervision:0,color:"blue",employment:"Vollzeit"},
+ {name:"Sarah Jansen",initials:"SJ",group:"Sonnengruppe",hours:20,vacation:32,special:0,meetings:0,supervision:0,color:"green",employment:"Teilzeit"},
+ {name:"Tina Reinhardt",initials:"TR",group:"Sonnengruppe",hours:30,vacation:32,special:0,meetings:0,supervision:0,color:"purple",employment:"Teilzeit"},
+ {name:"Markus Klein",initials:"MK",group:"Sonnengruppe",hours:39,vacation:32,special:0,meetings:0,supervision:0,color:"blue",employment:"Vollzeit"},
+ {name:"Barbara Fischer",initials:"BF",group:"Sternengruppe",hours:25,vacation:32,special:0,meetings:0,supervision:0,color:"yellow",employment:"Teilzeit"},
+ {name:"Nina Schulte",initials:"NS",group:"Sternengruppe",hours:30,vacation:32,special:0,meetings:0,supervision:0,color:"green",employment:"Teilzeit"},
+ {name:"Tobias Neumann",initials:"TN",group:"Sternengruppe",hours:39,vacation:32,special:0,meetings:0,supervision:0,color:"blue",employment:"Vollzeit"},
+ {name:"Michael Berger",initials:"MB",group:"Sternengruppe",hours:39,vacation:32,special:0,meetings:0,supervision:0,color:"purple",employment:"Vollzeit"}
+];
 const groups = ["Nest","Sonnengruppe","Sternengruppe"];
 const weekdays = ["Mo","Di","Mi","Do","Fr","Sa","So"];
 const plannerSettings = {minimumByGroup:{"Nest":2,"Sonnengruppe":2,"Sternengruppe":2},shifts:{early:{label:"Frühdienst",start:"06:00",end:"14:00"},main:{label:"Hauptdienst",start:"08:00",end:"16:00"},late:{label:"Spätdienst",start:"14:00",end:"22:00"}}};
