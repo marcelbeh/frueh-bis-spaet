@@ -89,17 +89,23 @@ function exportPlanPdf(){
   const existing=$("#pdfWeekView"); if(existing)existing.remove();
   const view=document.createElement("section"); view.id="pdfWeekView";
   const staff=names.filter(p=>selectedGroup==="Alle Gruppen"||p.group===selectedGroup);
-  const weekdaysLong=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
-  const head='<div class="pdf-week-head"><div class="pdf-day-head">Tag</div>'+staff.map(p=>'<div class="pdf-staff-head">'+p.name+'</div>').join("")+'</div>';
-  const rows=weekdaysLong.map((day,i)=>{
-    const date=fmt(dateForDay(i),{day:"2-digit",month:"2-digit"});
-    const cells=staff.map(p=>{
-      const personShifts=weekShifts().filter(s=>s.day===i&&s.person===p.name);
-      return '<div class="pdf-shift-cell">'+(personShifts.length?personShifts.map(s=>'<div class="pdf-shift '+groupColor(p.group)+'"><strong>'+s.start+'–'+s.end+'</strong>'+(s.special?'<small>Sonderdienst</small>':'')+'</div>').join(""):'<span class="pdf-empty">—</span>')+'</div>';
-    }).join("");
-    return '<div class="pdf-week-row"><div class="pdf-day-cell"><strong>'+day+'</strong><small>'+date+'</small></div>'+cells+'</div>';
-  }).join("");
-  view.innerHTML='<h1>Dienstplan · '+weekLabel()+'</h1><div class="pdf-week-grid" style="--pdf-staff-count:'+Math.max(1,staff.length)+'">'+head+rows+'</div>';
+  const days=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+  const dayHeader='<div class="pdf-time-head">Uhrzeit</div>'+days.map((day,i)=>'<div class="pdf-day-group" style="grid-column:span '+Math.max(1,staff.length)+'">'+day+'<small>'+fmt(dateForDay(i),{day:"2-digit",month:"2-digit"})+'</small></div>').join("");
+  const staffHeader='<div class="pdf-time-subhead"></div>'+days.map(()=>staff.map(p=>'<div class="pdf-staff-subhead" title="'+p.name+'">'+p.name+'</div>').join("")).join("");
+  const timeLabels=Array.from({length:9},(_,i)=>'<div class="pdf-time-label" style="grid-row:'+(i+3)+'">'+String(6+i*2).padStart(2,"0")+':00</div>').join("");
+  let columns="";
+  days.forEach((day,dayIndex)=>{
+    staff.forEach((p,staffIndex)=>{
+      const personShifts=weekShifts().filter(s=>s.day===dayIndex&&s.person===p.name);
+      const blocks=personShifts.map(s=>{
+        const top=(minutes(s.start)-360)/960*100;
+        const height=(minutes(s.end)-minutes(s.start))/960*100;
+        return '<div class="pdf-time-shift '+groupColor(p.group)+'" style="top:'+top+'%;height:'+height+'%"><strong>'+s.start+'–'+s.end+'</strong><span>'+p.name+'</span></div>';
+      }).join("");
+      columns+='<div class="pdf-time-column" style="grid-column:'+(2+dayIndex*staff.length+staffIndex)+';grid-row:3 / span 1"><div class="pdf-time-track">'+Array.from({length:8},()=>'<i></i>').join("")+blocks+'</div></div>';
+    });
+  });
+  view.innerHTML='<h1>Dienstplan · '+weekLabel()+'</h1><div class="pdf-time-grid" style="--pdf-staff-count:'+Math.max(1,staff.length)+';--pdf-total-cols:'+Math.max(1,staff.length*7)+'">'+dayHeader+staffHeader+timeLabels+columns+'</div>';
   $("#pageContent").prepend(view);
   const originalTitle=document.title;
   document.title="Dienstplan-"+iso(dateForDay(0))+"-bis-"+iso(dateForDay(6));
