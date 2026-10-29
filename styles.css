@@ -136,6 +136,37 @@
 
 .nav-children[hidden] { display: none !important; }
 
+/* Export-Ansicht als kompakte Wochenmatrix: sieben Tage auf einem Blatt */
+#pdfWeekView { display:none; }
+@page { size:A4 landscape; margin:5mm; }
+@media print {
+  #pdfWeekView { display:block !important; width:100% !important; color:#172b3f !important; }
+  #pdfWeekView h1 { font-size:12pt !important; margin:0 0 2mm !important; color:#17324d !important; }
+  #pageContent > :not(#pdfWeekView) { display:none !important; }
+  .pdf-week-grid { display:grid !important; grid-template-columns:18mm repeat(var(--pdf-staff-count),minmax(0,1fr)) !important; grid-template-rows:24mm repeat(7,minmax(0,1fr)) !important; width:100% !important; height:176mm !important; border-top:.3mm solid #aebdca !important; border-left:.3mm solid #aebdca !important; }
+  .pdf-week-head,.pdf-week-row { display:contents !important; }
+  .pdf-day-head,.pdf-staff-head,.pdf-day-cell,.pdf-shift-cell { border-right:.3mm solid #aebdca !important; border-bottom:.3mm solid #aebdca !important; min-width:0 !important; box-sizing:border-box !important; }
+  .pdf-day-head { display:flex !important; align-items:center !important; justify-content:center !important; font-size:7pt !important; font-weight:700 !important; background:#f1f5f9 !important; }
+  .pdf-staff-head { display:flex !important; align-items:center !important; justify-content:center !important; overflow:hidden !important; background:#f1f5f9 !important; padding:1mm !important; }
+  .pdf-staff-head { writing-mode:vertical-rl !important; transform:none !important; font-size:7pt !important; font-weight:700 !important; line-height:1 !important; }
+  .pdf-day-cell { display:flex !important; flex-direction:column !important; justify-content:center !important; gap:1mm !important; padding:1mm !important; background:#f8fafc !important; }
+  .pdf-day-cell strong { font-size:6.5pt !important; }
+  .pdf-day-cell small { font-size:6pt !important; color:#536579 !important; }
+  .pdf-shift-cell { display:flex !important; flex-direction:column !important; justify-content:center !important; gap:1mm !important; padding:.7mm !important; background:#fff !important; }
+  .pdf-shift { border:.3mm solid #cbd5e1 !important; border-radius:1mm !important; padding:1mm .5mm !important; text-align:center !important; background:#f1f5f9 !important; color:#172b3f !important; overflow:hidden !important; }
+  .pdf-shift strong { display:block !important; font-size:5.5pt !important; line-height:1.15 !important; white-space:nowrap !important; }
+  .pdf-shift small { display:block !important; font-size:5pt !important; }
+  .pdf-empty { color:#a0adba !important; font-size:7pt !important; text-align:center !important; }
+  .pdf-shift.shift-green { background:#e5f6ec !important; border-color:#a9dfbf !important; }
+  .pdf-shift.shift-blue { background:#e5f0ff !important; border-color:#aacbff !important; }
+  .pdf-shift.shift-purple { background:#f0e9ff !important; border-color:#cdbbff !important; }
+  .pdf-shift.shift-yellow { background:#fff4d6 !important; border-color:#f0d48a !important; }
+  .sidebar,.topbar,footer,.page-heading .actions,.schedule-toolbar,.coverage-legend,.panel-two,.section-gap,.btn,.mobile-menu { display:none !important; }
+  .app-shell,.main-area { display:block !important; min-height:0 !important; margin:0 !important; padding:0 !important; width:100% !important; }
+  .page-content { padding:0 !important; margin:0 !important; }
+}
+
+
 /* PDF-Export: komplette Woche auf genau einer A4-Seite, helle Druckansicht */
 @page { size: A4 landscape; margin: 5mm; }
 @media print {
