@@ -263,3 +263,8 @@
 .pdf-time-shift.service-other{background:#ffe1e2!important;color:#a82b35!important}
 .pdf-time-shift.service-fortbildung{background:#ffedcf!important;color:#88520a!important}
 .event-orange{background:#ffedcf!important;color:#88520a!important;border-color:#efc77e!important}
+
+/* Kirche bekommt eine eigene Türkisfarbe und bleibt klar vom normalen Dienst unterscheidbar */
+.outlook-shift.service-church{background:#d9f4f3!important;color:#1e6867!important;border-color:#9dd7d4!important}
+.pdf-time-shift.service-church{background:#d9f4f3!important;color:#1e6867!important}
+.event-green{background:#d9f4f3!important;color:#1e6867!important;border-color:#9dd7d4!important}
