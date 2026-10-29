@@ -27,8 +27,8 @@ Du kannst `index.html` lokal öffnen oder GitHub Pages aktivieren: **Settings �
 
 ## Wichtige Hinweise
 
-- Alle Namen, Termine und Zahlen sind Beispieldaten.
-- Änderungen bleiben derzeit nur im Speicher der geöffneten Browser-Sitzung und gehen beim Neuladen verloren.
+- Die Anwendung startet ohne Mitarbeitende, Dienste, Termine und Abwesenheiten. Die Gruppen Nest, Sonnengruppe und Sternengruppe bleiben als Ausgangskonfiguration erhalten. Mitarbeitende können selbst angelegt und wieder entfernt werden.
+- Änderungen bleiben derzeit nur im Speicher der geöffneten Browser-Sitzung und gehen beim Neuladen verloren. Das gilt auch für neu angelegte oder entfernte Mitarbeitende.
 - Es gibt noch keine Anmeldung, Datenbank, echte Dienstplanoptimierung oder rechtliche Arbeitszeitprüfung.
 - Keine echten personenbezogenen Daten in diesem Prototyp verwenden.
 - Vor produktiver Nutzung müssen sichere Speicherung, Zugriffsschutz, Datensicherung, Arbeitszeitregeln und die Planungslogik fachlich und technisch umgesetzt und geprüft werden.
