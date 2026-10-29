@@ -136,6 +136,37 @@
 
 .nav-children[hidden] { display: none !important; }
 
+/* Final PDF layout: days and employees on the horizontal axis, times vertically */
+#pdfWeekView { display:none; }
+@page { size:A4 landscape; margin:5mm; }
+@media print {
+  #pdfWeekView { display:block !important; width:100% !important; color:#172b3f !important; }
+  #pdfWeekView h1 { font-size:11pt !important; margin:0 0 2mm !important; }
+  #pageContent > :not(#pdfWeekView) { display:none !important; }
+  .pdf-time-grid { display:grid !important; grid-template-columns:7mm repeat(var(--pdf-total-cols),minmax(0,1fr)) !important; grid-template-rows:8mm 13mm 158mm !important; width:100% !important; height:179mm !important; border-top:.25mm solid #b7c4d1 !important; border-left:.25mm solid #b7c4d1 !important; }
+  .pdf-time-head { grid-column:1;grid-row:1;display:flex;align-items:center;justify-content:center;font-size:4pt;font-weight:700;background:#f1f5f9;border-right:.2mm solid #cbd5e1;border-bottom:.2mm solid #cbd5e1; }
+  .pdf-day-group { display:flex;align-items:center;justify-content:center;gap:1mm;font-size:6pt;font-weight:700;background:#eaf0f6;border-right:.25mm solid #b7c4d1;border-bottom:.25mm solid #b7c4d1; }
+  .pdf-day-group small { font-size:5pt;font-weight:500; }
+  .pdf-time-subhead { grid-column:1;grid-row:2;background:#f8fafc;border-right:.2mm solid #cbd5e1;border-bottom:.2mm solid #cbd5e1; }
+  .pdf-staff-subhead { grid-row:2;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;transform:rotate(180deg);overflow:hidden;font-size:4pt;font-weight:600;line-height:1;background:#f8fafc;border-right:.2mm solid #d5dde6;border-bottom:.2mm solid #cbd5e1;padding:.3mm; }
+  .pdf-time-axis { grid-column:1;grid-row:3;position:relative;background:#fff;border-right:.2mm solid #cbd5e1; }
+  .pdf-time-axis span { position:absolute;right:.3mm;transform:translateY(-50%);font-size:4pt;color:#536579;background:#fff; }
+  .pdf-time-column { grid-row:3;min-width:0;border-right:.2mm solid #d5dde6; }
+  .pdf-time-track { height:100%;position:relative;background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(12.5% - .2mm),#d7e0e8 calc(12.5% - .2mm),#d7e0e8 12.5%); }
+  .pdf-time-shift { position:absolute;left:.15mm;right:.15mm;min-height:0;overflow:hidden;padding:.3mm 0;border:.15mm solid #b7c4d1;border-radius:.4mm;background:#f1f5f9;color:#172b3f;text-align:center;line-height:1.05; }
+  .pdf-time-shift strong,.pdf-time-shift span { display:block;font-size:3.5pt;overflow-wrap:anywhere;white-space:normal; }
+  .pdf-time-shift span { margin-top:.3mm; }
+  .pdf-time-shift.shift-green { background:#e5f6ec;border-color:#a9dfbf; }
+  .pdf-time-shift.shift-blue { background:#e5f0ff;border-color:#aacbff; }
+  .pdf-time-shift.shift-purple { background:#f0e9ff;border-color:#cdbbff; }
+  .pdf-time-shift.shift-yellow { background:#fff4d6;border-color:#f0d48a; }
+  .sidebar,.topbar,footer,.page-heading .actions,.schedule-toolbar,.coverage-legend,.panel-two,.section-gap,.btn,.mobile-menu { display:none !important; }
+  .app-shell,.main-area { display:block !important;min-height:0 !important;margin:0 !important;padding:0 !important;width:100% !important; }
+  .page-content { padding:0 !important;margin:0 !important; }
+  .pdf-time-shift,.pdf-staff-subhead,.pdf-day-group { print-color-adjust:exact !important;-webkit-print-color-adjust:exact !important; }
+}
+
+
 /* Export-Ansicht als kompakte Wochenmatrix: sieben Tage auf einem Blatt */
 #pdfWeekView { display:none; }
 @page { size:A4 landscape; margin:5mm; }
