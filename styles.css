@@ -246,8 +246,3 @@
 #blockForm .full{grid-column:1/-1}
 
 
-/* Dezente visuelle Hervorhebung der Betreuungs-Übergangszeiten im Dienstplan */
-.outlook-focus-band{position:absolute;left:0;right:0;height:6.25%;background:rgba(255,213,92,.48);border-top:2px solid rgba(160,112,0,.8);border-bottom:2px solid rgba(160,112,0,.8);z-index:5;pointer-events:none;display:flex;align-items:flex-start;justify-content:flex-end;padding:1px 3px;overflow:hidden}
-.outlook-focus-band span{font-size:9px;line-height:1.1;font-weight:800;color:#654600;background:rgba(255,244,190,.98);border-radius:3px;padding:1px 2px;white-space:nowrap}
-.outlook-focus-band.focus-morning{top:6.25%}
-.outlook-focus-band.focus-afternoon{top:56.25%}
