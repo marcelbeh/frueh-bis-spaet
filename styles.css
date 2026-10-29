@@ -135,3 +135,44 @@
 @media(max-width:760px){.nav-parent{padding:11px 13px}.nav-children{padding-left:18px}}
 
 .nav-children[hidden] { display: none !important; }
+
+/* PDF-Export: komplette Woche auf genau einer A4-Seite, helle Druckansicht */
+@page { size: A4 landscape; margin: 5mm; }
+@media print {
+  html, body { background:#fff !important; color:#172b3f !important; margin:0 !important; padding:0 !important; }
+  * { box-shadow:none !important; }
+  .page-content { width:100% !important; max-width:none !important; }
+  .page-heading { margin:0 0 2mm !important; }
+  .page-heading h1 { font-size:13pt !important; margin:0 !important; }
+  .card-header h2 { font-size:8pt !important; }
+  .card-header p, .page-heading p, .eyebrow { display:none !important; }
+  .card-header { padding:0 0 1mm !important; }
+  .day-calendar-list { display:grid !important; grid-template-columns:repeat(7,minmax(0,1fr)) !important; gap:1.2mm !important; padding:0 !important; }
+  .day-calendar { min-width:0 !important; width:auto !important; overflow:hidden !important; border:0.3mm solid #cbd5e1 !important; border-radius:1mm !important; break-inside:avoid !important; page-break-inside:avoid !important; }
+  .day-calendar-head { padding:1mm !important; background:#f1f5f9 !important; border-bottom:0.2mm solid #cbd5e1 !important; min-height:7mm !important; }
+  .day-calendar-head > div:first-child { min-width:0 !important; gap:.5mm !important; }
+  .day-calendar-head > div:first-child strong { font-size:6pt !important; }
+  .day-calendar-head > div:first-child span, .day-coverage-strip { display:none !important; }
+  .outlook-calendar-scroll { overflow:visible !important; }
+  .outlook-calendar { display:grid !important; min-width:0 !important; width:100% !important; grid-template-columns:5mm repeat(var(--staff-count),minmax(0,1fr)) !important; grid-template-rows:8mm 115mm !important; }
+  .outlook-corner { font-size:5pt !important; padding:0 !important; }
+  .outlook-staff-head { min-width:0 !important; min-height:0 !important; padding:.5mm 0 !important; gap:0 !important; display:flex !important; flex-direction:column !important; justify-content:center !important; overflow:hidden !important; background:#f8fafc !important; border-right:.2mm solid #d5dde6 !important; }
+  .outlook-staff-head .person-avatar { display:none !important; }
+  .outlook-staff-head strong { writing-mode:vertical-rl !important; transform:rotate(180deg) !important; white-space:nowrap !important; font-size:5.5pt !important; line-height:1 !important; max-height:7mm !important; }
+  .outlook-staff-head small { font-size:4pt !important; writing-mode:vertical-rl !important; max-height:0 !important; overflow:hidden !important; }
+  .outlook-time-axis, .outlook-staff-column { height:115mm !important; min-width:0 !important; }
+  .outlook-time-axis { background:#fff !important; }
+  .outlook-time-axis span { right:0 !important; font-size:4pt !important; background:#fff !important; }
+  .outlook-staff-column { background:#fff !important; border-right:.2mm solid #d5dde6 !important; }
+  .outlook-time-grid { background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(12.5% - .2mm),#d8e0e8 calc(12.5% - .2mm),#d8e0e8 12.5%) !important; }
+  .outlook-shift { left:.3mm !important; right:.3mm !important; padding:.5mm !important; border:.2mm solid #b8c6d5 !important; border-radius:.5mm !important; background:#f0f4f8 !important; color:#172b3f !important; min-height:0 !important; overflow:hidden !important; }
+  .outlook-shift strong, .outlook-shift span { font-size:4pt !important; line-height:1.05 !important; white-space:normal !important; overflow-wrap:anywhere !important; color:#172b3f !important; }
+  .outlook-shift span { margin-top:.3mm !important; }
+  .outlook-staff-head, .outlook-shift { print-color-adjust:exact !important; -webkit-print-color-adjust:exact !important; }
+  .sidebar, .topbar, footer, .page-heading .actions, .schedule-toolbar, .coverage-legend, .panel-two, .section-gap, .btn, .mobile-menu { display:none !important; }
+  .app-shell, .main-area { display:block !important; min-height:0 !important; margin:0 !important; padding:0 !important; width:100% !important; }
+  .page-content { padding:0 !important; margin:0 !important; }
+  .card { border:0 !important; margin:0 !important; padding:0 !important; }
+  .day-calendar:nth-child(n) { break-inside:avoid !important; }
+}
+
