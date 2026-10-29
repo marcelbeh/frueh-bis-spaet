@@ -97,7 +97,7 @@ document.addEventListener("click",e=>{
  if(action==="add-person")addPersonModal();
  if(action==="prev-week"){weekOffset--;render()}
  if(action==="next-week"){weekOffset++;render()}
- if(action==="save-settings"){alert("Einstellungen sind im Prototyp noch nicht dauerhaft gespeichert.");}
+ if(action==="save-settings"){ $("[data-min-group]").forEach(el=>{plannerSettings.minimumByGroup[el.dataset.minGroup]=Number(el.value)||0}); ["early","main","late"].forEach(key=>{const start=$("#shift-"+key+"-start"),end=$("#shift-"+key+"-end");if(start&&end&&minutes(end.value)>minutes(start.value)){plannerSettings.shifts[key].start=start.value;plannerSettings.shifts[key].end=end.value}else if(start&&end){alert("Bei jedem Dienstmodell muss das Ende nach dem Beginn liegen.");return}});alert("Planungskriterien wurden für diese Browser-Sitzung übernommen. Dauerhafte Speicherung folgt mit der Datenbank.");render()}
  if(action==="export-csv"){const csv=["Name;Gruppe;Wochenstunden;Resturlaub;Sonderdienste",...names.map(p=>[p.name,p.group,p.hours,p.vacation,p.special].join(";"))].join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}));a.download="frueh-bis-spaet-auswertung.csv";a.click();URL.revokeObjectURL(a.href)}
 });
 $("#closeModal").addEventListener("click",closeModal);$("#modalBackdrop").addEventListener("click",e=>{if(e.target.id==="modalBackdrop")closeModal()});
