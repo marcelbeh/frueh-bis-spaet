@@ -1,16 +1,16 @@
 const $ = (s, root=document) => root.querySelector(s);
 const $$ = (s, root=document) => [...root.querySelectorAll(s)];
 const names = [
- {name:"Anna Schmidt",initials:"AS",group:"Regenbogen",hours:30,vacation:12,special:2,meetings:5,supervision:3,color:"green"},
- {name:"Lisa Hoffmann",initials:"LH",group:"Regenbogen",hours:30,vacation:8,special:1,meetings:5,supervision:3,color:"yellow"},
- {name:"Markus Klein",initials:"MK",group:"Sonnenkäfer",hours:25,vacation:15,special:3,meetings:4,supervision:2,color:"blue"},
- {name:"Tina Reinhardt",initials:"TR",group:"Sonnenkäfer",hours:32,vacation:10,special:2,meetings:5,supervision:3,color:"purple"},
- {name:"Sarah Jansen",initials:"SJ",group:"Pusteblume",hours:25,vacation:9,special:2,meetings:5,supervision:3,color:"green"},
- {name:"Julia Fischer",initials:"JF",group:"Pusteblume",hours:30,vacation:14,special:1,meetings:4,supervision:2,color:"pink"},
- {name:"Barbara Weber",initials:"BW",group:"Wolkenzwerge (U2)",hours:35,vacation:11,special:3,meetings:5,supervision:3,color:"yellow"},
- {name:"Tobias Neumann",initials:"TN",group:"Wolkenzwerge (U2)",hours:20,vacation:16,special:1,meetings:3,supervision:2,color:"blue"}
+ {name:"Anna Schmidt",initials:"AS",group:"Nest",hours:30,vacation:12,special:2,meetings:5,supervision:3,color:"green"},
+ {name:"Lisa Hoffmann",initials:"LH",group:"Nest",hours:30,vacation:8,special:1,meetings:5,supervision:3,color:"yellow"},
+ {name:"Markus Klein",initials:"MK",group:"Sonnengruppe",hours:25,vacation:15,special:3,meetings:4,supervision:2,color:"blue"},
+ {name:"Tina Reinhardt",initials:"TR",group:"Sonnengruppe",hours:32,vacation:10,special:2,meetings:5,supervision:3,color:"purple"},
+ {name:"Sarah Jansen",initials:"SJ",group:"Sternengruppe",hours:25,vacation:9,special:2,meetings:5,supervision:3,color:"green"},
+ {name:"Julia Fischer",initials:"JF",group:"Sternengruppe",hours:30,vacation:14,special:1,meetings:4,supervision:2,color:"pink"},
+ {name:"Barbara Weber",initials:"BW",group:"Nest",hours:35,vacation:11,special:3,meetings:5,supervision:3,color:"yellow"},
+ {name:"Tobias Neumann",initials:"TN",group:"Nest",hours:20,vacation:16,special:1,meetings:3,supervision:2,color:"blue"}
 ];
-const groups = ["Regenbogen","Sonnenkäfer","Pusteblume","Wolkenzwerge (U2)"];
+const groups = ["Nest","Sonnengruppe","Sternengruppe","Nest"];
 const weekdays = ["Mo","Di","Mi","Do","Fr","Sa","So"];
 const pageTitles = {dashboard:"Dashboard",dienstplan:"Dienstplan",kalender:"Kalender",mitarbeitende:"Mitarbeitende",abwesenheiten:"Urlaub & Abwesenheit",sondertermine:"Sondertermine",teammeetings:"Teammeetings",supervision:"Supervision",fortbildungen:"Fortbildungen",auswertungen:"Auswertungen",einstellungen:"Einstellungen"};
 let currentPage = "dashboard";
@@ -39,8 +39,8 @@ function initShifts(){
  if(shifts.length)return;
  const times=[["07:30","12:00"],["08:00","14:15"],["08:00","15:00"],["09:00","15:30"],["07:00","13:00"],["09:00","16:00"],["08:00","14:00"],["07:30","13:30"]];
  names.forEach((p,i)=>{for(let d=0;d<5;d++){const start=times[(i+d)%times.length][0],end=times[(i+d)%times.length][1];shifts.push({id:"s"+i+"-"+d,person:p.name,group:p.group,day:d,start,end,color:p.color})}});
- shifts.push({id:"weekend1",person:"Barbara Weber",group:"Wolkenzwerge (U2)",day:5,start:"09:00",end:"12:00",color:"pink",special:true});
- shifts.push({id:"weekend2",person:"Markus Klein",group:"Sonnenkäfer",day:6,start:"10:00",end:"13:00",color:"blue",special:true});
+ shifts.push({id:"weekend1",person:"Barbara Weber",group:"Nest",day:5,start:"09:00",end:"12:00",color:"pink",special:true});
+ shifts.push({id:"weekend2",person:"Markus Klein",group:"Sonnengruppe",day:6,start:"10:00",end:"13:00",color:"blue",special:true});
 }
 function minutes(t){const [h,m]=t.split(":").map(Number);return h*60+m}
 function topPercent(t){return Math.max(0,Math.min(100,(minutes(t)-360)/960*100))}
@@ -56,7 +56,7 @@ function dashboard(){
  `<div class="stats"><div class="stat"><div class="stat-label">Planungshorizont</div><div class="stat-value">8 Wochen</div><div class="stat-note">Rollierende Vorschau</div></div><div class="stat"><div class="stat-label">Besetzung gesichert</div><div class="stat-value">5 / 8</div><div class="stat-note">Wochen geprüft</div></div><div class="stat"><div class="stat-label">Prüfung nötig</div><div class="stat-value">2</div><div class="stat-note warn">Gruppen mit Engpass</div></div><div class="stat"><div class="stat-label">Resturlaub im Team</div><div class="stat-value">95 Tage</div><div class="stat-note">Beispielwert</div></div></div>
  <div class="grid dashboard-grid">
  <section class="card"><div class="card-header"><div><h2>Dienstplan – nächste Woche</h2><p>${weekLabel()}</p></div><button class="btn small" data-page="dienstplan">Wochenansicht →</button></div><div class="card-body"><div class="mini-week">${days}</div><div class="legend" style="margin-top:12px"><span style="--legend:#9adbb9">Frühdienst</span><span style="--legend:#8bc2ff">Hauptdienst</span><span style="--legend:#c4adff">Spätdienst</span><span style="--legend:#f4a8bd">Sondertermin</span></div></div></section>
- <section class="card"><div class="card-header"><h2>Hinweise & Handlungsbedarf</h2><span class="pill red">3 offen</span></div><div class="card-body"><div class="notice-list"><div class="notice"><div class="notice-icon red">!</div><div><strong>Besetzung prüfen · Pusteblume</strong><p>Ein Zeitfenster könnte unter Mindestbesetzung fallen.</p><button class="btn small" data-page="dienstplan">Dienstplan prüfen</button></div></div><div class="notice"><div class="notice-icon">△</div><div><strong>Urlaubsüberschneidung</strong><p>Mehrere Abwesenheiten in derselben Woche.</p><button class="btn small" data-page="abwesenheiten">Abwesenheiten ansehen</button></div></div><div class="notice"><div class="notice-icon blue">↻</div><div><strong>Sonderdienst fair verteilen</strong><p>Die Verteilung der Zusatzdienste kann ausgeglichener sein.</p><button class="btn small" data-page="auswertungen">Auswertung öffnen</button></div></div></div></div></section>
+ <section class="card"><div class="card-header"><h2>Hinweise & Handlungsbedarf</h2><span class="pill red">3 offen</span></div><div class="card-body"><div class="notice-list"><div class="notice"><div class="notice-icon red">!</div><div><strong>Besetzung prüfen · Sternengruppe</strong><p>Ein Zeitfenster könnte unter Mindestbesetzung fallen.</p><button class="btn small" data-page="dienstplan">Dienstplan prüfen</button></div></div><div class="notice"><div class="notice-icon">△</div><div><strong>Urlaubsüberschneidung</strong><p>Mehrere Abwesenheiten in derselben Woche.</p><button class="btn small" data-page="abwesenheiten">Abwesenheiten ansehen</button></div></div><div class="notice"><div class="notice-icon blue">↻</div><div><strong>Sonderdienst fair verteilen</strong><p>Die Verteilung der Zusatzdienste kann ausgeglichener sein.</p><button class="btn small" data-page="auswertungen">Auswertung öffnen</button></div></div></div></div></section>
  <section class="card full-span"><div class="card-header"><div><h2>Mitarbeitendenübersicht</h2><p>Urlaub, Zusatzdienste und Termine auf einen Blick</p></div><button class="btn small" data-page="mitarbeitende">Alle Mitarbeitenden →</button></div><div class="card-body">${personTable(true)}</div></section>
  <section class="card"><div class="card-header"><h2>Wichtige Termine</h2><button class="btn small" data-page="kalender">Kalender öffnen →</button></div><div class="card-body"><div class="notice-list">${events.slice(0,3).map(e=>`<div class="notice"><div class="notice-icon ${e.type==='Sondertermin'?'red':e.type==='Supervision'?'blue':''}">✦</div><div><strong>${e.title}</strong><p>${fmt(new Date(e.date+"T12:00:00"),{weekday:"short",day:"2-digit",month:"2-digit"})} · ${e.time} · ${e.people} Teilnehmende</p></div></div>`).join("")}</div></div></section>
  <section class="card"><div class="card-header"><h2>Urlaub & Abwesenheiten</h2><button class="btn small" data-page="abwesenheiten">Alle ansehen →</button></div><div class="card-body"><div class="notice-list">${absences.slice(0,3).map(a=>`<div class="notice"><div class="notice-icon ${a.type==='Krankheit'?'red':a.type==='Fortbildung'?'blue':''}">◷</div><div><strong>${a.name}</strong><p>${a.type} · ${fmt(new Date(a.from+"T12:00:00"))}–${fmt(new Date(a.to+"T12:00:00"))}</p></div></div>`).join("")}</div></div></section></div>`;
