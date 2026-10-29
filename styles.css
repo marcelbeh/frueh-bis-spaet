@@ -253,3 +253,13 @@
 .outlook-shift.service-supervision{background:#e0efff;color:#205fa8;border-color:#a8ccf7}
 .outlook-shift.service-church{background:#dff4e5;color:#216b43;border-color:#a6d9b6}
 .outlook-shift.service-other{background:#ffe1e2;color:#a82b35;border-color:#f2b3b8}
+
+/* Sonderdienstfarben konsistent im Kalender, Dienstplan und PDF */
+.outlook-shift.service-fortbildung{background:#ffedcf;color:#88520a;border-color:#efc77e}
+.pdf-time-shift.service-normal{background:#d9f3e5!important;color:#176343!important}
+.pdf-time-shift.service-meeting{background:#eee5ff!important;color:#6741a5!important}
+.pdf-time-shift.service-supervision{background:#e0efff!important;color:#205fa8!important}
+.pdf-time-shift.service-church{background:#dff4e5!important;color:#216b43!important}
+.pdf-time-shift.service-other{background:#ffe1e2!important;color:#a82b35!important}
+.pdf-time-shift.service-fortbildung{background:#ffedcf!important;color:#88520a!important}
+.event-orange{background:#ffedcf!important;color:#88520a!important;border-color:#efc77e!important}
