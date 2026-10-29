@@ -91,3 +91,9 @@
 @media(max-width:760px){.outlook-calendar{grid-template-rows:76px 450px}}
 
 .setting-times{display:flex;gap:6px;flex-wrap:wrap}.setting-times input{min-width:105px;padding:8px}
+/* Einheitliche Gruppenfarben: Nest grün, Sonnen blau, Sterne violett */
+.outlook-staff-head.shift-green{background:#e5f6ec;border-bottom-color:#a9dfbf}
+.outlook-staff-head.shift-blue{background:#e5f0ff;border-bottom-color:#aacbff}
+.outlook-staff-head.shift-purple{background:#f0e9ff;border-bottom-color:#cdbbff}
+.outlook-staff-head.shift-yellow{background:#fff4d6;border-bottom-color:#f0d48a}
+.outlook-staff-head .person-avatar{background:rgba(255,255,255,.8)}
