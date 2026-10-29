@@ -92,7 +92,7 @@ function exportPlanPdf(){
   const days=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
   const dayHeader='<div class="pdf-time-head">Uhrzeit</div>'+days.map((day,i)=>'<div class="pdf-day-group" style="grid-column:span '+Math.max(1,staff.length)+'">'+day+'<small>'+fmt(dateForDay(i),{day:"2-digit",month:"2-digit"})+'</small></div>').join("");
   const staffHeader='<div class="pdf-time-subhead"></div>'+days.map(()=>staff.map(p=>'<div class="pdf-staff-subhead" title="'+p.name+'">'+p.name+'</div>').join("")).join("");
-  const timeLabels='<div class="pdf-time-axis">'+Array.from({length:9},(_,i)=>'<span style="top:'+(i/8*100)+'%">'+String(6+i*2).padStart(2,"0")+\':00</span>').join("")+'</div>';
+  const timeLabels='<div class="pdf-time-axis">'+Array.from({length:9},(_,i)=>'<span style="top:'+(i/8*100)+'%">'+String(6+i*2).padStart(2,"0")+':00</span>').join("")+'</div>';
   let columns="";
   days.forEach((day,dayIndex)=>{
     staff.forEach((p,staffIndex)=>{
