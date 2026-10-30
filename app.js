@@ -56,7 +56,7 @@ async function loadCloudData(user){
  const result=await cloud.from("app_state").select("state").eq("id",1).maybeSingle();
  if(result.error){showCloudLogin("Daten konnten nicht geladen werden: "+result.error.message);return;}
  if(result.data?.state)applyCloudSnapshot(result.data.state);
- cloudReady=true;document.getElementById("cloudLogin")?.remove();addCloudLogout();render();
+ cloudReady=true;document.getElementById("cloudLogin")?.remove();addCloudLogout();render();const status=document.getElementById("cloudSaveStatus");if(status)status.textContent="Gespeichert";
  if(!result.data)await saveCloudState();
 }
 async function saveCloudState(){
@@ -69,7 +69,7 @@ async function saveCloudState(){
 function scheduleCloudSave(){if(!cloudReady)return;clearTimeout(saveTimer);const status=document.getElementById("cloudSaveStatus");if(status)status.textContent="Speichert …";saveTimer=setTimeout(saveCloudState,500);}
 async function startCloudApp(){
  if(!window.supabase){showCloudLogin("Die Datenbankbibliothek konnte nicht geladen werden. Bitte Seite neu laden.");return;}
- showCloudLogin();const {data,error}=await cloud.auth.getSession();
+ const status=document.getElementById("cloudSaveStatus");if(status)status.textContent="Verbinde …";showCloudLogin();const {data,error}=await cloud.auth.getSession();
  if(error){showCloudLogin("Verbindung fehlgeschlagen: "+error.message);return;}
  if(data.session)await loadCloudData(data.session.user);
  cloud.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){cloudReady=false;cloudUser=null;showCloudLogin("Du wurdest abgemeldet.");}});
