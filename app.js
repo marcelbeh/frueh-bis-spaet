@@ -208,7 +208,7 @@ function generateWeekPlan(){
  gaps.forEach(g=>{const key=g.group+" · "+weekdays[g.day]+" "+g.label;const old=groupedGaps.get(key);if(!old||g.count<old.count)groupedGaps.set(key,g)});
  const summary=[...groupedGaps.entries()].map(([label,g])=>label+" ("+g.count+"/"+g.required+")");
  const hourSummary=validation.hourRows.filter(x=>x.diff<-.01).map(x=>x.name+": "+Math.max(0,-x.diff).toFixed(2).replace(".",",")+" Std. offen");
- const hardIssues=validation.absenceConflicts.length+validation.blockConflicts.length+validation.overlaps.length;
+ const hardIssues=validation.absenceConflicts.length+validation.blockConflicts.length+validation.overlaps.length+validation.workRuleConflicts.length+validation.eventConflicts.length;
  if(hardIssues){alert("Plan wurde nicht übernommen: Die Vorprüfung hat "+hardIssues+" harte Regelkonflikte gefunden. Bitte prüfe Abwesenheiten, Dienstsperren und Überschneidungen.");return}
  const totalTarget=validation.hourRows.reduce((n,x)=>n+x.target,0),totalAssigned=validation.hourRows.reduce((n,x)=>n+x.actual,0);
  const preview="Vorprüfung des neuen Dienstplans:\\n• "+created.length+" Dienste\\n• "+totalAssigned.toFixed(2).replace(".",",")+" von "+totalTarget.toFixed(2).replace(".",",")+" Sollstunden verteilt\\n• "+gaps.length+" Unterbesetzungsintervalle\\n• "+hourSummary.length+" Personen mit nicht verteilten Stunden"+(summary.length?"\\n\\nBeispiele Unterbesetzung: "+summary.slice(0,5).join("; "):"")+(hourSummary.length?"\\n\\nNicht verteilte Stunden: "+hourSummary.slice(0,5).join("; "):"")+".\\n\\nPlan trotz dieser Hinweise übernehmen?";
