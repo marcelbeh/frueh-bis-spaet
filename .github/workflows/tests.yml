@@ -1,0 +1,27 @@
+name: Tests
+on:
+  push:
+    branches: [main, audit/selected-fixes-2026-10]
+  pull_request:
+  workflow_dispatch:
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm test
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npx playwright install --with-deps chromium
+      - run: python3 -m http.server 4173 > /tmp/kita-http.log 2>&1 & sleep 3
+      - run: npm run test:browser
