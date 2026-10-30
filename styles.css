@@ -355,3 +355,12 @@
 
 /* Cloud status is intentionally not shown in the interface; errors use a popup. */
 .demo-chip{display:none!important}
+
+/* Sidebar toggle: anchored on the left edge of the navigation */
+.brand-row{display:flex;align-items:flex-start;gap:12px;padding:0 8px 28px 0;min-width:0}
+.brand-row .sidebar-collapse{position:static;order:0;flex:0 0 36px;width:36px;height:36px;margin:8px 0 0 0;display:grid;place-items:center;border-radius:11px;background:#e8f1ff;color:#1769d2;font-size:25px;line-height:1}
+.brand-row .brand{order:1;flex:1;min-width:0;padding:0;gap:12px}
+.app-shell.sidebar-collapsed .brand-row{justify-content:flex-start;align-items:center;padding:0 0 28px;gap:0}
+.app-shell.sidebar-collapsed .brand-row .sidebar-collapse{position:static;order:0;flex:0 0 42px;width:42px;height:42px;margin:0 auto;transform:rotate(180deg)}
+.app-shell.sidebar-collapsed .brand-row .brand{display:none!important}
+@media(max-width:760px){.brand-row .sidebar-collapse{display:none}}
