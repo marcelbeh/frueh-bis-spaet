@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "test": "node --test tests/core.test.cjs",
-    "test:browser": "playwright test"
+    "test:browser": "playwright test tests/browser.spec.cjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.1"
