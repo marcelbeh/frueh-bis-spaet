@@ -100,13 +100,28 @@ function coverageRequirement(day,time,group){
  if(core)return {scope:"group",required:Number(plannerSettings.minimumByGroup[group])||0,weight:2,label:"Kernzeit"};
  return {scope:"none",required:0,weight:0,label:""};
 }
+function shiftPause(s){
+ const span=minutes(s.end)-minutes(s.start);
+ if(span<=390)return null;
+ const start=minutes(s.start)+240;
+ return {start,end:start+30};
+}
+function shiftWorkMinutes(s){
+ const span=minutes(s.end)-minutes(s.start),pause=shiftPause(s);
+ return Math.max(0,span-(pause?30:0));
+}
+function shiftCoversTime(s,time){
+ const pause=shiftPause(s);
+ return minutes(s.start)<=time&&minutes(s.end)>time&&!(pause&&time>=pause.start&&time<pause.end);
+}
 function countCoverage(assigned,day,time,group,scope){
- return assigned.filter(x=>x.day===day&&minutes(x.start)<=time&&minutes(x.end)>time&&(scope==="combined"||x.group===group)).length;
+ return assigned.filter(x=>x.day===day&&shiftCoversTime(x,time)&&(scope==="combined"||x.group===group)).length;
 }
 function scoreShiftCoverage(assigned,person,day,start,end){
  let score=0;
  for(let time=420;time<960;time+=15){
   if(time<start||time>=end)continue;
+  const pause=shiftPause({start:tm(start),end:tm(end)});if(pause&&time>=pause.start&&time<pause.end)continue;
   const demand=coverageRequirement(day,time,person.group);
   if(!demand.required)continue;
   const count=countCoverage(assigned,day,time,person.group,demand.scope);
@@ -209,7 +224,7 @@ function uiIcon(name){const icons={"home":"<path d=\"m3 10 9-7 9 7\"/><path d=\"
 
 function weeklyPlanningDiagnostics(offset=weekOffset,plannedOverride=null){
  const people=planningPeople(),planned=plannedOverride||weekShifts(offset),coverageShifts=planned.filter(x=>!x.serviceType||x.serviceType==="Normaler Dienst");
- const gaps=inspectCoverage(coverageShifts),hourRows=people.map(p=>{const target=Math.max(0,Number(p.hours)||0),actual=planned.filter(x=>x.person===p.name).reduce((n,x)=>n+(minutes(x.end)-minutes(x.start))/60,0);return {name:p.name,target,actual,diff:actual-target}});
+ const gaps=inspectCoverage(coverageShifts),hourRows=people.map(p=>{const target=Math.max(0,Number(p.hours)||0),actual=planned.filter(x=>x.person===p.name).reduce((n,x)=>n+shiftWorkMinutes(x)/60,0);return {name:p.name,target,actual,diff:actual-target}});
  const absenceConflicts=[],blockConflicts=[],overlaps=[];
  planned.forEach(x=>{const p=people.find(y=>y.name===x.person);if(!p)return;const absence=blockingAbsence(p,x.day,offset);if(absence)absenceConflicts.push(x.person+" · "+weekdays[x.day]+" · "+absence.type);if(isBlocked(p,x.day,x.start,x.end,offset))blockConflicts.push(x.person+" · "+weekdays[x.day]+" "+x.start+"–"+x.end);});
  for(let i=0;i<planned.length;i++)for(let j=i+1;j<planned.length;j++){const a=planned[i],b=planned[j];if(a.person===b.person&&a.day===b.day&&minutes(a.start)<minutes(b.end)&&minutes(a.end)>minutes(b.start))overlaps.push(a.person+" · "+weekdays[a.day]+" "+a.start+"–"+a.end+" / "+b.start+"–"+b.end);}
@@ -263,7 +278,7 @@ function dutyPage(){
   const timeAxis=Array.from({length:9},(_,n)=>{const h=6+n*2;return `<span style="top:${n/8*100}%">${String(h).padStart(2,"0")}:00</span>`}).join("");
   const columns=people.map(p=>{
    const personShifts=dayShifts.filter(s=>s.person===p.name);
-   const blocks=personShifts.map(s=>`<button class="outlook-shift ${shiftClass(s)}" style="${shiftPosition(s)}" data-edit-shift="${s.id}" title="${s.person}: ${s.start}–${s.end}"><strong>${s.start}–${s.end}</strong><span>${s.serviceType&&s.serviceType!=="Normaler Dienst"?s.serviceType:s.group}</span></button>`).join("");
+   const blocks=personShifts.map(s=>{const pause=shiftPause(s),span=minutes(s.end)-minutes(s.start);const pauseMarkup=pause?'<span class="pause-marker" style="top:'+((pause.start-minutes(s.start))/span*100)+'%;height:'+(30/span*100)+'%">Pause · 30 Min.</span>':'';return '<button class="outlook-shift '+shiftClass(s)+'" style="'+shiftPosition(s)+'" data-edit-shift="'+s.id+'" title="'+s.person+': '+s.start+'–'+s.end+(pause?' · Pause 30 Min.':'')+'"><strong>'+s.start+'–'+s.end+'</strong><span>'+(s.serviceType&&s.serviceType!=="Normaler Dienst"?s.serviceType:s.group)+'</span>'+pauseMarkup+'</button>'}).join("");
    return `<div class="outlook-staff-column"><div class="outlook-time-grid"></div>${blocks}</div>`;
   }).join("");
   const coverageShifts=dayShifts.filter(s=>!s.serviceType||s.serviceType==="Normaler Dienst");const cover=renderCoverageStrip(coverageShifts);
@@ -271,7 +286,7 @@ function dutyPage(){
  }).join("");
  return heading("Dienstplan","Wochenkalender wie in Outlook · Mitarbeitende oben, Uhrzeiten links und alle Dienste pro Tag auf einer gemeinsamen Zeitachse.",'<button class="btn" data-action="prev-week">← Vorherige</button><button class="btn" data-action="next-week">Nächste →</button><button class="btn" data-action="copy-week">Woche kopieren →</button><button class="btn" data-action="print-plan">PDF exportieren</button><button class="btn primary" data-action="generate-plan">Diese Woche automatisch planen</button><button class="btn primary" data-action="add-shift">＋ Dienst eintragen</button>')+
  `<section class="card"><div class="card-header"><div><h2>${weekLabel()}</h2><p>Jeder Tag hat eine gemeinsame vertikale Zeitachse von 06:00 bis 22:00 Uhr. Schichten überlappen zeitlich nebeneinander in den Mitarbeiterspalten. Zum Bearbeiten einen Dienst anklicken.</p></div><button class="btn primary save-plan-button" type="button" data-action="save-plan">Jetzt speichern</button></div><div class="schedule-toolbar"><select id="groupFilter" class="select-control" aria-label="Gruppe filtern"><option>Alle Gruppen</option>${groups.map(g=>`<option ${selectedGroup===g?'selected':''}>${g}</option>`).join("")}</select><div class="legend"><span style="--legend:#9adbb9">Normaler Dienst</span><span style="--legend:#b69af7">Meeting</span><span style="--legend:#83b8f7">Supervision</span><span style="--legend:#7cc9c7">Kirche</span><span style="--legend:#f0aa42">Fortbildung</span><span style="--legend:#f19aa5">Sonstiges</span></div></div><div class="day-calendar-list">${days}</div><div class="coverage-legend"><span class="coverage-low-key">0–1 Person</span><span class="coverage-watch-key">2 Personen</span><span class="coverage-ok-key">3+ Personen</span><span class="muted">Besetzungsstreifen je 2 Stunden; Schwellenwerte vorläufig.</span></div></section>${renderPlanningDiagnostics()}
- <div class="grid panel-two section-gap"><section class="card"><div class="card-header"><h2>Wochenstunden im Überblick</h2></div><div class="card-body"><div class="table-wrap"><table><thead><tr><th>Mitarbeitende</th><th>Sollstunden</th><th>Geplante Stunden*</th><th>Status</th></tr></thead><tbody>${people.map(p=>{const total=weekShifts().filter(s=>s.person===p.name).reduce((n,s)=>n+(minutes(s.end)-minutes(s.start))/60,0);return `<tr><td>${p.name}</td><td>${p.hours} Std.</td><td>${total.toFixed(1)} Std.</td><td><span class="pill ${total>p.hours?'red':total<p.hours?'yellow':'green'}">${total>p.hours?'Über Soll':total<p.hours?'Prüfen':'Passt'}</span></td></tr>`}).join("")}</tbody></table></div><p class="muted" style="font-size:10px">*Beispielberechnung für den Prototyp; Pausen- und Wochenstundenlogik noch nicht vollständig.</p></div></section><section class="card"><div class="card-header"><h2>Planungsregeln</h2></div><div class="card-body"><div class="setting-row"><div><strong>Zeitraum</strong><small>Montag bis Sonntag</small></div><span class="pill blue">7 Tage</span></div><div class="setting-row"><div><strong>Tagesansicht</strong><small>06:00 bis 22:00 Uhr</small></div><span class="pill green">16 Stunden</span></div><div class="setting-row"><div><strong>Überschneidungen</strong><small>Gemeinsame Zeitachse je Tag</small></div><span class="pill blue">Sichtbar</span></div><div class="setting-row"><div><strong>Gruppenbedarf</strong><small>Über Einstellungen konfigurierbar</small></div><button class="btn small" data-page="einstellungen">Einstellen</button></div></div></section></div>`;
+ <div class="grid panel-two section-gap"><section class="card"><div class="card-header"><h2>Wochenstunden im Überblick</h2></div><div class="card-body"><div class="table-wrap"><table><thead><tr><th>Mitarbeitende</th><th>Sollstunden</th><th>Geplante Stunden*</th><th>Status</th></tr></thead><tbody>${people.map(p=>{const total=weekShifts().filter(s=>s.person===p.name).reduce((n,s)=>n+shiftWorkMinutes(s)/60,0);return `<tr><td>${p.name}</td><td>${p.hours} Std.</td><td>${total.toFixed(1)} Std.</td><td><span class="pill ${total>p.hours?'red':total<p.hours?'yellow':'green'}">${total>p.hours?'Über Soll':total<p.hours?'Prüfen':'Passt'}</span></td></tr>`}).join("")}</tbody></table></div><p class="muted" style="font-size:10px">*Pausen ab mehr als 6 Stunden tatsächlicher Arbeitszeit werden automatisch mit 30 Minuten berücksichtigt.</p></div></section><section class="card"><div class="card-header"><h2>Planungsregeln</h2></div><div class="card-body"><div class="setting-row"><div><strong>Zeitraum</strong><small>Montag bis Sonntag</small></div><span class="pill blue">7 Tage</span></div><div class="setting-row"><div><strong>Tagesansicht</strong><small>06:00 bis 22:00 Uhr</small></div><span class="pill green">16 Stunden</span></div><div class="setting-row"><div><strong>Überschneidungen</strong><small>Gemeinsame Zeitachse je Tag</small></div><span class="pill blue">Sichtbar</span></div><div class="setting-row"><div><strong>Gruppenbedarf</strong><small>Über Einstellungen konfigurierbar</small></div><button class="btn small" data-page="einstellungen">Einstellen</button></div></div></section></div>`;
 }
 function calendarPage(){
  const first=new Date(dateForDay(0).getFullYear(),dateForDay(0).getMonth(),1);
