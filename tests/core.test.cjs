@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const source = fs.readFileSync('app.js', 'utf8');
 const context = {Date, Math, Set, Number, String, Array, Object, console, weekOffset:0, shifts:[], iso:d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"), minutes:t=>{const [h,m]=t.split(':').map(Number);return h*60+m;}, dateForDay:(day,offset=0)=>{const d=new Date(2026,0,5+offset*7+day,12);return d;}};
-function loadFunction(name){const start=source.indexOf('function '+name+'(');assert.notEqual(start,-1,'function '+name+' exists');const end=source.indexOf('\\nfunction ',start+10);assert.notEqual(end,-1,'next function after '+name+' exists');vm.runInContext(source.slice(start,end),ctx);}
+function loadFunction(name){const start=source.indexOf('function '+name+'(');assert.notEqual(start,-1,'function '+name+' exists');const end=source.indexOf(String.fromCharCode(10)+'function ',start+10);assert.notEqual(end,-1,'next function after '+name+' exists');vm.runInContext(source.slice(start,end),ctx);}
 const ctx=vm.createContext(context);
 for(const name of ['escapeHTML','easterSunday','nrwPublicHolidays','isWorkingDay','calendarDaysBetween','shiftPause','shiftWorkMinutes','shiftCoversTime','eventOccursOnDate'])loadFunction(name);
 test('app.js parses as JavaScript',()=>assert.doesNotThrow(()=>new Function(source)));
