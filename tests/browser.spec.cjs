@@ -33,7 +33,8 @@ test('dragging a shift end changes the displayed time in 15-minute increments',a
  window.__savedState=null;
  window.supabase={createClient:()=>({
   auth:{
-   getSession:async()=>({data:{session:{user:{id:'user-1',email:'leitung@example.test'}}},error:null}),
+   getSession:async()=>({data:{session:null},error:null}),
+   signInWithPassword:async()=>({data:{user:{id:'user-1',email:'leitung@example.test'}},error:null}),
    onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),
    signOut:async()=>({error:null})
   },
@@ -55,6 +56,9 @@ test('dragging a shift end changes the displayed time in 15-minute increments',a
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.setViewportSize({width:1440,height:1000});
  await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+ await page.locator('input[name="email"]').fill('leitung@example.test');
+ await page.locator('input[name="password"]').fill('test-password');
+ await page.locator('#cloudLoginForm button[type="submit"]').click();
  await expect(page.locator('#cloudLogin')).toHaveCount(0);
  await page.locator('[data-page="dienstplan"]').first().click();
  const handle=page.locator('[data-resize-shift="s1"]');
