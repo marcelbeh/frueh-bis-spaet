@@ -16,6 +16,60 @@ let names = [
 const groups = ["Nest","Sonnengruppe","Sternengruppe"];
 const weekdays = ["Mo","Di","Mi","Do","Fr","Sa","So"];
 const plannerSettings = {frame:{start:"07:00",end:"16:00"},minimumByGroup:{"Nest":2,"Sonnengruppe":2,"Sternengruppe":2}};
+
+const SUPABASE_URL = "https://pcwcghbzksopfyrgzyht.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_OznU91iPtKK2nsjTJA2q6Q_LuxXyzUB";
+const cloud = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+let cloudReady = false, cloudUser = null, saveTimer = null;
+function cloudSnapshot(){return {version:1,baseMonday:iso(baseMonday),names,groups,plannerSettings,events,absences,shifts,weekOffset,selectedGroup};}
+function applyCloudSnapshot(s){
+ if(!s||typeof s!=="object")return;
+ if(Array.isArray(s.names))names=s.names;
+ if(Array.isArray(s.groups))groups.splice(0,groups.length,...s.groups);
+ if(s.plannerSettings&&typeof s.plannerSettings==="object"){plannerSettings.frame={...plannerSettings.frame,...(s.plannerSettings.frame||{})};plannerSettings.minimumByGroup={...plannerSettings.minimumByGroup,...(s.plannerSettings.minimumByGroup||{})};}
+ if(Array.isArray(s.events))events=s.events;
+ if(Array.isArray(s.absences))absences=s.absences;
+ if(Array.isArray(s.shifts))shifts=s.shifts;
+ if(Number.isInteger(s.weekOffset))weekOffset=s.weekOffset;
+ if(s.baseMonday){const saved=new Date(s.baseMonday+"T12:00:00");if(!Number.isNaN(saved.getTime())){const elapsed=Math.round((baseMonday-saved)/604800000);if(elapsed){shifts=shifts.map(x=>({...x,weekOffset:(x.weekOffset??0)-elapsed}));weekOffset-=elapsed;}}}
+ if(typeof s.selectedGroup==="string")selectedGroup=s.selectedGroup;
+}
+function showCloudLogin(message="Bitte mit deinem Leitungszugang anmelden."){
+ let layer=document.getElementById("cloudLogin");
+ if(!layer){layer=document.createElement("div");layer.id="cloudLogin";layer.style.cssText="position:fixed;inset:0;z-index:99999;background:#f4f7fb;display:grid;place-items:center;padding:22px;font-family:inherit";
+ layer.innerHTML='<form id="cloudLoginForm" style="background:white;width:min(100%,420px);padding:28px;border-radius:18px;box-shadow:0 12px 40px #1c35501c"><div style="font-size:28px;font-weight:750;color:#19304b;margin-bottom:8px">Früh bis spät</div><p style="color:#66758a;margin:0 0 22px">Geschützter Leitungszugang</p><label style="display:block;font-weight:600;margin:12px 0 6px">E-Mail-Adresse</label><input name="email" type="email" autocomplete="username" required style="box-sizing:border-box;width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:9px;font:inherit"><label style="display:block;font-weight:600;margin:14px 0 6px">Passwort</label><input name="password" type="password" autocomplete="current-password" required style="box-sizing:border-box;width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:9px;font:inherit"><p id="cloudLoginMessage" style="color:#64748b;font-size:14px;min-height:20px"></p><button type="submit" style="width:100%;padding:14px;border:0;border-radius:10px;background:#1d6b54;color:white;font:inherit;font-weight:700">Anmelden</button></form>';
+ document.body.appendChild(layer);
+ layer.querySelector("#cloudLoginForm").addEventListener("submit",async e=>{e.preventDefault();const form=e.currentTarget,button=form.querySelector("button"),msg=form.querySelector("#cloudLoginMessage");button.disabled=true;button.textContent="Anmeldung läuft …";msg.textContent="";const fd=new FormData(form);const {data,error}=await cloud.auth.signInWithPassword({email:fd.get("email"),password:fd.get("password")});button.disabled=false;button.textContent="Anmelden";if(error){msg.textContent="Anmeldung fehlgeschlagen: "+error.message;return}await loadCloudData(data.user);});
+ }
+ layer.querySelector("#cloudLoginMessage").textContent=message;
+}
+function addCloudLogout(){const right=document.querySelector(".topbar-right");if(!right||document.getElementById("cloudLogout"))return;const b=document.createElement("button");b.id="cloudLogout";b.type="button";b.textContent="Abmelden";b.className="btn small";b.style.marginLeft="10px";b.addEventListener("click",async()=>{await cloud.auth.signOut();cloudReady=false;cloudUser=null;showCloudLogin("Du wurdest abgemeldet.")});right.appendChild(b);}
+async function loadCloudData(user){
+ cloudReady=false;cloudUser=user;
+ const owner=await cloud.from("app_owner").select("user_id").limit(1);
+ if(owner.error||!owner.data?.length){showCloudLogin("Dieser Zugang ist nicht als Leitung freigeschaltet. Bitte Supabase-Berechtigungen prüfen.");await cloud.auth.signOut();return;}
+ const result=await cloud.from("app_state").select("state").eq("id",1).maybeSingle();
+ if(result.error){showCloudLogin("Daten konnten nicht geladen werden: "+result.error.message);return;}
+ if(result.data?.state)applyCloudSnapshot(result.data.state);
+ cloudReady=true;document.getElementById("cloudLogin")?.remove();addCloudLogout();render();
+ if(!result.data)await saveCloudState();
+}
+async function saveCloudState(){
+ if(!cloudReady||!cloudUser)return;
+ const {error}=await cloud.from("app_state").upsert({id:1,state:cloudSnapshot(),updated_at:new Date().toISOString()},{onConflict:"id"});
+ const status=document.getElementById("cloudSaveStatus");
+ if(error){console.error("Supabase-Speicherung fehlgeschlagen:",error);if(status)status.textContent="Speichern fehlgeschlagen";}
+ else if(status)status.textContent="Gespeichert";
+}
+function scheduleCloudSave(){if(!cloudReady)return;clearTimeout(saveTimer);const status=document.getElementById("cloudSaveStatus");if(status)status.textContent="Speichert …";saveTimer=setTimeout(saveCloudState,500);}
+async function startCloudApp(){
+ if(!window.supabase){showCloudLogin("Die Datenbankbibliothek konnte nicht geladen werden. Bitte Seite neu laden.");return;}
+ showCloudLogin();const {data,error}=await cloud.auth.getSession();
+ if(error){showCloudLogin("Verbindung fehlgeschlagen: "+error.message);return;}
+ if(data.session)await loadCloudData(data.session.user);
+ cloud.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){cloudReady=false;cloudUser=null;showCloudLogin("Du wurdest abgemeldet.");}});
+}
+
 const pageTitles = {dashboard:"Dashboard",dienstplan:"Dienstplan",kalender:"Kalender",mitarbeitende:"Mitarbeitende",abwesenheiten:"Urlaub & Abwesenheit",sondertermine:"Sondertermine",teammeetings:"Teammeetings",supervision:"Supervision",fortbildungen:"Fortbildungen",auswertungen:"Auswertungen",einstellungen:"Einstellungen"};
 let currentPage = "dashboard";
 let weekOffset = 0;
