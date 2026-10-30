@@ -423,3 +423,19 @@
 
 /* Pausenmarkierung im PDF-Dienstplan */
 .pdf-pause-marker{position:absolute;left:0;right:0;z-index:4;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#f7c66b;color:#513400;border-top:1px solid #b7791f;border-bottom:1px solid #b7791f;font-size:7px;font-style:normal;font-weight:800;line-height:1;white-space:nowrap;pointer-events:none}
+
+
+/* Kompakte Besetzungsübersicht: klare Zeitblöcke mit einer Zeile je Gruppe */
+.day-coverage-strip{display:grid;grid-template-columns:repeat(3,minmax(112px,1fr));gap:7px;flex:1;max-width:540px;align-self:center}
+.day-coverage{display:block;min-width:0;padding:7px 9px;border:1px solid rgba(30,54,84,.08);border-radius:9px;background:#fff}
+.day-coverage.coverage-ok{background:#f1faf5;border-color:#d6eddf;color:#176343}
+.day-coverage.coverage-watch{background:#fff9e9;border-color:#f2e5bd;color:#805c05}
+.day-coverage.coverage-low{background:#fff2f2;border-color:#f3d6d8;color:#a82b35}
+.day-coverage-title{display:flex;align-items:baseline;justify-content:space-between;gap:6px;padding-bottom:5px;margin-bottom:4px;border-bottom:1px solid currentColor;border-color:rgba(30,54,84,.12)}
+.day-coverage-title strong{font-size:11px;letter-spacing:.1px}
+.day-coverage-title small{font-size:9px;opacity:.75}
+.day-coverage-entries{display:grid;gap:3px}
+.day-coverage-entry{display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0;font-size:10px;line-height:1.25}
+.day-coverage-group{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.9}
+.day-coverage-entry strong{flex:0 0 auto;font-size:10px;font-weight:750;font-variant-numeric:tabular-nums}
+@media(max-width:760px){.day-coverage-strip{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;width:100%;max-width:none}.day-coverage{padding:6px}.day-coverage-title{align-items:flex-start;flex-direction:column;gap:1px}.day-coverage-entry{font-size:9px}.day-coverage-entry strong{font-size:9px}}
