@@ -17,9 +17,9 @@ Branch: `audit/selected-fixes-2026-10`
 ## Manual / external steps still required
 1. Review and run `supabase/security.sql` in the Supabase SQL Editor. It is intentionally not applied remotely by this repository change. Confirm actual column types and existing policies first.
 2. Validate working-time policy with the Kita's actual breaks, shift patterns, tariff/collective agreement, and legal counsel. The current checks are guardrails, not legal certification.
-3. Office time is excluded from the leader's group-hours target, but exact office time slots must be entered as recurring leader blocks if the team needs time-of-day blocking.
+3. Office time is excluded from the leader's group-hours target. The leader profile now provides a recurring-block editor; enter the actual office days and times there for time-of-day blocking.
 4. The Playwright tests only cover initial login-screen rendering at mobile and desktop sizes. They do not sign into the real Supabase project or validate authenticated app flows / generated PDF on a physical iPhone.
-5. Vacation balance is still a simple per-person day balance; a full entitlement/transfer/part-time accrual model requires confirmed employment rules and per-person work schedules.
+5. Vacation balances now count approved/recorded vacation separately by calendar year and exclude weekends plus NRW public holidays. The per-person annual entitlement remains manually entered; carry-over, individual work patterns, and part-time accrual rules still require confirmed employment rules.
 6. Browser tests run in CI. Local execution requires `npm install`, `npx playwright install chromium`, and `npm run test:browser`.
 
 ## Test commands
