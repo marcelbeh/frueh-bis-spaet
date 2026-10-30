@@ -169,13 +169,14 @@ function generateWeekPlan(){
    while(remaining>=0.25&&guard++<40){
     const candidates=[];
     for(let duration=Math.min(Math.floor(remaining*4)*15,frameEnd-frameStart);duration>=15;duration-=15){
-     for(let start=frameStart;start+duration<=frameEnd;start+=15){
-      const from=tm(start),to=tm(start+duration);
+     const breakMinutes=duration>360?30:0,span=duration+breakMinutes;
+     for(let start=frameStart;start+span<=frameEnd;start+=15){
+      const from=tm(start),to=tm(start+span);
       if(isBlocked(p,day,from,to,weekOffset))continue;
       if(created.some(x=>x.person===p.name&&x.day===day&&minutes(from)<minutes(x.end)&&minutes(to)>minutes(x.start)))continue;
-      const coverage=scoreShiftCoverage(created,p,day,start,start+duration);
+      const coverage=scoreShiftCoverage(created,p,day,start,start+span);
       const fairness=assigned/Math.max(1,target);
-      candidates.push({start:from,end:to,duration,score:coverage-duration/60*0.03-fairness*0.01});
+      candidates.push({start:from,end:to,duration:span,workDuration:duration,score:coverage-duration/60*0.03-fairness*0.01});
      }
      if(candidates.length)break;
     }
@@ -183,7 +184,7 @@ function generateWeekPlan(){
     candidates.sort((x,y)=>y.score-x.score||minutes(x.start)-minutes(y.start));
     const slot=candidates[0];
     created.push({id:"s"+Date.now()+"-"+index+"-"+day+"-"+created.length+"-"+Math.random().toString(36).slice(2,6),person:p.name,group:p.group,serviceType:"Normaler Dienst",day,start:slot.start,end:slot.end,color:p.group==="Nest"?"green":p.group==="Sonnengruppe"?"blue":p.group==="Sternengruppe"?"purple":"yellow",weekOffset,generated:true});
-    const hours=slot.duration/60;assigned+=hours;remaining-=hours;
+    const hours=slot.workDuration/60;assigned+=hours;remaining-=hours;
    }
    if(remaining>=0.25)unavailable.push(p.name+" · "+weekdays[day]+" ("+remaining.toFixed(2).replace(".",",")+" Std. wegen Rahmenzeit oder Dienstsperren nicht unterzubringen)");
   }
