@@ -448,8 +448,15 @@
 .day-special-event small{color:#6b7d90;white-space:nowrap}
 
 /* Dienste im Wochenkalender direkt am unteren Rand verlängern oder verkürzen */
-.outlook-shift{touch-action:pan-y;}
-.shift-resize-handle{position:absolute;left:0;right:0;bottom:-3px;height:12px;z-index:5;cursor:ns-resize;touch-action:none;background:linear-gradient(transparent 0 4px,rgba(30,65,95,.38) 4px 7px,transparent 7px);}
-.outlook-shift:hover .shift-resize-handle{background:linear-gradient(transparent 0 3px,#245b83 3px 8px,transparent 8px);}
+.outlook-shift{touch-action:none;overflow:visible;}
+.outlook-shift>strong,.outlook-shift>span{overflow:hidden;}
+.shift-resize-handle{position:absolute;left:-2px;right:-2px;bottom:-7px;height:20px;z-index:8;display:block;cursor:ns-resize;touch-action:none;pointer-events:auto;background:linear-gradient(transparent 0 7px,rgba(30,65,95,.58) 7px 12px,transparent 12px);border-radius:0 0 6px 6px;}
+.outlook-shift:hover .shift-resize-handle{background:linear-gradient(transparent 0 6px,#245b83 6px 13px,transparent 13px);}
+.outlook-event{position:absolute;left:4px;right:4px;z-index:2;overflow:hidden;border:1px solid rgba(100,70,160,.25);border-left:3px solid #8061c8;border-radius:6px;padding:4px 5px;background:#eee8fb;color:#49347a;pointer-events:none;line-height:1.15;}
+.outlook-event strong,.outlook-event span{display:block;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.outlook-event span{margin-top:3px;font-weight:600;}
+.event-supervision{background:#e5efff;border-left-color:#3d79c6;color:#244e83;}
+.event-training{background:#fff1d9;border-left-color:#d48b22;color:#805315;}
+.event-special{background:#fce8eb;border-left-color:#c65a6a;color:#803746;}
 body.resizing-shift{cursor:ns-resize!important;user-select:none!important;}
 body.resizing-shift *{cursor:ns-resize!important;user-select:none!important;}
