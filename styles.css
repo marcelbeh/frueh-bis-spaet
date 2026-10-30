@@ -420,3 +420,6 @@
 
 /* Automatische 30-Minuten-Pause bei Diensten mit mehr als 6 Stunden Nettoarbeitszeit */
 .outlook-shift .pause-marker{position:absolute;left:0;right:0;z-index:3;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#f7c66b!important;color:#513400!important;border-top:1px solid #b7791f;border-bottom:1px solid #b7791f;font-size:8px!important;font-weight:800;line-height:1;white-space:nowrap;opacity:1!important;pointer-events:none}
+
+/* Pausenmarkierung im PDF-Dienstplan */
+.pdf-pause-marker{position:absolute;left:0;right:0;z-index:4;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#f7c66b;color:#513400;border-top:1px solid #b7791f;border-bottom:1px solid #b7791f;font-size:7px;font-style:normal;font-weight:800;line-height:1;white-space:nowrap;pointer-events:none}
