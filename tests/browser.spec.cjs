@@ -5,7 +5,7 @@ test('login screen loads and fits mobile viewport',async({page})=>{
  await page.setViewportSize({width:390,height:844});
  await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
  await expect(page.locator('#cloudLoginForm')).toBeVisible();
- await expect(page.getByText('Geschützter Leitungszugang')).toBeVisible();
+ await expect(page.getByText('Geschützter Leitungszugang',{exact:true})).toBeVisible();
  await expect(page.locator('input[name="email"]')).toBeVisible();
  await expect(page.locator('input[name="password"]')).toBeVisible();
  expect(errors).toEqual([]);
