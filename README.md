@@ -31,14 +31,14 @@ Der Anwendungscode verwendet die Tabellen `app_owner` (freigeschaltete Leitungsz
 
 ## Fachliche Grenzen – vor produktivem Einsatz klären
 
-- Die automatische Vorbelegung ist kein Optimierungsalgorithmus. Sie verteilt Wochenstunden näherungsweise auf fünf Werktage und meldet Unterbesetzungen, statt sie zuverlässig zu lösen.
-- Mindestbesetzung wird in Zeitintervallen geprüft. Die Vorbelegung garantiert weder die Mindestbesetzung noch eine vollständige Erfüllung aller individuellen Verfügbarkeiten.
+- Die automatische Vorbelegung verteilt die hinterlegten Wochenstunden in 15-Minuten-Schritten auf verfügbare Werktage. Die Zuweisung ist heuristisch und garantiert keine optimale oder vollständige Lösung. Nicht verteilte Stunden werden ausgewiesen.
+- Mindestbesetzung wird in 15-Minuten-Intervallen geprüft. Unterbesetzungen werden in der Planprüfung angezeigt; die Vorbelegung garantiert keine vollständige Erfüllung aller Besetzungsziele.
 - Pausen, gesetzliche Höchstarbeitszeiten, Ruhezeiten, Feiertage, Teilzeit- und Tarifregeln werden nicht vollständig geprüft.
 - Bürozeiten der Leitung werden nicht als feste Zeitblöcke geplant; nur die Gruppenzeit kann als Besetzung erscheinen.
-- Abwesenheiten warnen vor bereits eingetragenen Diensten. Die Dienste werden nicht automatisch gelöscht.
+- Genehmigte bzw. erfasste Abwesenheiten und feste Dienstsperren blockieren neue automatische und manuelle Dienste. Bereits vorhandene Dienste werden nicht automatisch gelöscht; die Planprüfung weist Konflikte aus.
 - Urlaub wird aktuell als Montag-bis-Freitag-Zählung berechnet. Feiertage und betriebliche Schließtage werden nicht abgezogen.
-- Die Monatskalenderansicht, Druckausgabe und Darstellung auf realen Mobilgeräten müssen im Browser geprüft werden.
-- Die Speicherung erfolgt als gemeinsamer JSON-Datensatz. Gleichzeitige Bearbeitung durch mehrere Leitungen kann zu konkurrierenden Änderungen führen.
+- Die Monatskalenderansicht, Druckausgabe und Darstellung auf realen Mobilgeräten sind noch nicht durch einen echten Browser-/iPhone-End-to-End-Test abgenommen.
+- Die Speicherung erfolgt als gemeinsamer JSON-Datensatz. Gleichzeitige Bearbeitung durch mehrere Leitungen kann zu konkurrierenden Änderungen führen; es gibt noch keine Konflikterkennung bzw. optimistische Versionsprüfung.
 - Es gibt derzeit keine nachgewiesene automatisierte Datenbanksicherung oder vollständige Prüfung der RLS-Policies.
 
 ## Testdaten und Datenschutz
