@@ -174,10 +174,15 @@ function generateWeekPlan(){
   }
   totals.push({name:p.name,target,assigned});
  }
- const gaps=inspectCoverage(created),groupedGaps=new Map();
+ const validation=weeklyPlanningDiagnostics(weekOffset,created),gaps=validation.gaps,groupedGaps=new Map();
  gaps.forEach(g=>{const key=g.group+" · "+weekdays[g.day]+" "+g.label;const old=groupedGaps.get(key);if(!old||g.count<old.count)groupedGaps.set(key,g)});
  const summary=[...groupedGaps.entries()].map(([label,g])=>label+" ("+g.count+"/"+g.required+")");
- const hourSummary=totals.filter(x=>x.assigned+0.01<x.target).map(x=>x.name+": "+x.assigned.toFixed(2).replace(".",",")+"/"+x.target.toFixed(2).replace(".",",")+" Std.");
+ const hourSummary=validation.hourRows.filter(x=>x.diff<-.01).map(x=>x.name+": "+Math.max(0,-x.diff).toFixed(2).replace(".",",")+" Std. offen");
+ const hardIssues=validation.absenceConflicts.length+validation.blockConflicts.length+validation.overlaps.length;
+ if(hardIssues){alert("Plan wurde nicht übernommen: Die Vorprüfung hat "+hardIssues+" harte Regelkonflikte gefunden. Bitte prüfe Abwesenheiten, Dienstsperren und Überschneidungen.");return}
+ const totalTarget=validation.hourRows.reduce((n,x)=>n+x.target,0),totalAssigned=validation.hourRows.reduce((n,x)=>n+x.actual,0);
+ const preview="Vorprüfung des neuen Dienstplans:\\n• "+created.length+" Dienste\\n• "+totalAssigned.toFixed(2).replace(".",",")+" von "+totalTarget.toFixed(2).replace(".",",")+" Sollstunden verteilt\\n• "+gaps.length+" Unterbesetzungsintervalle\\n• "+hourSummary.length+" Personen mit nicht verteilten Stunden"+(summary.length?"\\n\\nBeispiele Unterbesetzung: "+summary.slice(0,5).join("; "):"")+(hourSummary.length?"\\n\\nNicht verteilte Stunden: "+hourSummary.slice(0,5).join("; "):"")+".\\n\\nPlan trotz dieser Hinweise übernehmen?";
+ if((gaps.length||hourSummary.length)&&!confirm(preview))return;
  shifts=shifts.filter(s=>(s.weekOffset??0)!==weekOffset);shifts.push(...created);
  scheduleCloudSave();render();
  alert("Bedarfsorientierte Wochenplanung für "+weekLabel()+" erstellt: "+created.length+" Dienste. Geplante Wochenstunden: "+totals.reduce((n,x)=>n+x.assigned,0).toFixed(2).replace(".",",")+" von "+totals.reduce((n,x)=>n+x.target,0).toFixed(2).replace(".",",")+" Sollstunden. "+(hourSummary.length?"Nicht vollständig verteilte Stunden: "+hourSummary.join("; ")+". ":"Alle verfügbaren Sollstunden wurden verplant. ")+(unavailable.length?"Einschränkungen: "+unavailable.slice(0,15).join("; ")+(unavailable.length>15?" …":"")+". ":"")+(summary.length?"Mindestbesetzung noch nicht erreicht: "+summary.slice(0,12).join("; ")+(summary.length>12?" …":"")+". ":"Alle hinterlegten Mindestbesetzungen sind erreicht. ")+"Nicht unterzubringende Stunden werden ausdrücklich ausgewiesen und nicht stillschweigend verworfen.");
@@ -202,8 +207,8 @@ function groupColor(group){return group==="Nest"?"shift-green":group==="Sonnengr
 function shiftClass(s){const type=s.serviceType||"Normaler Dienst";return type==="Meeting"?"service-meeting":type==="Kirchlicher Termin"?"service-church":type==="Supervision"?"service-supervision":type==="Fortbildung"?"service-fortbildung":type==="Sonstiger Termin"?"service-other":"service-normal"}
 function uiIcon(name){const icons={"home":"<path d=\"m3 10 9-7 9 7\"/><path d=\"M5 9v11h14V9\"/><path d=\"M9 20v-6h6v6\"/>","calendar":"<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M16 3v4M8 3v4M3 11h18\"/>","users":"<path d=\"M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\"/><circle cx=\"10\" cy=\"7\" r=\"4\"/><path d=\"M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75\"/>","chart":"<path d=\"M3 3v18h18\"/><rect x=\"7\" y=\"11\" width=\"3\" height=\"6\" rx=\"1\"/><rect x=\"13\" y=\"7\" width=\"3\" height=\"10\" rx=\"1\"/><rect x=\"19\" y=\"4\" width=\"2\" height=\"13\" rx=\"1\"/>","settings":"<circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.6a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.6-1.4-2.4 1.4-1.1a7 7 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.6a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.6 1.4 2.4-1.4 1.1a7 7 0 0 1 0 2Z\"/>","lock":"<rect x=\"4\" y=\"10\" width=\"16\" height=\"11\" rx=\"2\"/><path d=\"M8 10V7a4 4 0 0 1 8 0v3\"/>","user":"<circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M5 21a7 7 0 0 1 14 0\"/>","clock":"<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/>","briefcase":"<rect x=\"3\" y=\"7\" width=\"18\" height=\"14\" rx=\"2\"/><path d=\"M8 7V4h8v3M3 12h18M10 12v2h4v-2\"/>"};return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+(icons[name]||icons.calendar)+'</svg>'}
 
-function weeklyPlanningDiagnostics(offset=weekOffset){
- const people=planningPeople(),planned=weekShifts(offset),coverageShifts=planned.filter(x=>!x.serviceType||x.serviceType==="Normaler Dienst");
+function weeklyPlanningDiagnostics(offset=weekOffset,plannedOverride=null){
+ const people=planningPeople(),planned=plannedOverride||weekShifts(offset),coverageShifts=planned.filter(x=>!x.serviceType||x.serviceType==="Normaler Dienst");
  const gaps=inspectCoverage(coverageShifts),hourRows=people.map(p=>{const target=Math.max(0,Number(p.hours)||0),actual=planned.filter(x=>x.person===p.name).reduce((n,x)=>n+(minutes(x.end)-minutes(x.start))/60,0);return {name:p.name,target,actual,diff:actual-target}});
  const absenceConflicts=[],blockConflicts=[],overlaps=[];
  planned.forEach(x=>{const p=people.find(y=>y.name===x.person);if(!p)return;const absence=blockingAbsence(p,x.day,offset);if(absence)absenceConflicts.push(x.person+" · "+weekdays[x.day]+" · "+absence.type);if(isBlocked(p,x.day,x.start,x.end,offset))blockConflicts.push(x.person+" · "+weekdays[x.day]+" "+x.start+"–"+x.end);});
