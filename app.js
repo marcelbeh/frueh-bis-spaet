@@ -7,6 +7,7 @@ let names = [
  {name:"Sarah Jansen",initials:"SJ",group:"Sonnengruppe",hours:20,vacation:32,special:0,meetings:0,supervision:0,color:"green",employment:"Teilzeit"},
  {name:"Tina Reinhardt",initials:"TR",group:"Sonnengruppe",hours:30,vacation:32,special:0,meetings:0,supervision:0,color:"purple",employment:"Teilzeit"},
  {name:"Markus Klein",initials:"MK",group:"Sonnengruppe",hours:39,vacation:32,special:0,meetings:0,supervision:0,color:"blue",employment:"Vollzeit"},
+ {name:"Katharina Wolf",initials:"KW",group:"Sonnengruppe",hours:30,vacation:32,special:0,meetings:0,supervision:0,color:"yellow",employment:"Teilzeit"},
  {name:"Barbara Fischer",initials:"BF",group:"Sternengruppe",hours:25,vacation:32,special:0,meetings:0,supervision:0,color:"yellow",employment:"Teilzeit"},
  {name:"Nina Schulte",initials:"NS",group:"Sternengruppe",hours:30,vacation:32,special:0,meetings:0,supervision:0,color:"green",employment:"Teilzeit"},
  {name:"Tobias Neumann",initials:"TN",group:"Sternengruppe",hours:39,vacation:32,special:0,meetings:0,supervision:0,color:"blue",employment:"Vollzeit"},
