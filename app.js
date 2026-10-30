@@ -171,7 +171,9 @@ function generateWeekPlan(){
  });
  const tm=n=>String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0");
  for(const {person:p,index} of ordered){
-  const target=Math.round((Math.max(0,Number(p.hours)||0))*4)/4;
+  const contractTarget=Math.round((Math.max(0,Number(p.hours)||0))*4)/4;
+  const eventHours=eventMinutesForPersonWeek(p,weekOffset)/60;
+  const target=Math.max(0,Math.round((contractTarget-eventHours)*4)/4);
   if(!target)continue;
   let assigned=0;
   const availableDays=Array.from({length:5},(_,day)=>day).filter(day=>!blockingAbsence(p,day,weekOffset)).length;
@@ -246,7 +248,7 @@ function uiIcon(name){const icons={"home":"<path d=\"m3 10 9-7 9 7\"/><path d=\"
 
 function weeklyPlanningDiagnostics(offset=weekOffset,plannedOverride=null){
  const people=planningPeople(),planned=plannedOverride||weekShifts(offset),coverageShifts=planned.filter(x=>!x.serviceType||x.serviceType==="Normaler Dienst");
- const gaps=inspectCoverage(coverageShifts),hourRows=people.map(p=>{const target=Math.max(0,Number(p.hours)||0),actual=planned.filter(x=>x.person===p.name).reduce((n,x)=>n+shiftWorkMinutes(x)/60,0);return {name:p.name,target,actual,diff:actual-target}});
+ const gaps=inspectCoverage(coverageShifts),hourRows=people.map(p=>{const target=Math.max(0,Number(p.hours)||0),shiftHours=planned.filter(x=>x.person===p.name).reduce((n,x)=>n+shiftWorkMinutes(x)/60,0),eventHours=eventMinutesForPersonWeek(p,offset)/60,actual=shiftHours+eventHours;return {name:p.name,target,actual,shiftHours,eventHours,diff:actual-target}});
  const absenceConflicts=[],blockConflicts=[],overlaps=[],workRuleConflicts=[],eventConflicts=[];
  planned.forEach(x=>{const p=people.find(y=>y.name===x.person);if(!p)return;const absence=blockingAbsence(p,x.day,offset);if(absence)absenceConflicts.push(x.person+" · "+weekdays[x.day]+" · "+absence.type);if(isBlocked(p,x.day,x.start,x.end,offset))blockConflicts.push(x.person+" · "+weekdays[x.day]+" "+x.start+"–"+x.end);const rules=shiftRuleConflicts(p,x.day,x.start,x.end,offset,planned,x.id);rules.forEach(rule=>workRuleConflicts.push(x.person+" · "+weekdays[x.day]+" · "+rule));if(personHasEventConflict(p,x.day,x.start,x.end,offset))eventConflicts.push(x.person+" · "+weekdays[x.day]+" · Terminüberschneidung");});
  for(let i=0;i<planned.length;i++)for(let j=i+1;j<planned.length;j++){const a=planned[i],b=planned[j];if(a.person===b.person&&a.day===b.day&&minutes(a.start)<minutes(b.end)&&minutes(a.end)>minutes(b.start))overlaps.push(a.person+" · "+weekdays[a.day]+" "+a.start+"–"+a.end+" / "+b.start+"–"+b.end);}
@@ -302,8 +304,9 @@ function dutyPage(){
   const timeAxis=Array.from({length:9},(_,n)=>{const h=6+n*2;return `<span style="top:${n/8*100}%">${String(h).padStart(2,"0")}:00</span>`}).join("");
   const columns=people.map(p=>{
    const personShifts=dayShifts.filter(s=>s.person===p.name);
+   const eventBlocks=events.filter(ev=>eventOccursOnDate(ev,iso(date))&&(ev.attendees||[]).includes(p.name)).map(ev=>{const [from,to]=ev.time.split("–");const cls=ev.type==="Meeting"?"event-meeting":ev.type==="Supervision"?"event-supervision":ev.type==="Fortbildung"?"event-training":"event-special";return '<div class="outlook-event '+cls+'" style="top:'+topPercent(from)+'%;height:'+heightPercent(from,to)+'%" title="'+escapeHTML(ev.title)+' · '+ev.time+'"><strong>'+ev.time+'</strong><span>'+escapeHTML(ev.title)+'</span></div>';}).join("");
    const blocks=personShifts.map(s=>{const pause=shiftPause(s),span=minutes(s.end)-minutes(s.start);const pauseMarkup=pause?'<span class="pause-marker" style="top:'+((pause.start-minutes(s.start))/span*100)+'%;height:'+(30/span*100)+'%">Pause · 30 Min.</span>':'';return '<button class="outlook-shift '+shiftClass(s)+'" style="'+shiftPosition(s)+'" data-edit-shift="'+s.id+'" title="'+s.person+': '+s.start+'–'+s.end+(pause?' · Pause 30 Min.':'')+'"><strong>'+s.start+'–'+s.end+'</strong><span>'+(s.serviceType&&s.serviceType!=="Normaler Dienst"?s.serviceType:s.group)+'</span>'+pauseMarkup+'<i class="shift-resize-handle" data-resize-shift="'+s.id+'" title="Ziehen, um das Dienstende zu ändern" aria-label="Dienstende ziehen"></i></button>'}).join("");
-   return `<div class="outlook-staff-column"><div class="outlook-time-grid"></div>${blocks}</div>`;
+   return `<div class="outlook-staff-column"><div class="outlook-time-grid"></div>${eventBlocks}${blocks}</div>`;
   }).join("");
   const coverageShifts=dayShifts.filter(s=>!s.serviceType||s.serviceType==="Normaler Dienst");const cover=renderCoverageStrip(coverageShifts);
   const dayEvents=events.filter(event=>eventOccursOnDate(event,iso(date)));
@@ -315,6 +318,8 @@ function dutyPage(){
  <div class="grid panel-two section-gap"><section class="card"><div class="card-header"><h2>Wochenstunden im Überblick</h2></div><div class="card-body"><div class="table-wrap"><table><thead><tr><th>Mitarbeitende</th><th>Sollstunden</th><th>Geplante Stunden*</th><th>Status</th></tr></thead><tbody>${people.map(p=>{const shiftTotal=weekShifts().filter(s=>s.person===p.name).reduce((n,s)=>n+shiftWorkMinutes(s)/60,0),eventTotal=eventMinutesForPersonWeek(p)/60,total=shiftTotal+eventTotal;return `<tr><td>${p.name}</td><td>${p.hours} Std.</td><td>${total.toFixed(1)} Std. <small class="muted">(${shiftTotal.toFixed(1)} Dienst + ${eventTotal.toFixed(1)} Termin)</small></td><td><span class="pill ${total>p.hours?'red':total<p.hours?'yellow':'green'}">${total>p.hours?'Über Soll':total<p.hours?'Prüfen':'Passt'}</span></td></tr>`}).join("")}</tbody></table></div><p class="muted" style="font-size:10px">*Sondertermine mit ausgewählten Teilnehmenden zählen als Arbeitszeit und werden vom Stundenkontingent für reguläre Dienste abgezogen.</p></div></section><section class="card"><div class="card-header"><h2>Planungsregeln</h2></div><div class="card-body"><div class="setting-row"><div><strong>Zeitraum</strong><small>Montag bis Sonntag</small></div><span class="pill blue">7 Tage</span></div><div class="setting-row"><div><strong>Tagesansicht</strong><small>06:00 bis 22:00 Uhr</small></div><span class="pill green">16 Stunden</span></div><div class="setting-row"><div><strong>Überschneidungen</strong><small>Gemeinsame Zeitachse je Tag</small></div><span class="pill blue">Sichtbar</span></div><div class="setting-row"><div><strong>Gruppenbedarf</strong><small>Über Einstellungen konfigurierbar</small></div><button class="btn small" data-page="einstellungen">Einstellen</button></div></div></section></div>`;
 }
 function eventOccursOnDate(event,date){if(event.date===date)return true;if(!event.repeatWeekly||date<event.date)return false;const d=new Date(date+"T12:00:00");return d.getDay()===Number(event.repeatDay);}
+function eventDurationMinutes(event){const [start,end]=String(event.time||"").split("–");return start&&end?Math.max(0,minutes(end)-minutes(start)):0;}
+function eventMinutesForPersonWeek(person,offset=weekOffset){let total=0;for(let day=0;day<7;day++){const date=iso(dateForDay(day,offset));for(const event of events){if(eventOccursOnDate(event,date)&&(event.attendees||[]).includes(person.name))total+=eventDurationMinutes(event);}}return total;}
 function personHasEventConflict(person,day,start,end,offset=weekOffset){const date=iso(dateForDay(day,offset));return events.some(ev=>eventOccursOnDate(ev,date)&&(ev.attendees||[]).includes(person.name)&&minutes(start)<minutes(ev.time.split("–")[1])&&minutes(end)>minutes(ev.time.split("–")[0]));}
 function calendarPage(){
  const first=new Date(dateForDay(0).getFullYear(),dateForDay(0).getMonth(),1);
