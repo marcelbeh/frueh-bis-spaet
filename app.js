@@ -135,40 +135,51 @@ function generateWeekPlan(){
  const existing=weekShifts();if(existing.length&&!confirm("Diese Woche enthält bereits "+existing.length+" Dienste. Diese werden ersetzt. Fortfahren?"))return;
  const people=planningPeople(),frameStart=minutes(plannerSettings.frame.start),frameEnd=minutes(plannerSettings.frame.end);
  if(frameEnd<=frameStart){alert("Die allgemeine Rahmenzeit ist ungültig.");return}
- shifts=shifts.filter(s=>(s.weekOffset??0)!==weekOffset);
- const created=[],unavailable=[];
+ const created=[],unavailable=[],totals=[];
  const ordered=people.map((person,index)=>({person,index})).sort((a,b)=>{
   const aGroup=people.filter(p=>p.group===a.person.group).length,bGroup=people.filter(p=>p.group===b.person.group).length;
   return aGroup-bGroup||Number(b.person.hours||0)-Number(a.person.hours||0);
  });
+ const tm=n=>String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0");
  for(const {person:p,index} of ordered){
-  const daily=Math.round((Math.max(0,Number(p.hours)||0)/5)*4)/4;
-  if(!daily)continue;
-  const duration=Math.round(daily*60/15)*15;
+  const target=Math.round((Math.max(0,Number(p.hours)||0))*4)/4;
+  if(!target)continue;
+  let assigned=0;
+  const dailyTarget=Math.round(target/5*4)/4;
   for(let day=0;day<5;day++){
    const absence=blockingAbsence(p,day,weekOffset);
    if(absence){unavailable.push(p.name+" · "+weekdays[day]+" (Abwesenheit: "+absence.type+")");continue}
-   if(duration>frameEnd-frameStart){unavailable.push(p.name+" · "+weekdays[day]+" (Tagesarbeitszeit länger als Rahmenzeit)");continue}
-   const candidates=[];
-   for(let start=frameStart;start+duration<=frameEnd;start+=15){
-    const tm=n=>String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0");
-    const from=tm(start),to=tm(start+duration);
-    if(isBlocked(p,day,from,to,weekOffset))continue;
-    candidates.push({start:from,end:to,score:scoreShiftCoverage(created,p,day,start,start+duration)});
+   let remaining=Math.min(dailyTarget,target-assigned),guard=0;
+   while(remaining>=0.25&&guard++<40){
+    const candidates=[];
+    for(let duration=Math.min(Math.floor(remaining*4)*15,frameEnd-frameStart);duration>=15;duration-=15){
+     for(let start=frameStart;start+duration<=frameEnd;start+=15){
+      const from=tm(start),to=tm(start+duration);
+      if(isBlocked(p,day,from,to,weekOffset))continue;
+      if(created.some(x=>x.person===p.name&&x.day===day&&minutes(from)<minutes(x.end)&&minutes(to)>minutes(x.start)))continue;
+      const coverage=scoreShiftCoverage(created,p,day,start,start+duration);
+      const fairness=assigned/Math.max(1,target);
+      candidates.push({start:from,end:to,duration,score:coverage-duration/60*0.03-fairness*0.01});
+     }
+     if(candidates.length)break;
+    }
+    if(!candidates.length)break;
+    candidates.sort((x,y)=>y.score-x.score||minutes(x.start)-minutes(y.start));
+    const slot=candidates[0];
+    created.push({id:"s"+Date.now()+"-"+index+"-"+day+"-"+created.length+"-"+Math.random().toString(36).slice(2,6),person:p.name,group:p.group,serviceType:"Normaler Dienst",day,start:slot.start,end:slot.end,color:p.group==="Nest"?"green":p.group==="Sonnengruppe"?"blue":p.group==="Sternengruppe"?"purple":"yellow",weekOffset,generated:true});
+    const hours=slot.duration/60;assigned+=hours;remaining-=hours;
    }
-   if(!candidates.length){unavailable.push(p.name+" · "+weekdays[day]+" (Rahmenzeit oder feste Dienstsperre)");continue}
-   candidates.sort((a,b)=>b.score-a.score||minutes(a.start)-minutes(b.start));
-   const slot=candidates[0];
-   created.push({id:"s"+Date.now()+"-"+index+"-"+day+"-"+Math.random().toString(36).slice(2,6),person:p.name,group:p.group,serviceType:"Normaler Dienst",day,start:slot.start,end:slot.end,color:p.group==="Nest"?"green":p.group==="Sonnengruppe"?"blue":p.group==="Sternengruppe"?"purple":"yellow",weekOffset,generated:true});
+   if(remaining>=0.25)unavailable.push(p.name+" · "+weekdays[day]+" ("+remaining.toFixed(2).replace(".",",")+" Std. wegen Rahmenzeit oder Dienstsperren nicht unterzubringen)");
   }
+  totals.push({name:p.name,target,assigned});
  }
- shifts.push(...created);
- const gaps=inspectCoverage(created);
- const groupedGaps=new Map();
+ const gaps=inspectCoverage(created),groupedGaps=new Map();
  gaps.forEach(g=>{const key=g.group+" · "+weekdays[g.day]+" "+g.label;const old=groupedGaps.get(key);if(!old||g.count<old.count)groupedGaps.set(key,g)});
  const summary=[...groupedGaps.entries()].map(([label,g])=>label+" ("+g.count+"/"+g.required+")");
+ const hourSummary=totals.filter(x=>x.assigned+0.01<x.target).map(x=>x.name+": "+x.assigned.toFixed(2).replace(".",",")+"/"+x.target.toFixed(2).replace(".",",")+" Std.");
+ shifts=shifts.filter(s=>(s.weekOffset??0)!==weekOffset);shifts.push(...created);
  scheduleCloudSave();render();
- alert("Bedarfsorientierte Vorbelegung für "+weekLabel()+" erstellt: "+created.length+" Dienste. "+(unavailable.length?"Nicht eingeplant ("+unavailable.length+"): "+unavailable.join("; ")+". ":"")+(summary.length?"Mindestbesetzung noch nicht erreicht: "+summary.slice(0,12).join("; ")+(summary.length>12?" …":"")+". ":"Alle hinterlegten Mindestbesetzungen sind in den geprüften 15-Minuten-Intervallen erreicht. ")+"Die Prüfung berücksichtigt Gruppenbesetzung, Früh-/Spätdienst und gemeinsame Randdienste. Arbeitszeit- und Pausenregeln werden in den folgenden Schritten ergänzt.");
+ alert("Bedarfsorientierte Wochenplanung für "+weekLabel()+" erstellt: "+created.length+" Dienste. Geplante Wochenstunden: "+totals.reduce((n,x)=>n+x.assigned,0).toFixed(2).replace(".",",")+" von "+totals.reduce((n,x)=>n+x.target,0).toFixed(2).replace(".",",")+" Sollstunden. "+(hourSummary.length?"Nicht vollständig verteilte Stunden: "+hourSummary.join("; ")+". ":"Alle verfügbaren Sollstunden wurden verplant. ")+(unavailable.length?"Einschränkungen: "+unavailable.slice(0,15).join("; ")+(unavailable.length>15?" …":"")+". ":"")+(summary.length?"Mindestbesetzung noch nicht erreicht: "+summary.slice(0,12).join("; ")+(summary.length>12?" …":"")+". ":"Alle hinterlegten Mindestbesetzungen sind erreicht. ")+"Nicht unterzubringende Stunden werden ausdrücklich ausgewiesen und nicht stillschweigend verworfen.");
 }
 function copyWeekForward(){const source=weekShifts();if(!source.length){alert("In dieser Woche gibt es keine Dienste zum Kopieren.");return}const targetOffset=weekOffset+1,target=weekShifts(targetOffset);if(target.length&&!confirm("Die Folgewoche enthält bereits "+target.length+" Dienste. Diese werden ersetzt. Fortfahren?"))return;const copied=[],skipped=[];source.forEach((x,i)=>{const person=planningPeople().find(p=>p.name===x.person),absence=person?blockingAbsence(person,x.day,targetOffset):null,blocked=person&&isBlocked(person,x.day,x.start,x.end,targetOffset),overlap=person&&target.some(y=>y.person===x.person&&y.day===x.day&&minutes(x.start)<minutes(y.end)&&minutes(x.end)>minutes(y.start));if(absence||blocked||overlap){skipped.push(x.person+" · "+weekdays[x.day]+" ("+(absence?"Abwesenheit: "+absence.type:blocked?"feste Dienstsperre":"Zeitüberschneidung")+")");return}copied.push({...x,id:"s"+Date.now()+"-copy-"+i+"-"+Math.random().toString(36).slice(2,6),weekOffset:targetOffset,generated:false})});shifts=shifts.filter(s=>(s.weekOffset??0)!==targetOffset);shifts.push(...copied);scheduleCloudSave();render();alert(copied.length+" Dienste nach "+weekLabelForOffset(targetOffset)+" kopiert."+ (skipped.length?" Nicht kopiert wegen Abwesenheiten: "+skipped.join("; ")+".":"")+" Öffne mit „Nächste“ die Folgewoche.");}
 function minutes(t){const [h,m]=t.split(":").map(Number);return h*60+m}
