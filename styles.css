@@ -364,3 +364,22 @@
 .app-shell.sidebar-collapsed .brand-row .sidebar-collapse{position:static;order:0;flex:0 0 42px;width:42px;height:42px;margin:0 auto;transform:rotate(180deg)}
 .app-shell.sidebar-collapsed .brand-row .brand{display:none!important}
 @media(max-width:760px){.brand-row .sidebar-collapse{display:none}}
+
+/* Definitive sidebar collapse control: visible and reachable at every viewport */
+.brand-row{display:flex!important;align-items:center!important;gap:10px!important;padding:0 6px 26px 0!important;min-height:58px!important;position:relative!important}
+.brand-row .sidebar-collapse{display:grid!important;visibility:visible!important;opacity:1!important;position:relative!important;inset:auto!important;order:0!important;flex:0 0 38px!important;width:38px!important;height:38px!important;margin:0!important;padding:0!important;place-items:center!important;border:0!important;border-radius:12px!important;background:#e8f1ff!important;color:#1769d2!important;font-size:25px!important;line-height:1!important;cursor:pointer!important;z-index:30!important;transform:none!important}
+.brand-row .brand{order:1!important;flex:1 1 auto!important;min-width:0!important;display:flex!important}
+.app-shell.sidebar-collapsed .sidebar{flex:0 0 82px!important;width:82px!important;min-width:82px!important;padding-left:12px!important;padding-right:12px!important}
+.app-shell.sidebar-collapsed .brand-row{justify-content:center!important;gap:0!important;padding:0 0 26px!important}
+.app-shell.sidebar-collapsed .brand-row .brand{display:none!important}
+.app-shell.sidebar-collapsed .brand-row .sidebar-collapse{display:grid!important;position:relative!important;inset:auto!important;order:0!important;flex:0 0 42px!important;width:42px!important;height:42px!important;margin:0 auto!important;transform:rotate(180deg)!important}
+.app-shell.sidebar-collapsed .nav-label,.app-shell.sidebar-collapsed .nav-chevron,.app-shell.sidebar-collapsed .nav-children,.app-shell.sidebar-collapsed .sidebar-user-copy,.app-shell.sidebar-collapsed .sidebar-logout{display:none!important}
+.app-shell.sidebar-collapsed .nav-parent,.app-shell.sidebar-collapsed .nav-item:not(.nav-child){justify-content:center!important;padding:10px 5px!important}
+.app-shell.sidebar-collapsed .sidebar-account{justify-content:center!important}
+@media(max-width:760px){
+ .sidebar-collapse{display:grid!important}
+ .sidebar{width:286px!important;min-width:286px!important;flex:0 0 286px!important}
+ .app-shell.sidebar-collapsed .sidebar{width:286px!important;min-width:286px!important;flex:0 0 286px!important}
+ .app-shell.sidebar-collapsed .brand-row .brand{display:flex!important}
+ .app-shell.sidebar-collapsed .brand-row .sidebar-collapse{transform:rotate(180deg)!important}
+}
