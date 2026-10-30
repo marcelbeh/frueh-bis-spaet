@@ -21,7 +21,7 @@ const plannerSettings = {frame:{start:"07:00",end:"16:00"},minimumByGroup:{"Nest
 
 const SUPABASE_URL = "https://pcwcghbzksopfyrgzyht.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_OznU91iPtKK2nsjTJA2q6Q_LuxXyzUB";
-const cloud = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+const cloud = window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) : null;
 let cloudReady = false, cloudUser = null, saveTimer = null;
 function cloudSnapshot(){return {version:1,baseMonday:iso(baseMonday),names,groups,plannerSettings,leaderProfile,events,absences,shifts,weekOffset,selectedGroup};}
 function applyCloudSnapshot(s){
