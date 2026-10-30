@@ -470,6 +470,7 @@ function finishShiftResize(){
 document.addEventListener("pointerup",e=>{if(activeShiftResize&&e.pointerId===activeShiftResize.pointerId)finishShiftResize()});
 document.addEventListener("pointercancel",finishShiftResize);
 document.addEventListener("click",e=>{
+ if(e.target.closest("[data-resize-shift]")){e.preventDefault();e.stopPropagation();return;}
  const menuToggle=e.target.closest("[data-menu-toggle]");if(menuToggle){const shell=document.querySelector(".app-shell");if(shell?.classList.contains("sidebar-collapsed")){const target=menuToggle.dataset.defaultPage;if(target)navigate(target);return}const key=menuToggle.dataset.menuToggle,children=$("[data-nav-children='"+key+"']"),open=menuToggle.getAttribute("aria-expanded")!=="true";menuToggle.setAttribute("aria-expanded",String(open));children.hidden=!open;return}
  const nav=e.target.closest("[data-page]");if(nav){navigate(nav.dataset.page);return}
  const removePerson=e.target.closest("[data-remove-person]");if(removePerson){const personName=removePerson.dataset.removePerson;if(confirm("Mitarbeitende Person „"+personName+"“ wirklich entfernen? Zugehörige Dienste und Abwesenheiten werden ebenfalls gelöscht.")){names=names.filter(p=>p.name!==personName);shifts=shifts.filter(x=>x.person!==personName);absences=absences.filter(x=>x.name!==personName);render()}return}
