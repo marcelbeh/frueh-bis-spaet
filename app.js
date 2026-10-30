@@ -360,13 +360,14 @@ function exportPlanPdf(){
       const personShifts=weekShifts().filter(s=>s.day===dayIndex&&s.person===p.name);
       const blocks=personShifts.map(s=>{
         const top=(minutes(s.start)-360)/960*100;
-        const height=(minutes(s.end)-minutes(s.start))/960*100;
-        return '<div class="pdf-time-shift '+shiftClass(s)+'" style="top:'+top+'%;height:'+height+'%"><strong>'+s.start+'–'+s.end+'</strong><span>'+p.name+'</span></div>';
+        const span=minutes(s.end)-minutes(s.start),height=span/960*100,pause=shiftPause(s);
+        const pauseMarkup=pause?'<i class="pdf-pause-marker" style="top:'+((pause.start-minutes(s.start))/span*100)+'%;height:'+(30/span*100)+'%">Pause · 30 Min.</i>':'';
+        return '<div class="pdf-time-shift '+shiftClass(s)+'" style="top:'+top+'%;height:'+height+'%"><strong>'+s.start+'–'+s.end+'</strong><span>'+p.name+'</span>'+pauseMarkup+'</div>';
       }).join("");
       columns+='<div class="pdf-time-column" style="grid-column:'+(2+dayIndex*staff.length+staffIndex)+';grid-row:3 / span 1"><div class="pdf-time-track">'+Array.from({length:8},()=>'<i></i>').join("")+blocks+'</div></div>';
     });
   });
-  view.innerHTML='<h1>Dienstplan · '+weekLabel()+'</h1><div class="pdf-time-grid" style="--pdf-staff-count:'+Math.max(1,staff.length)+';--pdf-total-cols:'+Math.max(1,staff.length*7)+'">'+dayHeader+staffHeader+timeLabels+columns+'</div>';
+  view.innerHTML=sanitizeHTML('<h1>Dienstplan · '+weekLabel()+'</h1><div class="pdf-time-grid" style="--pdf-staff-count:'+Math.max(1,staff.length)+';--pdf-total-cols:'+Math.max(1,staff.length*7)+'">'+dayHeader+staffHeader+timeLabels+columns+'</div>');
   $("#pageContent").prepend(view);
   const originalTitle=document.title;
   document.title="Dienstplan-"+iso(dateForDay(0))+"-bis-"+iso(dateForDay(6));
