@@ -323,5 +323,21 @@
 .app-shell.sidebar-collapsed .nav-group{position:relative}
 .app-shell.sidebar-collapsed .sidebar-account{justify-content:center}
 .app-shell.sidebar-collapsed .sidebar-avatar{width:46px;height:46px}
-@media(min-width:761px){.app-shell.sidebar-collapsed .sidebar:hover{width:286px;padding:24px 18px 16px;position:relative;z-index:5}.app-shell.sidebar-collapsed .sidebar:hover .brand-copy,.app-shell.sidebar-collapsed .sidebar:hover .nav-label,.app-shell.sidebar-collapsed .sidebar:hover .nav-chevron,.app-shell.sidebar-collapsed .sidebar:hover .sidebar-user-copy,.app-shell.sidebar-collapsed .sidebar:hover .sidebar-logout{display:initial!important}.app-shell.sidebar-collapsed .sidebar:hover .nav-children{display:flex!important}.app-shell.sidebar-collapsed .sidebar:hover .brand{padding:0 48px 30px 12px;justify-content:flex-start}.app-shell.sidebar-collapsed .sidebar:hover .sidebar-collapse{transform:none;right:8px;top:16px}}
 @media(max-width:760px){.sidebar-collapse{display:none}.app-shell.sidebar-collapsed .sidebar{width:286px}.page-title-icon{width:48px;height:48px;flex-basis:48px}.page-title-icon svg{width:24px;height:24px}}
+
+/* Sidebar collapse fix: independent control, no hover expansion */
+.brand-row{display:flex;align-items:flex-start;gap:8px;padding:0 8px 28px 10px;min-width:0}
+.brand-row .brand{flex:1;min-width:0;padding:0;gap:12px}
+.brand-row .sidebar-collapse{position:static;flex:0 0 36px;margin-top:8px}
+.sidebar{flex:0 0 286px;min-width:0}
+.app-shell.sidebar-collapsed .sidebar{flex-basis:82px;width:82px;min-width:82px;padding-left:13px;padding-right:13px}
+.app-shell.sidebar-collapsed .brand-row{justify-content:center;padding:0 0 28px}
+.app-shell.sidebar-collapsed .brand-row .brand{flex:0 0 auto;justify-content:center;padding:0}
+.app-shell.sidebar-collapsed .brand-row .sidebar-collapse{position:absolute;right:0;top:62px;margin:0}
+.app-shell.sidebar-collapsed .nav-children{display:none!important}
+.app-shell.sidebar-collapsed .nav-group .nav-parent{width:100%;justify-content:center;padding:9px 6px}
+.app-shell.sidebar-collapsed .sidebar-account{padding-left:0;padding-right:0}
+@media(max-width:760px){
+ .sidebar{flex:0 0 286px;min-width:286px}
+ .app-shell.sidebar-collapsed .sidebar{flex-basis:286px;width:286px;min-width:286px}
+}
