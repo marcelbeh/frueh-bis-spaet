@@ -21,8 +21,9 @@ test('desktop shell renders without overflow at initial screen',async({page})=>{
 test('render sanitizer strips executable HTML',async({page})=>{
  await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};'}));
  await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
- const cleaned=await page.evaluate(()=>sanitizeHTML('<img src=x onerror="alert(1)"><script>alert(2)</script><a href="javascript:alert(3)">x</a>'));
+ const cleaned=await page.evaluate(()=>sanitizeHTML('<img src=x onerror="alert(1)"><script>alert(2)</script><a href="javascript:alert(3)">x</a><form action="javascript:alert(4)"><input srcdoc="bad"></form>'));
  expect(cleaned).not.toContain('onerror');
  expect(cleaned).not.toContain('<script');
  expect(cleaned).not.toContain('javascript:');
+ expect(cleaned).not.toContain('srcdoc');
 });
