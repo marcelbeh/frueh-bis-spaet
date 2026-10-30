@@ -93,10 +93,10 @@ function weekShifts(offset=weekOffset){return shifts.filter(s=>(s.weekOffset??0)
 function weekLabelForOffset(offset){return "Mo. "+fmt(dateForDay(0,offset))+" – So. "+fmt(dateForDay(6,offset))+" "+dateForDay(6,offset).getFullYear()}
 function coverageRequirement(day,time,group){
  const early=time>=420&&time<480,late=time>=900&&time<960,core=time>=480&&time<900;
- if(early&&plannerSettings.mergeEarlyGroups)return {scope:"combined",required:Number(plannerSettings.minimumEarlyCombined)||0,weight:1.5,label:"Frühdienst gemeinsam"};
- if(late&&plannerSettings.mergeLateGroups)return {scope:"combined",required:Number(plannerSettings.minimumLateCombined)||0,weight:1.5,label:"Spätdienst gemeinsam"};
- if(early)return {scope:"group",required:Number(plannerSettings.minimumEarlyByGroup[group])||0,weight:1.5,label:"Frühdienst"};
- if(late)return {scope:"group",required:Number(plannerSettings.minimumLateByGroup[group])||0,weight:1.5,label:"Spätdienst"};
+ if(early&&plannerSettings.mergeEarlyGroups)return {scope:"combined",required:Number(plannerSettings.minimumEarlyCombined)||0,weight:2.5,label:"Frühdienst gemeinsam"};
+ if(late&&plannerSettings.mergeLateGroups)return {scope:"combined",required:Number(plannerSettings.minimumLateCombined)||0,weight:2.5,label:"Spätdienst gemeinsam"};
+ if(early)return {scope:"group",required:Number(plannerSettings.minimumEarlyByGroup[group])||0,weight:2.5,label:"Frühdienst"};
+ if(late)return {scope:"group",required:Number(plannerSettings.minimumLateByGroup[group])||0,weight:2.5,label:"Spätdienst"};
  if(core)return {scope:"group",required:Number(plannerSettings.minimumByGroup[group])||0,weight:2,label:"Kernzeit"};
  return {scope:"none",required:0,weight:0,label:""};
 }
