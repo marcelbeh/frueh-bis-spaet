@@ -145,7 +145,8 @@ function generateWeekPlan(){
   const target=Math.round((Math.max(0,Number(p.hours)||0))*4)/4;
   if(!target)continue;
   let assigned=0;
-  const dailyTarget=Math.round(target/5*4)/4;
+  const availableDays=Array.from({length:5},(_,day)=>day).filter(day=>!blockingAbsence(p,day,weekOffset)).length;
+  const dailyTarget=availableDays?Math.round(target/availableDays*4)/4:0;
   for(let day=0;day<5;day++){
    const absence=blockingAbsence(p,day,weekOffset);
    if(absence){unavailable.push(p.name+" · "+weekdays[day]+" (Abwesenheit: "+absence.type+")");continue}
