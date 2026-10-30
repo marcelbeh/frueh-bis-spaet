@@ -20,3 +20,5 @@ test('11-hour rest time is enforced between adjacent days',()=>{const person={na
 test('daily maximum is based on net working time after break',()=>{const person={name:'A'};const issues=ctx.shiftRuleConflicts(person,0,'06:00','16:45',0,[]);assert.ok(issues.includes('Tägliche Arbeitszeit über zehn Stunden'));});
 
 test('daily maximum sums split shifts for one employee',()=>{const person={name:'A'},assigned=[{id:'old',person:'A',day:0,weekOffset:0,start:'06:00',end:'13:00'}];const issues=ctx.shiftRuleConflicts(person,0,'14:00','18:00',0,assigned);assert.ok(issues.includes('Tägliche Arbeitszeit über zehn Stunden'));});
+
+test('special events are rendered in the weekly duty plan for their date and recurring weekday',()=>{assert.match(source,/const dayEvents=events\.filter\(event=>eventOccursOnDate\(event,iso\(date\)\)\)/);assert.match(source,/day-special-event/);});
