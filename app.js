@@ -52,25 +52,25 @@ function addCloudLogout(){const right=document.querySelector(".topbar-right");if
 async function loadCloudData(user){
  cloudReady=false;cloudUser=user;
  const owner=await cloud.from("app_owner").select("user_id").limit(1);
- if(owner.error||!owner.data?.length){showCloudLogin("Dieser Zugang ist nicht als Leitung freigeschaltet. Bitte Supabase-Berechtigungen prüfen.");await cloud.auth.signOut();return;}
+ if(owner.error||!owner.data?.length){showCloudError("Dieser Zugang ist nicht als Leitung freigeschaltet. Bitte die Supabase-Berechtigungen prüfen.");await cloud.auth.signOut();return;}
  const result=await cloud.from("app_state").select("state").eq("id",1).maybeSingle();
- if(result.error){showCloudLogin("Daten konnten nicht geladen werden: "+result.error.message);return;}
+ if(result.error){showCloudError("Die gespeicherten Daten konnten nicht geladen werden. "+result.error.message);return;}
  if(result.data?.state)applyCloudSnapshot(result.data.state);
  cloudReady=true;document.getElementById("cloudLogin")?.remove();addCloudLogout();render();const status=document.getElementById("cloudSaveStatus");if(status)status.textContent="Gespeichert";
  if(!result.data)await saveCloudState();
 }
+function showCloudError(message){console.error("Cloud-Fehler:",message);window.alert("Es ist ein Fehler aufgetreten:\n\n"+message);}
 async function saveCloudState(){
  if(!cloudReady||!cloudUser)return;
  const {error}=await cloud.from("app_state").upsert({id:1,state:cloudSnapshot(),updated_at:new Date().toISOString()},{onConflict:"id"});
- const status=document.getElementById("cloudSaveStatus");
- if(error){console.error("Supabase-Speicherung fehlgeschlagen:",error);if(status)status.textContent="Speichern fehlgeschlagen";return false;}
- else {if(status)status.textContent="Gespeichert";return true;}
+ if(error){showCloudError("Die Änderungen konnten nicht gespeichert werden. "+error.message);return false;}
+ return true;
 }
-function scheduleCloudSave(){if(!cloudReady)return;clearTimeout(saveTimer);const status=document.getElementById("cloudSaveStatus");if(status)status.textContent="Speichert …";saveTimer=setTimeout(saveCloudState,500);}
+function scheduleCloudSave(){if(!cloudReady)return;clearTimeout(saveTimer);saveTimer=setTimeout(saveCloudState,500);}
 async function startCloudApp(){
- if(!window.supabase){showCloudLogin("Die Datenbankbibliothek konnte nicht geladen werden. Bitte Seite neu laden.");return;}
- const status=document.getElementById("cloudSaveStatus");if(status)status.textContent="Verbinde …";showCloudLogin();const {data,error}=await cloud.auth.getSession();
- if(error){showCloudLogin("Verbindung fehlgeschlagen: "+error.message);return;}
+ if(!window.supabase){showCloudError("Die Datenbankbibliothek konnte nicht geladen werden. Bitte Seite neu laden.");showCloudLogin();return;}
+ showCloudLogin();const {data,error}=await cloud.auth.getSession();
+ if(error){showCloudError("Die Verbindung zur Datenbank ist fehlgeschlagen. "+error.message);return;}
  if(data.session)await loadCloudData(data.session.user);
  cloud.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){cloudReady=false;cloudUser=null;showCloudLogin("Du wurdest abgemeldet.");}});
 }
