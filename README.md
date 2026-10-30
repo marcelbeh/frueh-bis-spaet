@@ -27,7 +27,7 @@ Du kannst `index.html` lokal öffnen oder GitHub Pages aktivieren: **Settings �
 
 ## Wichtige Hinweise
 
-- Die aktuelle Oberfläche startet mit zehn Beispieldatensätzen für Mitarbeitende in den drei Gruppen Nest, Sonnengruppe und Sternengruppe. Beispieldaten können bearbeitet oder entfernt werden.
+- Die aktuelle Oberfläche startet mit elf Beispieldatensätzen für Mitarbeitende in den drei Gruppen Nest, Sonnengruppe und Sternengruppe. Beispieldaten können bearbeitet oder entfernt werden.
 - Änderungen bleiben derzeit nur im Speicher der geöffneten Browser-Sitzung und gehen beim Neuladen verloren. Das gilt auch für neu angelegte oder entfernte Mitarbeitende.
 - Es gibt noch keine Anmeldung, Datenbank, echte Dienstplanoptimierung oder rechtliche Arbeitszeitprüfung.
 - Keine echten personenbezogenen Daten in diesem Prototyp verwenden.
