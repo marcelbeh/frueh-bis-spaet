@@ -272,8 +272,10 @@ function renderCoverageStrip(coverageShifts){
   const countAt=(t,g)=>coverageShifts.filter(s=>shiftCoversTime(s,t)&&(merged||s.group===g)).length;
   const entries=merged?[{label:"Gemeinsam",required:Number(period.key==="early"?plannerSettings.minimumEarlyCombined:plannerSettings.minimumLateCombined)||0,count:Math.min(...times.map(t=>countAt(t,groups[0])))}]:groups.map(g=>({label:g,required:Number(minimum[g])||0,count:Math.min(...times.map(t=>countAt(t,g)))}));
   const relevant=entries.filter(x=>x.required>0),deficient=relevant.some(x=>x.count<x.required),exact=relevant.some(x=>x.count===x.required);
+  const status=deficient?"coverage-low":exact?"coverage-watch":"coverage-ok";
   const detail=entries.map(x=>x.label+" "+x.count+"/"+x.required).join(" · ");
-  return '<span class="day-coverage '+(deficient?'coverage-low':exact?'coverage-watch':'coverage-ok')+'" title="'+detail+'"><small>'+period.label+'<br>'+period.time+'</small><strong>'+detail+'</strong></span>';
+  const rows=entries.map(x=>'<span class="day-coverage-entry"><span class="day-coverage-group">'+x.label+'</span><strong>'+x.count+'/'+x.required+'</strong></span>').join("");
+  return '<div class="day-coverage '+status+'" title="'+detail+'"><div class="day-coverage-title"><strong>'+period.label+'</strong><small>'+period.time+'</small></div><div class="day-coverage-entries">'+rows+'</div></div>';
  }).join("");
 }
 function pageIcon(){return ({dashboard:"home",dienstplan:"calendar",kalender:"calendar",mitarbeitende:"users",abwesenheiten:"calendar",sondertermine:"calendar",teammeetings:"users",supervision:"users",fortbildungen:"briefcase",auswertungen:"chart",einstellungen:"settings",leitungsprofil:"user"})[currentPage]||"home"}
