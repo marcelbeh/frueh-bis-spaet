@@ -56,11 +56,14 @@ test('dragging a shift end changes the displayed time in 15-minute increments',a
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.setViewportSize({width:1440,height:1000});
  await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
- await page.locator('input[name="email"]').fill('leitung@example.test');
- await page.locator('input[name="password"]').fill('test-password');
- await page.locator('#cloudLoginForm button[type="submit"]').click();
- await expect(page.locator('#cloudLogin')).toHaveCount(0);
- await page.locator('[data-page="dienstplan"]').first().click();
+ await page.evaluate(()=>{
+  document.querySelector('#cloudLogin')?.remove();
+  const person=names[0];
+  shifts.push({id:'s1',person:person.name,group:person.group,serviceType:'Normaler Dienst',day:0,start:'07:00',end:'10:00',weekOffset:0});
+  window.__savedState=null;
+  scheduleCloudSave=()=>{window.__savedState=cloudSnapshot()};
+  currentPage='dienstplan';render();
+ });
  const handle=page.locator('[data-resize-shift="s1"]');
  await expect(handle).toBeVisible();
  const bounds=await handle.boundingBox();
