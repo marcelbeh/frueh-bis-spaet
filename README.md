@@ -21,7 +21,7 @@ Der Anwendungscode verwendet die Tabellen `app_owner` (freigeschaltete Leitungsz
 ## Funktionen
 
 - Dashboard und Wochenübersicht
-- Dienstplan mit Wochenwechsel, Gruppenfilter, manuellem Bearbeiten und PDF-Druckansicht
+- Dienstplan mit Wochenwechsel, Gruppenfilter, manueller Bearbeitung, Ziehen des Dienstendes in 15-Minuten-Schritten und PDF-Druckansicht
 - automatische Vorbelegung als bearbeitbarer Entwurf
 - Mitarbeitenden-Stammdaten und feste Dienstsperren
 - Abwesenheiten und Urlaubskonto (vereinfachte Werktagszählung)
@@ -33,12 +33,12 @@ Der Anwendungscode verwendet die Tabellen `app_owner` (freigeschaltete Leitungsz
 
 - Die automatische Vorbelegung verteilt die hinterlegten Wochenstunden in 15-Minuten-Schritten auf verfügbare Werktage. Die Zuweisung ist heuristisch und garantiert keine optimale oder vollständige Lösung. Nicht verteilte Stunden werden ausgewiesen.
 - Mindestbesetzung wird in 15-Minuten-Intervallen geprüft. Unterbesetzungen werden in der Planprüfung angezeigt; die Vorbelegung garantiert keine vollständige Erfüllung aller Besetzungsziele.
-- Pausen, gesetzliche Höchstarbeitszeiten, Ruhezeiten, Feiertage, Teilzeit- und Tarifregeln werden nicht vollständig geprüft.
+- Die App prüft eine vereinfachte Pausenlogik, tägliche Höchstarbeitszeit und elf Stunden Ruhezeit. Das ersetzt keine vollständige arbeitsrechtliche Prüfung und berücksichtigt nicht alle Tarif-, Teilzeit- oder betrieblichen Sonderregeln.
 - Bürozeiten der Leitung werden nicht als feste Zeitblöcke geplant; nur die Gruppenzeit kann als Besetzung erscheinen.
 - Genehmigte bzw. erfasste Abwesenheiten und feste Dienstsperren blockieren neue automatische und manuelle Dienste. Bereits vorhandene Dienste werden nicht automatisch gelöscht; die Planprüfung weist Konflikte aus.
 - Urlaub wird aktuell als Montag-bis-Freitag-Zählung berechnet. Feiertage und betriebliche Schließtage werden nicht abgezogen.
 - Die Monatskalenderansicht, Druckausgabe und Darstellung auf realen Mobilgeräten sind noch nicht durch einen echten Browser-/iPhone-End-to-End-Test abgenommen.
-- Die Speicherung erfolgt als gemeinsamer JSON-Datensatz. Gleichzeitige Bearbeitung durch mehrere Leitungen kann zu konkurrierenden Änderungen führen; es gibt noch keine Konflikterkennung bzw. optimistische Versionsprüfung.
+- Die Speicherung erfolgt als gemeinsamer JSON-Datensatz. Eine optimistische Versionsprüfung erkennt konkurrierende Änderungen und verhindert das unbemerkte Überschreiben eines neueren Datenstands. Eine automatische Zusammenführung paralleler Änderungen gibt es nicht.
 - Es gibt derzeit keine nachgewiesene automatisierte Datenbanksicherung oder vollständige Prüfung der RLS-Policies.
 
 ## Testdaten und Datenschutz
