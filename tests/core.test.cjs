@@ -18,3 +18,5 @@ test('coverage strip uses pause-aware shift coverage',()=>assert.match(source,/c
 
 test('11-hour rest time is enforced between adjacent days',()=>{const person={name:'A'},assigned=[{person:'A',day:0,weekOffset:0,start:'12:00',end:'22:00'}];const issues=ctx.shiftRuleConflicts(person,1,'06:00','10:00',0,assigned);assert.ok(issues.includes('Ruhezeit unter elf Stunden'));});
 test('daily maximum is based on net working time after break',()=>{const person={name:'A'};const issues=ctx.shiftRuleConflicts(person,0,'06:00','16:45',0,[]);assert.ok(issues.includes('Tägliche Arbeitszeit über zehn Stunden'));});
+
+test('daily maximum sums split shifts for one employee',()=>{const person={name:'A'},assigned=[{id:'old',person:'A',day:0,weekOffset:0,start:'06:00',end:'13:00'}];const issues=ctx.shiftRuleConflicts(person,0,'14:00','18:00',0,assigned);assert.ok(issues.includes('Tägliche Arbeitszeit über zehn Stunden'));});
