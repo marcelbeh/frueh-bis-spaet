@@ -352,3 +352,6 @@
 .profile-name{white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis}
 .topbar-right{flex:0 0 auto;min-width:0;gap:12px}
 @media(max-width:900px){.topbar{gap:10px;padding-left:16px;padding-right:16px}.demo-chip{max-width:110px}.profile-name{max-width:100px}}
+
+/* Cloud status is intentionally not shown in the interface; errors use a popup. */
+.demo-chip{display:none!important}
