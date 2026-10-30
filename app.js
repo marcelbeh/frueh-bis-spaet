@@ -262,4 +262,4 @@ document.addEventListener("click",e=>{
 $("#closeModal").addEventListener("click",closeModal);$("#modalBackdrop").addEventListener("click",e=>{if(e.target.id==="modalBackdrop")closeModal()});
 $("#mobileMenu").addEventListener("click",()=>$("#sidebar").classList.toggle("open"));
 $("#globalSearch").addEventListener("keydown",e=>{if(e.key==="Enter"){const q=e.target.value.trim().toLocaleLowerCase("de");if(!q){alert("Bitte einen Namen oder Termin eingeben.");return}if(names.some(p=>p.name.toLocaleLowerCase("de").includes(q)))navigate("mitarbeitende");else if(events.some(ev=>ev.title.toLocaleLowerCase("de").includes(q)))navigate("kalender");else alert("Keine passenden Beispieldaten gefunden.")}});
-render();
+rstartCloudApp();
