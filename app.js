@@ -53,7 +53,7 @@ function addCloudLogout(){const right=document.querySelector(".topbar-right");if
 async function loadCloudData(user){
  cloudReady=false;cloudUser=user;
  const owner=await cloud.from("app_owner").select("user_id").eq("user_id",user.id).maybeSingle();
- if(owner.error||!owner.data?.length){showCloudError("Dieser Zugang ist nicht als Leitung freigeschaltet. Bitte die Supabase-Berechtigungen prüfen.");await cloud.auth.signOut();return;}
+ if(owner.error||!owner.data){showCloudError("Dieser Zugang ist nicht als Leitung freigeschaltet. Bitte die Supabase-Berechtigungen prüfen.");await cloud.auth.signOut();return;}
  const result=await cloud.from("app_state").select("state,updated_at").eq("id",1).maybeSingle();
  if(result.error){showCloudError("Die gespeicherten Daten konnten nicht geladen werden. "+result.error.message);return;}
  if(result.data?.state)applyCloudSnapshot(result.data.state);cloudUpdatedAt=result.data?.updated_at||null;
