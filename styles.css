@@ -58,10 +58,10 @@
 .day-shift strong,.day-shift span{display:block;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .day-shift span{margin-top:4px;opacity:.86}
 .day-shift:hover{z-index:2;filter:saturate(1.1);box-shadow:0 2px 8px #172b4d20}
-.day-coverage-strip{display:grid;grid-template-columns:repeat(8,minmax(31px,1fr));gap:2px;flex:1;max-width:410px}
+.day-coverage-strip{display:grid;grid-template-columns:repeat(3,minmax(76px,1fr));gap:5px;flex:1;max-width:410px}
 .day-coverage{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:5px;padding:4px 2px}
-.day-coverage small{font-size:8px}
-.day-coverage strong{font-size:12px}
+.day-coverage small{font-size:9px;line-height:1.2;text-align:center}
+.day-coverage strong{font-size:18px}
 @media(max-width:760px){.day-calendar-list{padding:0 8px 10px;gap:10px}.day-calendar-head{align-items:flex-start;flex-direction:column}.day-coverage-strip{width:100%;max-width:none}.day-time-axis,.day-lane{grid-template-columns:112px minmax(700px,1fr)}.day-lane-person{padding:6px}.day-shift{padding:4px}.day-shift strong,.day-shift span{font-size:9px}}
 
 /* Outlook-Ansicht: Mitarbeitende als Spaltenkopf, Zeit senkrecht */
