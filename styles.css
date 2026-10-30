@@ -439,3 +439,10 @@
 .day-coverage-group{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.9}
 .day-coverage-entry strong{flex:0 0 auto;font-size:10px;font-weight:750;font-variant-numeric:tabular-nums}
 @media(max-width:760px){.day-coverage-strip{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;width:100%;max-width:none}.day-coverage{padding:6px}.day-coverage-title{align-items:flex-start;flex-direction:column;gap:1px}.day-coverage-entry{font-size:9px}.day-coverage-entry strong{font-size:9px}}
+
+/* Sondertermine im Wochen-Dienstplan */
+.day-special-events{display:flex;flex-wrap:wrap;gap:8px;padding:10px 14px;background:#f7f9fc;border-bottom:1px solid var(--border,#e7edf3)}
+.day-special-event{display:flex;align-items:center;gap:8px;min-width:0;padding:7px 10px;border:1px solid #d9e3f0;border-radius:9px;background:#fff;color:#29415c;font-size:12px}
+.day-special-event strong{font-variant-numeric:tabular-nums;white-space:nowrap}
+.day-special-event span{font-weight:700;overflow-wrap:anywhere}
+.day-special-event small{color:#6b7d90;white-space:nowrap}
