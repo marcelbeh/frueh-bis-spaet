@@ -395,7 +395,7 @@ document.addEventListener("click",e=>{
  const removePerson=e.target.closest("[data-remove-person]");if(removePerson){const personName=removePerson.dataset.removePerson;if(confirm("Mitarbeitende Person „"+personName+"“ wirklich entfernen? Zugehörige Dienste und Abwesenheiten werden ebenfalls gelöscht.")){names=names.filter(p=>p.name!==personName);shifts=shifts.filter(x=>x.person!==personName);absences=absences.filter(x=>x.name!==personName);render()}return}
  const deleteShift=e.target.closest("[data-delete-shift]");if(deleteShift){const id=deleteShift.dataset.deleteShift,shift=shifts.find(x=>x.id===id);if(shift&&confirm("Diesen Dienst wirklich löschen?")){shifts=shifts.filter(x=>x.id!==id);closeModal();render()}return}
  const manageBlocks=e.target.closest("[data-manage-blocks]");if(manageBlocks){manageBlocksModal(manageBlocks.dataset.manageBlocks);return}
-  const removeBlock=e.target.closest("[data-remove-block]");if(removeBlock){const p=names.find(x=>x.name===removeBlock.dataset.blockPerson);if(p){personBlocks(p).splice(Number(removeBlock.dataset.removeBlock),1);scheduleCloudSave();manageBlocksModal(p.name)}return}
+  const removeBlock=e.target.closest("[data-remove-block]");if(removeBlock){const p=planningPeople().find(x=>x.name===removeBlock.dataset.blockPerson);if(p){personBlocks(p).splice(Number(removeBlock.dataset.removeBlock),1);if(p.isLeader)leaderProfile.blocks=p.blocks;scheduleCloudSave();manageBlocksModal(p.name)}return}
   const editPerson=e.target.closest("[data-edit-person]");if(editPerson){addPersonModal(editPerson.dataset.editPerson);return}
  const edit=e.target.closest("[data-edit-shift]");if(edit){addShiftModal(edit.dataset.editShift);return}
  const close=e.target.closest("[data-close]");if(close){closeModal();return}
