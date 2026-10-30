@@ -302,7 +302,7 @@ function dutyPage(){
   const timeAxis=Array.from({length:9},(_,n)=>{const h=6+n*2;return `<span style="top:${n/8*100}%">${String(h).padStart(2,"0")}:00</span>`}).join("");
   const columns=people.map(p=>{
    const personShifts=dayShifts.filter(s=>s.person===p.name);
-   const blocks=personShifts.map(s=>{const pause=shiftPause(s),span=minutes(s.end)-minutes(s.start);const pauseMarkup=pause?'<span class="pause-marker" style="top:'+((pause.start-minutes(s.start))/span*100)+'%;height:'+(30/span*100)+'%">Pause · 30 Min.</span>':'';return '<button class="outlook-shift '+shiftClass(s)+'" style="'+shiftPosition(s)+'" data-edit-shift="'+s.id+'" title="'+s.person+': '+s.start+'–'+s.end+(pause?' · Pause 30 Min.':'')+'"><strong>'+s.start+'–'+s.end+'</strong><span>'+(s.serviceType&&s.serviceType!=="Normaler Dienst"?s.serviceType:s.group)+'</span>'+pauseMarkup+'</button>'}).join("");
+   const blocks=personShifts.map(s=>{const pause=shiftPause(s),span=minutes(s.end)-minutes(s.start);const pauseMarkup=pause?'<span class="pause-marker" style="top:'+((pause.start-minutes(s.start))/span*100)+'%;height:'+(30/span*100)+'%">Pause · 30 Min.</span>':'';return '<button class="outlook-shift '+shiftClass(s)+'" style="'+shiftPosition(s)+'" data-edit-shift="'+s.id+'" title="'+s.person+': '+s.start+'–'+s.end+(pause?' · Pause 30 Min.':'')+'"><strong>'+s.start+'–'+s.end+'</strong><span>'+(s.serviceType&&s.serviceType!=="Normaler Dienst"?s.serviceType:s.group)+'</span>'+pauseMarkup+'<i class="shift-resize-handle" data-resize-shift="'+s.id+'" title="Ziehen, um das Dienstende zu ändern" aria-label="Dienstende ziehen"></i></button>'}).join("");
    return `<div class="outlook-staff-column"><div class="outlook-time-grid"></div>${blocks}</div>`;
   }).join("");
   const coverageShifts=dayShifts.filter(s=>!s.serviceType||s.serviceType==="Normaler Dienst");const cover=renderCoverageStrip(coverageShifts);
@@ -433,7 +433,44 @@ function addPersonModal(personName=null){
   closeModal();render();
  });
 }
+let activeShiftResize=null;
+function resizeTime(value){return String(Math.floor(value/60)).padStart(2,"0")+":"+String(value%60).padStart(2,"0")}
+document.addEventListener("pointerdown",e=>{
+ const handle=e.target.closest("[data-resize-shift]");if(!handle)return;
+ const shift=shifts.find(x=>x.id===handle.dataset.resizeShift);if(!shift)return;
+ e.preventDefault();e.stopPropagation();
+ const column=handle.closest(".outlook-staff-column");if(!column)return;
+ activeShiftResize={id:shift.id,pointerId:e.pointerId,startY:e.clientY,initialEnd:minutes(shift.end),column,block:handle.closest(".outlook-shift"),previewEnd:minutes(shift.end)};
+ handle.setPointerCapture?.(e.pointerId);document.body.classList.add("resizing-shift");
+});
+document.addEventListener("pointermove",e=>{
+ if(!activeShiftResize||e.pointerId!==activeShiftResize.pointerId)return;
+ const state=activeShiftResize,rect=state.column.getBoundingClientRect(),shift=shifts.find(x=>x.id===state.id);if(!shift)return;
+ const delta=Math.round((e.clientY-state.startY)/Math.max(1,rect.height)*960/15)*15;
+ const next=Math.max(minutes(shift.start)+15,Math.min(1320,state.initialEnd+delta));state.previewEnd=next;
+ if(state.block){state.block.style.height=heightPercent(shift.start,resizeTime(next))+"%";const label=state.block.querySelector("strong");if(label)label.textContent=shift.start+"–"+resizeTime(next);}
+});
+function finishShiftResize(){
+ if(!activeShiftResize)return;
+ const state=activeShiftResize;activeShiftResize=null;document.body.classList.remove("resizing-shift");
+ const shift=shifts.find(x=>x.id===state.id);if(!shift){render();return}
+ const end=resizeTime(state.previewEnd),person=planningPeople().find(p=>p.name===shift.person),offset=shift.weekOffset??weekOffset;
+ let issue="";
+ if(minutes(end)<=minutes(shift.start))issue="Das Dienstende muss nach dem Beginn liegen.";
+ else if(minutes(end)>minutes(plannerSettings.frame.end))issue="Das Dienstende liegt außerhalb der Rahmenzeit.";
+ else if(!person)issue="Die Mitarbeitende Person wurde nicht gefunden.";
+ else if(blockingAbsence(person,shift.day,offset))issue="Für diese Person ist an diesem Tag eine Abwesenheit erfasst.";
+ else if(isBlocked(person,shift.day,shift.start,end,offset))issue="Der verlängerte Dienst überschneidet sich mit einer festen Dienstsperre.";
+ else if(personHasEventConflict(person,shift.day,shift.start,end,offset))issue="Der verlängerte Dienst überschneidet sich mit einem Termin.";
+ else {const rules=shiftRuleConflicts(person,shift.day,shift.start,end,offset,shifts,shift.id);if(rules.length)issue=rules.join("; ");}
+ if(!issue&&shifts.some(x=>x.id!==shift.id&&x.person===shift.person&&x.day===shift.day&&(x.weekOffset??0)===offset&&minutes(shift.start)<minutes(x.end)&&minutes(end)>minutes(x.start)))issue="Der verlängerte Dienst überschneidet sich mit einem anderen Dienst derselben Person.";
+ if(issue){alert(issue+" Die ursprüngliche Zeit bleibt erhalten.");render();return}
+ shift.end=end;scheduleCloudSave();render();
+}
+document.addEventListener("pointerup",e=>{if(activeShiftResize&&e.pointerId===activeShiftResize.pointerId)finishShiftResize()});
+document.addEventListener("pointercancel",e=>{if(!activeShiftResize||e.pointerId!==activeShiftResize.pointerId)return;activeShiftResize=null;document.body.classList.remove("resizing-shift");render()});
 document.addEventListener("click",e=>{
+ if(e.target.closest("[data-resize-shift]")){e.preventDefault();e.stopPropagation();return;}
  const menuToggle=e.target.closest("[data-menu-toggle]");if(menuToggle){const shell=document.querySelector(".app-shell");if(shell?.classList.contains("sidebar-collapsed")){const target=menuToggle.dataset.defaultPage;if(target)navigate(target);return}const key=menuToggle.dataset.menuToggle,children=$("[data-nav-children='"+key+"']"),open=menuToggle.getAttribute("aria-expanded")!=="true";menuToggle.setAttribute("aria-expanded",String(open));children.hidden=!open;return}
  const nav=e.target.closest("[data-page]");if(nav){navigate(nav.dataset.page);return}
  const removePerson=e.target.closest("[data-remove-person]");if(removePerson){const personName=removePerson.dataset.removePerson;if(confirm("Mitarbeitende Person „"+personName+"“ wirklich entfernen? Zugehörige Dienste und Abwesenheiten werden ebenfalls gelöscht.")){names=names.filter(p=>p.name!==personName);shifts=shifts.filter(x=>x.person!==personName);absences=absences.filter(x=>x.name!==personName);render()}return}
