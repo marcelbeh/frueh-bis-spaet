@@ -1,50 +1,50 @@
 # Früh bis spät – Der Kita-Dienstplaner
 
-Erster UI-Prototyp für eine zentrale Kita-Dienstplanung.
+Browserbasierte Kita-Dienstplanung mit Supabase-Anmeldung und Speicherung eines gemeinsamen App-Zustands.
 
-## Start
+## Dateien
 
-Die erste Version besteht aus statischen Dateien und benötigt keinen Build-Schritt:
-- `index.html`
-- `styles.css`
-- `app.js`
+- `index.html` – App-Grundgerüst und externe Supabase-JS-Bibliothek
+- `styles.css` – Gestaltung und responsive Darstellung
+- `app.js` – Navigation, Planung, Personal, Abwesenheiten, Termine, Auswertungen und Datenbankzugriffe
 
-Du kannst `index.html` lokal öffnen oder GitHub Pages aktivieren: **Settings → Pages → Deploy from a branch → `main` / `/(root)`**.
+## Technischer Betrieb
 
-## Enthaltene Prototyp-Seiten
+Die Anwendung benötigt:
+- GitHub Pages oder einen anderen statischen Webserver
+- eine erreichbare Supabase-Instanz
+- die Supabase-JS-Bibliothek von jsDelivr
+- die Tabellen `app_owner` und `app_state`
 
-- Dashboard mit Wochenvorschau, Kennzahlen und Warnungen
-- Dienstplan: Montag bis Sonntag, 06:00–22:00 Uhr, maßstabsgetreue Zeitblöcke; Dienste lassen sich anklicken und bearbeiten
-- Kalender
-- Mitarbeitende
-- Urlaub & Abwesenheit
-- Sondertermine
-- Teammeetings
-- Supervision
-- Fortbildungen
-- Auswertungen
-- Einstellungen
+Der Anwendungscode verwendet die Tabellen `app_owner` (freigeschaltete Leitungszugänge) und `app_state` (gemeinsamer JSON-Zustand mit ID 1). Die tatsächliche Tabellenstruktur, Row-Level-Security-Policies, Backup-Strategie und Berechtigungen müssen im Supabase-Projekt separat geprüft werden. Der veröffentlichte JavaScript-Code allein beweist nicht, dass die Datenbank korrekt abgesichert ist.
 
-## Wichtige Hinweise
+## Funktionen
 
-- Die aktuelle Oberfläche startet mit elf Beispieldatensätzen für Mitarbeitende in den drei Gruppen Nest, Sonnengruppe und Sternengruppe. Beispieldaten können bearbeitet oder entfernt werden.
-- Änderungen bleiben derzeit nur im Speicher der geöffneten Browser-Sitzung und gehen beim Neuladen verloren. Das gilt auch für neu angelegte oder entfernte Mitarbeitende.
-- Es gibt noch keine Anmeldung, Datenbank, echte Dienstplanoptimierung oder rechtliche Arbeitszeitprüfung.
-- Keine echten personenbezogenen Daten in diesem Prototyp verwenden.
-- Vor produktiver Nutzung müssen sichere Speicherung, Zugriffsschutz, Datensicherung, Arbeitszeitregeln und die Planungslogik fachlich und technisch umgesetzt und geprüft werden.
+- Dashboard und Wochenübersicht
+- Dienstplan mit Wochenwechsel, Gruppenfilter, manuellem Bearbeiten und PDF-Druckansicht
+- automatische Vorbelegung als bearbeitbarer Entwurf
+- Mitarbeitenden-Stammdaten und feste Dienstsperren
+- Abwesenheiten und Urlaubskonto (vereinfachte Werktagszählung)
+- Sondertermine mit Kategorien und Teilnehmendenauswahl
+- Auswertungen aus den vorhandenen Diensteinträgen
+- Leitungsprofil mit Gruppen- und Bürozeit
 
-## Nächste Schritte
+## Fachliche Grenzen – vor produktivem Einsatz klären
 
-1. Oberfläche und Navigation testen.
-2. Gruppen, Mitarbeitendenregeln und Dienstmodelle fachlich konkretisieren.
-3. Datenmodell und sichere Speicherung planen.
-4. Validierungsregeln und danach Optimierungslogik entwickeln.
+- Die automatische Vorbelegung ist kein Optimierungsalgorithmus. Sie verteilt Wochenstunden näherungsweise auf fünf Werktage und meldet Unterbesetzungen, statt sie zuverlässig zu lösen.
+- Mindestbesetzung wird in Zeitintervallen geprüft. Die Vorbelegung garantiert weder die Mindestbesetzung noch eine vollständige Erfüllung aller individuellen Verfügbarkeiten.
+- Pausen, gesetzliche Höchstarbeitszeiten, Ruhezeiten, Feiertage, Teilzeit- und Tarifregeln werden nicht vollständig geprüft.
+- Bürozeiten der Leitung werden nicht als feste Zeitblöcke geplant; nur die Gruppenzeit kann als Besetzung erscheinen.
+- Abwesenheiten warnen vor bereits eingetragenen Diensten. Die Dienste werden nicht automatisch gelöscht.
+- Urlaub wird aktuell als Montag-bis-Freitag-Zählung berechnet. Feiertage und betriebliche Schließtage werden nicht abgezogen.
+- Die Monatskalenderansicht, Druckausgabe und Darstellung auf realen Mobilgeräten müssen im Browser geprüft werden.
+- Die Speicherung erfolgt als gemeinsamer JSON-Datensatz. Gleichzeitige Bearbeitung durch mehrere Leitungen kann zu konkurrierenden Änderungen führen.
+- Es gibt derzeit keine nachgewiesene automatisierte Datenbanksicherung oder vollständige Prüfung der RLS-Policies.
 
+## Testdaten und Datenschutz
 
-## Dienstplan-Vorbelegung und Wochenkopie
+Die Anwendung startet mit elf Beispieldatensätzen, sofern kein gespeicherter Supabase-Zustand geladen wird. Vor echtem Personaleinsatz müssen Beispieldaten entfernt und Datenschutz, Zugriffsrechte, Aufbewahrung, Backups und fachliche Regeln geklärt werden.
 
-- Über **Einstellungen** lassen sich Beginn und Ende der allgemeinen Rahmenzeit sowie die Mindestbesetzung je Gruppe festlegen. Es gibt einen normalen Diensttyp und kategorisierte Sonderdienste.
-- **Automatisch vorbelegen** erstellt einen bearbeitbaren Wochenentwurf aus den angelegten Mitarbeitenden und ihren Wochenstunden. Der Entwurf verteilt die Wochenstunden auf fünf Werktage und prüft Mindestbesetzungen in Zwei-Stunden-Fenstern.
-- **Woche kopieren** kopiert die Dienste der angezeigten Woche in die Folgewoche. Bereits vorhandene Dienste der Zielwoche werden nach Bestätigung ersetzt.
-- Wochenbezogene Dienste werden im Prototyp getrennt geführt.
-- Kriterien und Dienstpläne sind noch nicht dauerhaft gespeichert und gehen beim Neuladen verloren. Die automatische Vorbelegung berücksichtigt noch keine individuellen freien Tage, Abwesenheiten, Pausen, besondere Endzeiten oder gesetzlichen Ruhezeiten. Den Entwurf vor Nutzung immer manuell prüfen.
+## Veröffentlichung
+
+GitHub Pages kann die statischen Dateien aus dem Hauptbranch veröffentlichen. Nach Änderungen an JavaScript oder CSS müssen die Versionsparameter in `index.html` aktualisiert werden, damit Browser die neuen Dateien laden.
