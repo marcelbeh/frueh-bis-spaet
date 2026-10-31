@@ -95,6 +95,14 @@ test('dragging both shift edges changes the displayed time in 15-minute incremen
  await expect(popup.locator('style[data-pdf-print]')).toHaveCount(1);
  await popup.emulateMedia({media:'print'});
  await expect.poll(()=>popup.locator('#pdfWeekView').evaluate(el=>getComputedStyle(el).display)).toBe('block');
+ const verticalMode=await popup.evaluate(()=>{
+  const label=document.createElement('div');
+  label.className='pdf-time-shift';
+  label.innerHTML='<strong>08:00–16:00</strong><span>Nest</span>';
+  document.querySelector('.pdf-time-track')?.appendChild(label);
+  return getComputedStyle(label.querySelector('strong')).writingMode;
+ });
+ expect(verticalMode).toBe('vertical-rl');
  await expect.poll(()=>popup.locator('#pdfWeekView .pdf-time-track').first().evaluate(el=>{
   const style=getComputedStyle(el);
   return style.backgroundColor==='rgb(255, 255, 255)';

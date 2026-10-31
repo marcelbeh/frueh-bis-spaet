@@ -21,7 +21,7 @@ Der Anwendungscode verwendet die Tabellen `app_owner` (freigeschaltete Leitungsz
 ## Funktionen
 
 - Dashboard und Wochenübersicht
-- Dienstplan mit Wochenwechsel, Gruppenfilter, manueller Bearbeitung, Ziehen des Dienstendes in 15-Minuten-Schritten und PDF-Druckansicht
+- Dienstplan mit Wochenwechsel, Gruppenfilter, manueller Bearbeitung, Ziehen des Dienstendes in 15-Minuten-Schritten und PDF-Druckansicht mit vertikalen Zeitbox-Beschriftungen
 - automatische Vorbelegung als bearbeitbarer Entwurf
 - Mitarbeitenden-Stammdaten und feste Dienstsperren
 - Abwesenheiten und Urlaubskonto (vereinfachte Werktagszählung)
