@@ -21,9 +21,9 @@ Der Anwendungscode verwendet die Tabellen `app_owner` (freigeschaltete Leitungsz
 ## Funktionen
 
 - Dashboard und Wochenübersicht
-- Dienstplan mit Wochenwechsel, Gruppenfilter, manueller Bearbeitung, Ziehen des Dienstendes in 15-Minuten-Schritten und PDF-Druckansicht mit vertikalen Zeitbox-Beschriftungen
+- Dienstplan mit Wochenwechsel, Gruppenfilter, manueller Bearbeitung, Ziehen beider Dienstgrenzen in 15-Minuten-Schritten und PDF-Druckansicht mit vertikalen Zeitbox-Beschriftungen; große Teams werden automatisch auf mehrere A4-Seiten verteilt
 - automatische Vorbelegung als bearbeitbarer Entwurf
-- Mitarbeitenden-Stammdaten und feste Dienstsperren
+- Mitarbeitenden-Stammdaten mit individuell konfigurierbaren regulären Arbeitstagen sowie feste Dienstsperren
 - Abwesenheiten und Urlaubskonto (vereinfachte Werktagszählung)
 - Sondertermine mit Kategorien und Teilnehmendenauswahl
 - Auswertungen aus den vorhandenen Diensteinträgen
@@ -31,13 +31,13 @@ Der Anwendungscode verwendet die Tabellen `app_owner` (freigeschaltete Leitungsz
 
 ## Fachliche Grenzen – vor produktivem Einsatz klären
 
-- Die automatische Vorbelegung verteilt die hinterlegten Wochenstunden in 15-Minuten-Schritten auf verfügbare Werktage. Die Zuweisung ist heuristisch und garantiert keine optimale oder vollständige Lösung. Nicht verteilte Stunden werden ausgewiesen.
+- Die automatische Vorbelegung verteilt Wochenstunden dynamisch auf die verbleibenden verfügbaren Werktage. Die Zuweisung ist weiterhin heuristisch und garantiert keine optimale oder vollständige Lösung. Nicht verteilte sowie über dem Soll liegende Stunden und Unterbesetzungen werden in der Vorprüfung ausgewiesen.
 - Mindestbesetzung wird in 15-Minuten-Intervallen geprüft. Unterbesetzungen werden in der Planprüfung angezeigt; die Vorbelegung garantiert keine vollständige Erfüllung aller Besetzungsziele.
-- Die App prüft eine vereinfachte Pausenlogik, tägliche Höchstarbeitszeit und elf Stunden Ruhezeit. Das ersetzt keine vollständige arbeitsrechtliche Prüfung und berücksichtigt nicht alle Tarif-, Teilzeit- oder betrieblichen Sonderregeln.
+- Die App berücksichtigt bei Diensten eine 30-minütige Pause bei mehr als sechs Stunden sowie 45 Minuten bei mehr als neun Stunden Nettoarbeitszeit, tägliche Höchstarbeitszeit und elf Stunden Ruhezeit. Das ersetzt keine vollständige arbeitsrechtliche Prüfung und berücksichtigt nicht alle Tarif-, Teilzeit- oder betrieblichen Sonderregeln.
 - Bürozeiten der Leitung werden nicht als feste Zeitblöcke geplant; nur die Gruppenzeit kann als Besetzung erscheinen.
 - Genehmigte bzw. erfasste Abwesenheiten und feste Dienstsperren blockieren neue automatische und manuelle Dienste. Bereits vorhandene Dienste werden nicht automatisch gelöscht; die Planprüfung weist Konflikte aus.
-- Urlaub wird aktuell als Montag-bis-Freitag-Zählung berechnet. Feiertage und betriebliche Schließtage werden nicht abgezogen.
-- Die Monatskalenderansicht, Druckausgabe und Darstellung auf realen Mobilgeräten sind noch nicht durch einen echten Browser-/iPhone-End-to-End-Test abgenommen.
+- Urlaub wird anhand der je Person hinterlegten regulären Arbeitstage berechnet; gesetzliche NRW-Feiertage werden abgezogen. Betriebliche Schließtage werden noch nicht automatisch berücksichtigt.
+- Die Monatskalendernavigation, die mehrseitige Druckausgabe und die mobile Browseransicht sind durch Playwright-Tests abgedeckt. Ein zusätzlicher Abnahmetest auf realen iPhones und Tablets steht noch aus.
 - Die Speicherung erfolgt als gemeinsamer JSON-Datensatz. Eine optimistische Versionsprüfung erkennt konkurrierende Änderungen und verhindert das unbemerkte Überschreiben eines neueren Datenstands. Eine automatische Zusammenführung paralleler Änderungen gibt es nicht.
 - Es gibt derzeit keine nachgewiesene automatisierte Datenbanksicherung oder vollständige Prüfung der RLS-Policies.
 

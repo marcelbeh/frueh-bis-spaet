@@ -133,3 +133,77 @@ test('factory reset clears saved operational data after explicit confirmation',a
  await expect.poll(()=>page.evaluate(()=>window.__savedState?.shifts?.length)).toBe(0);
  expect(await page.evaluate(()=>({events:events.length,absences:absences.length,shifts:shifts.length,names:names.length,groups:groups.length,weekOffset,selectedGroup}))).toEqual({events:0,absences:0,shifts:0,names:11,groups:3,weekOffset:0,selectedGroup:'Alle Gruppen'});
 });
+
+
+test('PDF export paginates large teams into readable A4 pages',async({page})=>{
+ await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};'}));
+ await page.setViewportSize({width:1440,height:1000});
+ await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+ await page.evaluate(()=>{
+  document.querySelector('#cloudLogin')?.remove();
+  names=Array.from({length:23},(_,i)=>({name:'Mitarbeiter '+String(i+1).padStart(2,'0'),initials:'M'+(i+1),group:groups[i%groups.length],hours:30,vacation:30,color:'green'}));
+  shifts=[{id:'long-shift',person:'Mitarbeiter 01',group:groups[0],serviceType:'Normaler Dienst',day:0,start:'07:00',end:'14:00',weekOffset:0}];
+  selectedGroup='Alle Gruppen';
+  currentPage='dienstplan';
+  render();
+ });
+ const popupPromise=page.waitForEvent('popup');
+ await page.locator('[data-action="print-plan"]').click();
+ const popup=await popupPromise;
+ await expect(popup.locator('#pdfWeekView .pdf-time-page')).toHaveCount(3);
+ await expect(popup.locator('#pdfWeekView .pdf-time-page').nth(0).locator('.pdf-time-staff-head')).toHaveCount(50);
+ await expect(popup.locator('#pdfWeekView .pdf-time-page').nth(1).locator('.pdf-time-staff-head')).toHaveCount(50);
+ await expect(popup.locator('#pdfWeekView .pdf-time-page').nth(2).locator('.pdf-time-staff-head')).toHaveCount(15);
+ await expect(popup.locator('#pdfWeekView .pdf-time-page').nth(2)).toContainText('Mitarbeitende 21–23 von 23');
+ await expect(popup.locator('#pdfWeekView .pdf-time-page').nth(0).locator('.pdf-pause-marker')).toContainText('Pause 30 Min.');
+});
+
+
+test('calendar arrows navigate by full months, not by weeks',async({page})=>{
+ await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};'}));
+ await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+ await page.evaluate(()=>{document.querySelector('#cloudLogin')?.remove();currentPage='kalender';render()});
+ const heading=page.locator('.card-header h2');
+ const before=await heading.textContent();
+ await page.locator('[data-action="next-month"]').click();
+ const after=await heading.textContent();
+ expect(after).not.toBe(before);
+ await page.locator('[data-action="prev-month"]').click();
+ await expect(heading).toHaveText(before);
+});
+
+
+test('employee form saves individual regular workdays',async({page})=>{
+ await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};'}));
+ await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+ await page.evaluate(()=>{document.querySelector('#cloudLogin')?.remove();currentPage='mitarbeitende';render()});
+ await page.locator('[data-action="add-person"]').click();
+ await expect(page.locator('#personForm input[name="workdays"]:checked')).toHaveCount(5);
+ await page.locator('#personForm input[name="workdays"][value="1"]').uncheck();
+ await page.locator('#personForm input[name="workdays"][value="3"]').uncheck();
+ await page.locator('#personForm input[name="name"]').fill('Teilzeit Test');
+ await page.locator('#personForm input[name="hours"]').fill('24');
+ await page.locator('#personForm input[name="vacation"]').fill('30');
+ await page.locator('#personForm button[type="submit"]').click();
+ const saved=await page.evaluate(()=>names.find(p=>p.name==='Teilzeit Test')?.workdays);
+ expect(saved).toEqual([0,2,4]);
+});
+
+
+test('large weekly team stays within the mobile viewport with an internally scrollable staff grid',async({page})=>{
+ await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};'}));
+ await page.setViewportSize({width:390,height:844});
+ await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+ await page.evaluate(()=>{
+  document.querySelector('#cloudLogin')?.remove();
+  names=Array.from({length:23},(_,i)=>({name:'Mitarbeiter '+String(i+1).padStart(2,'0'),initials:'M'+(i+1),group:groups[i%groups.length],hours:30,vacation:30,color:'green'}));
+  currentPage='dienstplan';
+  render();
+ });
+ const sizes=await page.evaluate(()=>{
+  const scroll=document.querySelector('.outlook-calendar-scroll');
+  return {viewport:document.documentElement.clientWidth,document:document.documentElement.scrollWidth,scrollWidth:scroll.scrollWidth,clientWidth:scroll.clientWidth};
+ });
+ expect(sizes.document).toBeLessThanOrEqual(sizes.viewport);
+ expect(sizes.scrollWidth).toBeGreaterThan(sizes.clientWidth);
+});
