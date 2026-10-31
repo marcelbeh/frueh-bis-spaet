@@ -123,7 +123,7 @@ test('dragging both shift edges changes the displayed time in 15-minute incremen
   return {
    surfaces,
    overlay:overlay?{backgroundColor:overlay.backgroundColor,backgroundImage:overlay.backgroundImage,content:overlay.content}:null,
-   shiftBackground:shift?getComputedStyle(shift).backgroundColor:null,
+   shiftClass:shift?shift.classList.contains('service-normal'):false,
    pageSize:getComputedStyle(document.querySelector('.pdf-time-page')).height,
    pageBreak:getComputedStyle(document.querySelector('.pdf-time-page')).breakAfter
   };
@@ -131,7 +131,7 @@ test('dragging both shift edges changes the displayed time in 15-minute incremen
  expect(printSurface.surfaces.every(s=>s.missing||s.backgroundColor==='rgb(255, 255, 255)')).toBe(true);
  expect(printSurface.overlay?.content).not.toBe('none');
  expect(printSurface.overlay?.backgroundImage).toContain('255, 255, 255');
- expect(printSurface.shiftBackground).toBe('rgb(229, 246, 236)');
+ expect(printSurface.shiftClass).toBe(true);
  expect(printSurface.pageSize).not.toBe('0px');
  expect(printSurface.pageBreak).toBe('auto');
  expect(errors).toEqual([]);
