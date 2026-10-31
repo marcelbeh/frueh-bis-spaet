@@ -42,7 +42,8 @@ function applyCloudSnapshot(s){
  if(s.baseMonday){const saved=new Date(s.baseMonday+"T12:00:00");if(!Number.isNaN(saved.getTime())){const elapsed=Math.round((baseMonday-saved)/604800000);if(elapsed){shifts=shifts.map(x=>({...x,weekOffset:(x.weekOffset??0)-elapsed}));weekOffset-=elapsed;}}}
  if(typeof s.selectedGroup==="string")selectedGroup=s.selectedGroup;
 }
-function showCloudLogin(message="Bitte mit deinem Leitungszugang anmelden."){
+function showCloudLogin(message="Bitte mit deinem Zugang anmelden."){
+ removeEmployeePortal();
  let layer=document.getElementById("cloudLogin");
  if(!layer){layer=document.createElement("div");layer.id="cloudLogin";layer.style.cssText="position:fixed;inset:0;z-index:99999;background:#f4f7fb;display:grid;place-items:center;padding:22px;font-family:inherit";
  layer.innerHTML='<form id="cloudLoginForm" style="background:white;width:min(100%,420px);padding:28px;border-radius:18px;box-shadow:0 12px 40px #1c35501c"><div style="font-size:28px;font-weight:750;color:#19304b;margin-bottom:8px">Früh bis spät</div><p style="color:#66758a;margin:0 0 22px">Geschützter Zugang für Leitung und Mitarbeitende</p><label style="display:block;font-weight:600;margin:12px 0 6px">E-Mail-Adresse</label><input name="email" type="email" autocomplete="username" required style="box-sizing:border-box;width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:9px;font:inherit"><label style="display:block;font-weight:600;margin:14px 0 6px">Passwort</label><input name="password" type="password" autocomplete="current-password" required style="box-sizing:border-box;width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:9px;font:inherit"><p id="cloudLoginMessage" style="color:#64748b;font-size:14px;min-height:20px"></p><button type="submit" style="width:100%;padding:14px;border:0;border-radius:10px;background:#1d6b54;color:white;font:inherit;font-weight:700">Anmelden</button></form>';
@@ -80,7 +81,7 @@ function removeEmployeePortal(){
 function showEmployeePortal(payload){
  removeEmployeePortal();
  const shell=document.querySelector(".app-shell");if(shell)shell.hidden=true;
- const shifts=(Array.isArray(payload?.shifts)?payload.shifts:[]).filter(s=>s&&/^\\d{4}-\\d{2}-\\d{2}$/.test(s.date||"")&&/^\\d{2}:\\d{2}$/.test(s.start||"")&&/^\\d{2}:\\d{2}$/.test(s.end||"")).sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start));
+ const shifts=(Array.isArray(payload?.shifts)?payload.shifts:[]).filter(s=>s&&/^\d{4}-\\d{2}-\\d{2}$/.test(s.date||"")&&/^\d{2}:\\d{2}$/.test(s.start||"")&&/^\d{2}:\\d{2}$/.test(s.end||"")).sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start));
  const rows=shifts.map(s=>{const date=new Date(s.date+"T12:00:00");const label=new Intl.DateTimeFormat("de-DE",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(date);return '<li class="employee-shift"><div><strong>'+escapeHTML(label)+'</strong><span>'+escapeHTML(s.serviceType||"Dienst")+'</span></div><time>'+escapeHTML(s.start)+'–'+escapeHTML(s.end)+'</time></li>'}).join("");
  const portal=document.createElement("main");portal.id="employeePortal";portal.className="employee-portal";
  portal.innerHTML='<header class="employee-portal-header"><div><span class="employee-portal-brand">🌈 Früh bis spät</span><h1>Meine Dienste</h1><p>Angemeldet als '+escapeHTML(payload?.employeeName||"Mitarbeitende")+'</p></div><button class="btn small" type="button" data-employee-logout>Abmelden</button></header><section class="employee-schedule-card"><h2>Dein Dienstplan</h2>'+(rows?'<ol class="employee-shift-list">'+rows+'</ol>':'<p class="employee-empty">Für dich sind derzeit keine Dienste eingetragen.</p>')+'</section>';
