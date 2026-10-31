@@ -340,5 +340,6 @@ test('closure periods are saved, visible, excluded from planning and not charged
  const popupPromise=page.waitForEvent('popup');
  await page.locator('[data-action="print-plan"]').click();
  const popup=await popupPromise;
- await expect(popup.locator('.pdf-time-closure')).toContainText('Herbstschließzeit');
+ await expect(popup.locator('.pdf-time-closure')).toHaveCount(3);
+ await expect(popup.locator('.pdf-time-closure').first()).toContainText('Herbstschließzeit');
 });
