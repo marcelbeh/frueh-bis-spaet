@@ -94,5 +94,9 @@ test('dragging both shift edges changes the displayed time in 15-minute incremen
  await expect(popup.locator('#pdfWeekView')).toContainText('Anna Schmidt');
  await popup.emulateMedia({media:'print'});
  await expect.poll(()=>popup.locator('#pdfWeekView').evaluate(el=>getComputedStyle(el).display)).toBe('block');
+ await expect.poll(()=>popup.locator('#pdfWeekView .pdf-time-track').evaluate(el=>{
+  const style=getComputedStyle(el);
+  return style.backgroundColor==='rgb(255, 255, 255)' && style.backgroundImage.includes('255, 255, 255');
+ })).toBe(true);
  expect(errors).toEqual([]);
 });
