@@ -323,4 +323,21 @@ test('closure periods are saved, visible, excluded from planning and not charged
  await expect(page.getByText('Herbstschließzeit').first()).toBeVisible();
  await page.evaluate(()=>{currentPage='dienstplan';render()});
  await expect(page.locator('.closure-event')).toHaveCount(3);
+ const conflictCount=await page.evaluate(()=>{
+  shifts.push({id:'closed-day-manual',person:'Test Person',group:'Nest',serviceType:'Normaler Dienst',day:0,start:'08:00',end:'10:00',weekOffset:0});
+  const count=weeklyPlanningDiagnostics(0).closureConflicts.length;
+  shifts=shifts.filter(x=>x.id!=='closed-day-manual');
+  return count;
+ });
+ expect(conflictCount).toBe(1);
+ await page.evaluate(()=>addShiftModal());
+ await page.locator('#shiftForm select[name="day"]').selectOption('0');
+ await page.locator('#shiftForm input[name="start"]').fill('08:00');
+ await page.locator('#shiftForm input[name="end"]').fill('10:00');
+ await page.locator('#shiftForm button[type="submit"]').click();
+ expect(await page.evaluate(()=>shifts.some(x=>x.day===0))).toBe(false);
+ const popupPromise=page.waitForEvent('popup');
+ await page.locator('[data-action="print-plan"]').click();
+ const popup=await popupPromise;
+ await expect(popup.locator('.pdf-time-closure')).toContainText('Herbstschließzeit');
 });
