@@ -182,6 +182,7 @@ test('PDF export paginates large teams into readable A4 pages',async({page})=>{
  await page.locator('[data-action="print-plan"]').click();
  const popup=await popupPromise;
  await popup.waitForLoadState('load');
+ await popup.emulateMedia({media:'print'});
  await expect(popup.locator('#pdfWeekView .pdf-time-page')).toHaveCount(3);
  await expect(page.locator('[class*="pdf-group-"]')).toHaveCount(0);
  for(const groupIndex of [0,1,2]){
