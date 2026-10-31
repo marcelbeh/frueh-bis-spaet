@@ -207,3 +207,82 @@ test('large weekly team stays within the mobile viewport with an internally scro
  expect(sizes.document).toBeLessThanOrEqual(sizes.viewport);
  expect(sizes.scrollWidth).toBeGreaterThan(sizes.clientWidth);
 });
+
+
+test('automatic planning handles multiple groups, part-time days, meetings, absences and blocked times',async({page})=>{
+ await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};'}));
+ await page.setViewportSize({width:1440,height:1000});
+ await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+ const result=await page.evaluate(()=>{
+  document.querySelector('#cloudLogin')?.remove();
+  const make=(name,group,hours=20,workdays=[0,1,2,3,4],blocks=[])=>({name,initials:name.slice(0,2),group,hours,vacation:30,workdays,blocks,color:'green'});
+  names=[
+   make('N1','Nest',20),make('N2','Nest',16),make('N3','Nest',20,[0,2,4]),
+   make('S1','Sonnengruppe',15,[0,2,4],[{kind:'recurring',day:2,start:'09:00',end:'11:00'}]),
+   make('S2','Sonnengruppe',20),make('S3','Sonnengruppe',20),
+   make('T1','Sternengruppe',20),make('T2','Sternengruppe',20),make('T3','Sternengruppe',20)
+  ];
+  plannerSettings.frame={start:'07:00',end:'16:00'};
+  plannerSettings.minimumByGroup={Nest:1,Sonnengruppe:1,Sternengruppe:1};
+  plannerSettings.minimumEarlyByGroup={Nest:1,Sonnengruppe:1,Sternengruppe:1};
+  plannerSettings.minimumLateByGroup={Nest:1,Sonnengruppe:1,Sternengruppe:1};
+  plannerSettings.mergeEarlyGroups=false;plannerSettings.mergeLateGroups=false;
+  const monday=iso(dateForDay(0)),tuesday=iso(dateForDay(1)),wednesday=iso(dateForDay(2)),friday=iso(dateForDay(4));
+  events=[
+   {id:'all-day-event',date:tuesday,time:'07:00–16:00',title:'Ganztägiger Termin',attendees:['N1']},
+   {id:'meeting-event',date:wednesday,time:'13:00–15:00',title:'Teammeeting',attendees:['S3'],repeatWeekly:true,repeatDay:3}
+  ];
+  absences=[{id:'absence-n2',name:'N2',type:'Urlaub',from:monday,to:wednesday,status:'Genehmigt'}];
+  shifts=[{id:'manual-meeting',person:'N3',group:'Nest',serviceType:'Meeting',day:0,start:'08:00',end:'10:00',weekOffset:0}];
+  weekOffset=0;selectedGroup='Alle Gruppen';
+  window.__plannerAlerts=[];
+  window.confirm=()=>true;window.alert=message=>window.__plannerAlerts.push(String(message));
+  scheduleCloudSave=()=>{};render=()=>{};
+  generateWeekPlan();
+  const planned=weekShifts(0),generated=planned.filter(x=>x.generated);
+  const diagnostics=weeklyPlanningDiagnostics(0,planned);
+  const byPerson={};
+  for(const person of names){
+   const rows=planned.filter(x=>x.person===person.name);
+   byPerson[person.name]={shiftHours:rows.reduce((sum,x)=>sum+shiftWorkMinutes(x),0)/60,eventHours:eventMinutesForPersonWeek(person,0)/60,total:rows.reduce((sum,x)=>sum+shiftWorkMinutes(x),0)/60+eventMinutesForPersonWeek(person,0)/60,contract:person.hours,workdays:personWorkingDays(person)};
+  }
+  return {
+   generatedCount:generated.length,retainedMeeting:planned.some(x=>x.id==='manual-meeting'),
+   generatedOnlyNormal:generated.every(x=>x.serviceType==='Normaler Dienst'),
+   outsideWorkdays:generated.filter(x=>!personWorksOnDay(names.find(p=>p.name===x.person),x.day)).length,
+   diagnostics:{absence:diagnostics.absenceConflicts.length,blocks:diagnostics.blockConflicts.length,overlaps:diagnostics.overlaps.length,workRules:diagnostics.workRuleConflicts.length,events:diagnostics.eventConflicts.length},
+   rows:byPerson,alerts:window.__plannerAlerts,
+   generated,events,absences,names
+  };
+ });
+ expect(result.generatedCount).toBeGreaterThan(0);
+ expect(result.retainedMeeting).toBe(true);
+ expect(result.generatedOnlyNormal).toBe(true);
+ expect(result.outsideWorkdays).toBe(0);
+ expect(result.diagnostics).toEqual({absence:0,blocks:0,overlaps:0,workRules:0,events:0});
+ expect(result.rows.N2.total).toBeCloseTo(16,2);
+ expect(result.rows.N1.total).toBeCloseTo(20,2);
+ expect(result.rows.N3.total).toBeCloseTo(20,2);
+ expect(result.rows.S1.total).toBeCloseTo(15,2);
+ expect(result.rows.S3.total).toBeCloseTo(20,2);
+ expect(result.generated.some(x=>x.person==='N1'&&x.day===1)).toBe(false);
+ expect(result.generated.some(x=>x.person==='N2'&&x.day<=2)).toBe(false);
+ expect(result.generated.some(x=>x.person==='S1'&&x.day===2&&
+  Number(x.start.slice(0,2))*60+Number(x.start.slice(3))<660&&
+  Number(x.end.slice(0,2))*60+Number(x.end.slice(3))>540)).toBe(false);
+ const finalAlert=result.alerts.at(-1)||'';
+ expect(finalAlert).not.toContain('Std. konnten in dieser Woche');
+});
+
+test('special-service meetings do not falsely satisfy the automatic staffing score',async({page})=>{
+ await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};'}));
+ await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+ const result=await page.evaluate(()=>{
+  document.querySelector('#cloudLogin')?.remove();
+  plannerSettings.minimumByGroup={Nest:1};
+  const meeting={person:'A',group:'Nest',day:0,start:'08:00',end:'12:00',serviceType:'Meeting'};
+  const normal={person:'B',group:'Nest',day:0,start:'08:00',end:'12:00',serviceType:'Normaler Dienst'};
+  return {meetingOnly:countCoverage([meeting],0,480,'Nest','group'),normalOnly:countCoverage([normal],0,480,'Nest','group'),combined:countCoverage([meeting,normal],0,480,'Nest','group')};
+ });
+ expect(result).toEqual({meetingOnly:0,normalOnly:1,combined:1});
+});
