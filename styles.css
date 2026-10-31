@@ -579,3 +579,26 @@ body.resizing-shift,body.resizing-shift *{cursor:ns-resize!important;user-select
 /* Keep the top and bottom resize targets independent and inside the shift hit area */
 .shift-resize-start{top:0!important;bottom:auto!important;height:10px!important;z-index:12!important}
 .shift-resize-end{top:auto!important;bottom:0!important;height:10px!important;z-index:12!important}
+
+/* One-page weekday overview: five day panels across a single A4 landscape sheet */
+@page{size:A4 landscape;margin:4mm}
+@media print{
+ #pdfWeekView .pdf-time-page{height:200mm!important;break-after:auto!important;page-break-after:auto!important;overflow:hidden!important}
+ #pdfWeekView .pdf-time-title{height:6mm!important;align-items:center!important}
+ #pdfWeekView .pdf-time-title h1{font-size:10pt!important;letter-spacing:.1pt!important}
+ #pdfWeekView .pdf-time-title span{font-size:5.5pt!important}
+ #pdfWeekView .pdf-time-grid{grid-template-columns:9mm repeat(var(--pdf-total-cols),minmax(0,1fr))!important;grid-template-rows:7mm 24mm 158mm!important;height:189mm!important;border-top:.25mm solid #8798a9!important;border-left:.25mm solid #8798a9!important}
+ #pdfWeekView .pdf-time-day-group{font-size:6.5pt!important;letter-spacing:.2pt!important;background:#eaf0f5!important;color:#20384f!important;border-bottom:.4mm solid #9cabb9!important}
+ #pdfWeekView .pdf-time-staff-head{position:relative!important;display:flex!important;flex-direction:column!important;justify-content:flex-end!important;align-items:center!important;padding:.4mm .1mm 1mm!important;gap:.4mm!important;white-space:nowrap!important;font-size:var(--pdf-staff-font,4pt)!important;line-height:1!important;background:#f8fafc!important}
+ #pdfWeekView .pdf-time-staff-head:not(small){overflow:hidden!important}
+ #pdfWeekView .pdf-time-staff-head{writing-mode:vertical-rl!important;transform:rotate(180deg)!important}
+ #pdfWeekView .pdf-time-staff-head small{display:none!important}
+ #pdfWeekView .pdf-time-axis{background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(6.25% - .15mm),#aebbc7 calc(6.25% - .15mm),#aebbc7 6.25%)!important}
+ #pdfWeekView .pdf-time-axis span{font-size:4.8pt!important;font-weight:600!important;right:.4mm!important}
+ #pdfWeekView .pdf-time-track{background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(1.5625% - .12mm),#e0e6eb calc(1.5625% - .12mm),#e0e6eb 1.5625%)!important}
+ #pdfWeekView .pdf-time-track:after{background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(6.25% - .25mm),#9eacba calc(6.25% - .25mm),#9eacba 6.25%)!important}
+ #pdfWeekView .pdf-time-shift,#pdfWeekView .pdf-time-event,#pdfWeekView .pdf-time-absence{left:.15mm!important;right:.15mm!important;padding:.2mm .1mm!important;border-radius:.35mm!important}
+ #pdfWeekView .pdf-time-shift strong,#pdfWeekView .pdf-time-shift span,#pdfWeekView .pdf-time-event strong,#pdfWeekView .pdf-time-event span,#pdfWeekView .pdf-time-absence strong,#pdfWeekView .pdf-time-absence span{font-size:3.4pt!important;line-height:1.05!important;overflow-wrap:anywhere!important}
+ #pdfWeekView .pdf-time-legend{height:4mm!important;gap:2.5mm!important;font-size:4.5pt!important}
+ #pdfWeekView .pdf-time-legend span:before{width:1.7mm!important;height:1.7mm!important}
+}
