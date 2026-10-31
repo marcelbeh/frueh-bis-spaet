@@ -133,3 +133,26 @@ test('factory reset clears saved operational data after explicit confirmation',a
  await expect.poll(()=>page.evaluate(()=>window.__savedState?.shifts?.length)).toBe(0);
  expect(await page.evaluate(()=>({events:events.length,absences:absences.length,shifts:shifts.length,names:names.length,groups:groups.length,weekOffset,selectedGroup}))).toEqual({events:0,absences:0,shifts:0,names:11,groups:3,weekOffset:0,selectedGroup:'Alle Gruppen'});
 });
+
+
+test('PDF export paginates large teams into readable A4 pages',async({page})=>{
+ await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};'}));
+ await page.setViewportSize({width:1440,height:1000});
+ await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+ await page.evaluate(()=>{
+  document.querySelector('#cloudLogin')?.remove();
+  names=Array.from({length:23},(_,i)=>({name:'Mitarbeiter '+String(i+1).padStart(2,'0'),initials:'M'+(i+1),group:groups[i%groups.length],hours:30,vacation:30,color:'green'}));
+  shifts=[];
+  selectedGroup='Alle Gruppen';
+  currentPage='dienstplan';
+  render();
+ });
+ const popupPromise=page.waitForEvent('popup');
+ await page.locator('[data-action="print-plan"]').click();
+ const popup=await popupPromise;
+ await expect(popup.locator('#pdfWeekView .pdf-time-page')).toHaveCount(3);
+ await expect(popup.locator('#pdfWeekView .pdf-time-page').nth(0).locator('.pdf-time-staff-head')).toHaveCount(50);
+ await expect(popup.locator('#pdfWeekView .pdf-time-page').nth(1).locator('.pdf-time-staff-head')).toHaveCount(50);
+ await expect(popup.locator('#pdfWeekView .pdf-time-page').nth(2).locator('.pdf-time-staff-head')).toHaveCount(15);
+ await expect(popup.locator('#pdfWeekView .pdf-time-page').nth(2)).toContainText('Mitarbeitende 21–23 von 23');
+});
