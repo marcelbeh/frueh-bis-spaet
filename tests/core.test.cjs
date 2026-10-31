@@ -6,7 +6,7 @@ const source = fs.readFileSync('app.js', 'utf8');
 const context = {Date, Math, Set, Number, String, Array, Object, console, weekOffset:0, shifts:[], events:[], iso:d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"), minutes:t=>{const [h,m]=t.split(':').map(Number);return h*60+m;}, dateForDay:(day,offset=0)=>{const d=new Date(2026,0,5+offset*7+day,12);return d;}};
 function loadFunction(name){const start=source.indexOf('function '+name+'(');assert.notEqual(start,-1,'function '+name+' exists');const end=source.indexOf(String.fromCharCode(10)+'function ',start+10);assert.notEqual(end,-1,'next function after '+name+' exists');vm.runInContext(source.slice(start,end),ctx);}
 const ctx=vm.createContext(context);
-for(const name of ['escapeHTML','easterSunday','nrwPublicHolidays','isWorkingDay','calendarDaysBetween','shiftPause','shiftWorkMinutes','shiftCoversTime','eventOccursOnDate','eventDurationMinutes','eventMinutesForPersonWeek','shiftRuleConflicts'])loadFunction(name);
+for(const name of ['escapeHTML','easterSunday','nrwPublicHolidays','isWorkingDay','calendarDaysBetween','shiftPause','shiftWorkMinutes','weeklyManualShiftMinutes','regularHoursNeeded','shiftCoversTime','eventOccursOnDate','eventDurationMinutes','eventMinutesForPersonWeek','shiftRuleConflicts'])loadFunction(name);
 test('app.js parses as JavaScript',()=>assert.doesNotThrow(()=>new Function(source)));
 test('HTML user input is escaped',()=>assert.equal(ctx.escapeHTML('<img src=x onerror="x"> &'), '&lt;img src=x onerror=&quot;x&quot;&gt; &amp;'));
 test('NRW 2026 public holidays are excluded from leave days',()=>{for(const d of ['2026-01-01','2026-04-03','2026-04-06','2026-05-01','2026-05-14','2026-05-25','2026-06-04','2026-10-03','2026-11-01','2026-12-25','2026-12-26'])assert.equal(ctx.isWorkingDay(d),false,d);assert.equal(ctx.isWorkingDay('2026-04-07'),true);});
@@ -31,4 +31,29 @@ test('duty plan supports drag-resizing a shift end with rule checks and cloud sa
  assert.match(source,/pointermove/);
  assert.match(source,/shiftRuleConflicts\(person,shift\.day,shift\.start,end,offset,shifts,shift\.id\)/);
  assert.match(source,/shift\.end=end;scheduleCloudSave\(\);render\(\)/);
+});
+
+test('manual normal and special services count toward weekly contract hours while generated shifts are replaced',()=>{
+ ctx.events=[{date:'2026-01-06',time:'16:00–18:00',attendees:['A'],repeatWeekly:false,repeatDay:2}];
+ const assigned=[
+  {person:'A',start:'08:00',end:'10:00',serviceType:'Normaler Dienst'},
+  {person:'A',start:'10:00',end:'12:00',serviceType:'Meeting'},
+  {person:'A',start:'08:00',end:'10:00',serviceType:'Normaler Dienst',generated:true}
+ ];
+ assert.equal(ctx.weeklyManualShiftMinutes({name:'A'},assigned),240);
+ assert.equal(ctx.regularHoursNeeded({name:'A',hours:30},0,assigned),24);
+});
+test('automatic planner keeps manually entered services and replaces only generated shifts',()=>{
+ assert.match(source,/const existing=weekShifts\(\),retained=existing\.filter\(s=>!s\.generated\)/);
+ assert.match(source,/shifts=shifts\.filter\(s=>\(s\.weekOffset\?\?0\)!==weekOffset\|\|!s\.generated\)/);
+ assert.match(source,/regularHoursNeeded\(p,weekOffset,retained\)/);
+});
+test('full-day absences render in weekly columns and in printable PDF output',()=>{
+ assert.match(source,/class="outlook-absence"/);
+ assert.match(source,/class="pdf-time-absence"/);
+ assert.match(source,/dayAbsenceCount/);
+});
+test('printable PDF includes attendee-specific special events',()=>{
+ assert.match(source,/class="pdf-time-event"/);
+ assert.match(source,/eventOccursOnDate\(ev,dayDate\)/);
 });
