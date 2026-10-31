@@ -153,7 +153,7 @@ function countCoverage(assigned,day,time,group,scope){
 }
 function scoreShiftCoverage(assigned,person,day,start,end){
  let score=0;
- for(let time=435;time<975;time+=15);
+ for(let time=435;time<975;time+=15){
   if(time<start||time>=end)continue;
   const span=end-start,pauseMinutes=span>570?45:span>360?30:0,pause=pauseMinutes?{start:start+240,end:Math.min(start+240+pauseMinutes,end)}:null;if(pause&&time>=pause.start&&time<pause.end)continue;
   const demand=coverageRequirement(day,time,person.group);
