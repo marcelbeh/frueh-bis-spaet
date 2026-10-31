@@ -404,7 +404,7 @@ function exportPlanPdf(){
   const stylesheet=document.querySelector('link[rel="stylesheet"]')?.href||new URL("./styles.css",location.href).href;
   const printTitle="Dienstplan-"+iso(dateForDay(0))+"-bis-"+iso(dateForDay(4));
   printWindow.document.open();
-  printWindow.document.write('<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+escapeHTML(printTitle)+'</title><link rel="stylesheet" href="'+escapeHTML(stylesheet)+'"></head><body><main id="pageContent">'+view.outerHTML+'</main></body></html>');
+  printWindow.document.write('<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+escapeHTML(printTitle)+'</title><link rel="stylesheet" href="'+escapeHTML(stylesheet)+'"><style data-pdf-print>html,body,#pageContent,#pdfWeekView,#pdfWeekView .pdf-time-page,#pdfWeekView .pdf-time-grid,#pdfWeekView .pdf-time-axis,#pdfWeekView .pdf-time-column,#pdfWeekView .pdf-time-track{background-color:#fff!important}#pdfWeekView .pdf-time-track{background-image:repeating-linear-gradient(to bottom,#fff 0,#fff calc(1.5625% - .12mm),#e0e6eb calc(1.5625% - .12mm),#e0e6eb 1.5625%)!important}#pdfWeekView .pdf-time-track:after{background-image:repeating-linear-gradient(to bottom,transparent 0,transparent calc(6.25% - .25mm),#9eacba calc(6.25% - .25mm),#9eacba 6.25%)!important}</style></head><body><main id="pageContent">'+view.outerHTML+'</main></body></html>');
   printWindow.document.close();
   const startPrint=()=>{
     printWindow.focus();
