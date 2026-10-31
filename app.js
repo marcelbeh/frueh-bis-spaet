@@ -400,7 +400,9 @@ function exportPlanPdf(){
         }).join("");
         const blocks=personShifts.map(x=>{
           const label=x.serviceType&&x.serviceType!=="Normaler Dienst"?x.serviceType:(x.group||p.group||"Dienst");
-          return '<div class="pdf-time-shift '+shiftClass(x)+'" style="top:'+topPercent(x.start)+'%;height:'+heightPercent(x.start,x.end)+'%"><strong>'+escapeHTML(x.start)+'–'+escapeHTML(x.end)+'</strong><span>'+escapeHTML(label)+'</span></div>';
+          const pause=shiftPause(x),span=minutes(x.end)-minutes(x.start),pauseMinutes=pause?pause.end-pause.start:0;
+          const pauseMarkup=pause?'<i class="pdf-pause-marker" style="top:'+((pause.start-minutes(x.start))/span*100)+'%;height:'+(pauseMinutes/span*100)+'%">Pause '+pauseMinutes+' Min.</i>':'';
+          return '<div class="pdf-time-shift '+shiftClass(x)+'" style="top:'+topPercent(x.start)+'%;height:'+heightPercent(x.start,x.end)+'%"><strong>'+escapeHTML(x.start)+'–'+escapeHTML(x.end)+'</strong><span>'+escapeHTML(label)+'</span>'+pauseMarkup+'</div>';
         }).join("");
         return '<div class="pdf-time-column"><div class="pdf-time-track">'+absence+attendeeEvents+blocks+'</div></div>';
       }).join("");
