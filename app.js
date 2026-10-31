@@ -395,10 +395,22 @@ function exportPlanPdf(){
   }).join("");
   const timeLabels=Array.from({length:12},(_,i)=>'<span style="top:'+(i/11*100)+'%">'+String(7+i).padStart(2,"0")+':00</span>').join("");
   view.innerHTML=sanitizeHTML('<article class="pdf-time-page"><header class="pdf-time-title"><h1>Dienstplan · '+escapeHTML(weekLabel())+'</h1><span>Montag bis Freitag · '+staff.length+' Mitarbeitende</span></header><div class="pdf-time-grid" style="--pdf-total-cols:'+totalCols+';--pdf-staff-font:'+(staff.length>20?'3pt':staff.length>15?'3.7pt':staff.length>10?'4.4pt':'5.2pt')+'"><div class="pdf-time-head">Zeit</div>'+heads+'<div class="pdf-time-subhead"></div>'+staffHeads+'<div class="pdf-time-axis">'+timeLabels+'</div>'+columns+'</div><footer class="pdf-time-legend"><span class="normal">Normaler Dienst</span><span class="meeting">Meeting</span><span class="supervision">Supervision</span><span class="church">Kirchlicher Termin</span><span class="training">Fortbildung</span><span class="other">Sonstiges</span><span class="absence">Abwesenheit</span></footer></article>');
-  $("#pageContent").prepend(view);
-  const originalTitle=document.title;document.title="Dienstplan-"+iso(dateForDay(0))+"-bis-"+iso(dateForDay(4));
-  window.addEventListener("afterprint",()=>{document.title=originalTitle;view.remove()},{once:true});
-  window.print();
+  const printWindow=window.open("","_blank");
+  if(!printWindow){alert("Der PDF-Export wurde vom Browser blockiert. Bitte Pop-ups für diese App erlauben und erneut versuchen.");return}
+  const stylesheet=document.querySelector('link[rel="stylesheet"]')?.href||new URL("./styles.css",location.href).href;
+  const printTitle="Dienstplan-"+iso(dateForDay(0))+"-bis-"+iso(dateForDay(4));
+  printWindow.document.open();
+  printWindow.document.write('<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+escapeHTML(printTitle)+'</title><link rel="stylesheet" href="'+escapeHTML(stylesheet)+'"></head><body><main id="pageContent">'+view.outerHTML+'</main></body></html>');
+  printWindow.document.close();
+  const startPrint=()=>{
+    printWindow.focus();
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      printWindow.print();
+      printWindow.addEventListener("afterprint",()=>printWindow.close(),{once:true});
+    }));
+  };
+  if(printWindow.document.readyState==="complete")startPrint();
+  else printWindow.addEventListener("load",startPrint,{once:true});
 }
 function render(){initShifts();const content=$("#pageContent");let out="";switch(currentPage){case"dashboard":out=dashboard();break;case"dienstplan":out=dutyPage();break;case"kalender":out=calendarPage();break;case"mitarbeitende":out=employeesPage();break;case"abwesenheiten":out=absencesPage();break;case"sondertermine":out=eventsPage("Sondertermine");break;case"teammeetings":out=eventsPage("Teammeetings");break;case"supervision":out=eventsPage("Supervision");break;case"fortbildungen":out=eventsPage("Fortbildungen");break;case"auswertungen":out=analyticsPage();break;case"einstellungen":out=settingsPage();break;case"leitungsprofil":out=leaderProfilePage();break;default:out=dashboard()}content.innerHTML=sanitizeHTML(out);$$("#pageContent .card-header h2").forEach(h=>{if(h.querySelector(".card-title-icon"))return;const t=h.textContent;const key=/Arbeitszeit|Büro|Wochenstunden/.test(t)?"clock":/Zugang|Passwort/.test(t)?"lock":/Personal|Mitarbeitende|Team/.test(t)?"users":/Auswertung|Kennzahl/.test(t)?"chart":/Einstellung|Verwaltung/.test(t)?"settings":/Termin|Kalender|Abwesenheit/.test(t)?"calendar":"briefcase";h.insertAdjacentHTML("afterbegin",`<span class="card-title-icon">${uiIcon(key)}</span>`)});scheduleCloudSave();const gf=$("#groupFilter");if(gf)gf.addEventListener("change",e=>{selectedGroup=e.target.value;render()});}
 function syncNavigation(){
