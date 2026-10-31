@@ -183,7 +183,7 @@ test('PDF export paginates large teams into readable A4 pages',async({page})=>{
  const popup=await popupPromise;
  await popup.waitForLoadState('load');
  await popup.emulateMedia({media:'print'});
- await expect(popup.locator('#pdfWeekView .pdf-time-page')).toHaveCount(3);
+ await expect(popup.locator('#pdfWeekView .pdf-time-page')).toHaveCount(2);
  await expect(page.locator('[class*="pdf-group-"]')).toHaveCount(0);
  for(const groupIndex of [0,1,2]){
   await expect(popup.locator('.pdf-time-staff-head.pdf-group-'+groupIndex).first()).toBeVisible();
@@ -191,10 +191,9 @@ test('PDF export paginates large teams into readable A4 pages',async({page})=>{
  }
  const groupColors=await popup.evaluate(()=>[0,1,2].map(index=>getComputedStyle(document.querySelector('.pdf-time-staff-head.pdf-group-'+index)).backgroundColor));
  expect(new Set(groupColors).size).toBe(3);
- await expect(popup.locator('#pdfWeekView .pdf-time-page').nth(0).locator('.pdf-time-staff-head')).toHaveCount(50);
- await expect(popup.locator('#pdfWeekView .pdf-time-page').nth(1).locator('.pdf-time-staff-head')).toHaveCount(50);
- await expect(popup.locator('#pdfWeekView .pdf-time-page').nth(2).locator('.pdf-time-staff-head')).toHaveCount(15);
- await expect(popup.locator('#pdfWeekView .pdf-time-page').nth(2)).toContainText('Mitarbeitende 21–23 von 23');
+ await expect(popup.locator('#pdfWeekView .pdf-time-page').nth(0).locator('.pdf-time-staff-head')).toHaveCount(60);
+ await expect(popup.locator('#pdfWeekView .pdf-time-page').nth(1).locator('.pdf-time-staff-head')).toHaveCount(55);
+ await expect(popup.locator('#pdfWeekView .pdf-time-page').nth(1)).toContainText('Mitarbeitende 13–23 von 23');
  await expect(popup.locator('#pdfWeekView .pdf-time-page').nth(0).locator('.pdf-pause-marker').first()).toContainText('Pause 30 Min.');
 });
 
