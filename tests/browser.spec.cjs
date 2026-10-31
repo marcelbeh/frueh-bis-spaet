@@ -336,6 +336,7 @@ test('closure periods are saved, visible, excluded from planning and not charged
  await page.locator('#shiftForm input[name="end"]').fill('10:00');
  await page.locator('#shiftForm button[type="submit"]').click();
  expect(await page.evaluate(()=>shifts.some(x=>x.day===0))).toBe(false);
+ await page.locator('#closeModal').click();
  const popupPromise=page.waitForEvent('popup');
  await page.locator('[data-action="print-plan"]').click();
  const popup=await popupPromise;
