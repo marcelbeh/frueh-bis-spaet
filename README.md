@@ -64,7 +64,7 @@ Zur Einrichtung eines Testkontos:
 
 4. Veröffentliche `supabase/functions/employee-schedule/index.ts` als Edge Function `employee-schedule` mit aktivierter JWT-Prüfung.
 
-Zum Entziehen des Mitarbeiterzugangs entferne den Eintrag aus `employee_access` und deaktiviere das Auth-Konto. Der Leitungsszugang bleibt über `app_owner` separat geregelt.
+Zum Entziehen des Mitarbeiterzugangs entferne den Eintrag aus `employee_access` und deaktiviere das Auth-Konto. Der Leitungszugang bleibt über `app_owner` separat geregelt. Wenn ein Name im Dienstplan geändert wird, muss auch `person_name` in `employee_access` angepasst werden.
 
 ## Veröffentlichung
 
