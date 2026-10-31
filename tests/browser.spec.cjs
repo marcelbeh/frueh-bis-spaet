@@ -169,7 +169,11 @@ test('PDF export paginates large teams into readable A4 pages',async({page})=>{
  await page.evaluate(()=>{
   document.querySelector('#cloudLogin')?.remove();
   names=Array.from({length:23},(_,i)=>({name:'Mitarbeiter '+String(i+1).padStart(2,'0'),initials:'M'+(i+1),group:groups[i%groups.length],hours:30,vacation:30,color:'green'}));
-  shifts=[{id:'long-shift',person:'Mitarbeiter 01',group:groups[0],serviceType:'Normaler Dienst',day:0,start:'07:00',end:'14:00',weekOffset:0}];
+  shifts=[
+   {id:'long-shift-1',person:'Mitarbeiter 01',group:groups[0],serviceType:'Normaler Dienst',day:0,start:'07:00',end:'14:00',weekOffset:0},
+   {id:'long-shift-2',person:'Mitarbeiter 02',group:groups[1],serviceType:'Normaler Dienst',day:0,start:'07:00',end:'14:00',weekOffset:0},
+   {id:'long-shift-3',person:'Mitarbeiter 03',group:groups[2],serviceType:'Normaler Dienst',day:0,start:'07:00',end:'14:00',weekOffset:0}
+  ];
   selectedGroup='Alle Gruppen';
   currentPage='dienstplan';
   render();
@@ -177,7 +181,15 @@ test('PDF export paginates large teams into readable A4 pages',async({page})=>{
  const popupPromise=page.waitForEvent('popup');
  await page.locator('[data-action="print-plan"]').click();
  const popup=await popupPromise;
+ await popup.waitForLoadState('load');
  await expect(popup.locator('#pdfWeekView .pdf-time-page')).toHaveCount(3);
+ await expect(page.locator('[class*="pdf-group-"]')).toHaveCount(0);
+ for(const groupIndex of [0,1,2]){
+  await expect(popup.locator('.pdf-time-staff-head.pdf-group-'+groupIndex).first()).toBeVisible();
+  await expect(popup.locator('.pdf-time-shift.service-normal.pdf-group-'+groupIndex).first()).toBeVisible();
+ }
+ const groupColors=await popup.evaluate(()=>[0,1,2].map(index=>getComputedStyle(document.querySelector('.pdf-time-staff-head.pdf-group-'+index)).backgroundColor));
+ expect(new Set(groupColors).size).toBe(3);
  await expect(popup.locator('#pdfWeekView .pdf-time-page').nth(0).locator('.pdf-time-staff-head')).toHaveCount(50);
  await expect(popup.locator('#pdfWeekView .pdf-time-page').nth(1).locator('.pdf-time-staff-head')).toHaveCount(50);
  await expect(popup.locator('#pdfWeekView .pdf-time-page').nth(2).locator('.pdf-time-staff-head')).toHaveCount(15);
