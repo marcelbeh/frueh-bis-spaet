@@ -516,3 +516,7 @@ body.resizing-shift *{cursor:ns-resize!important;user-select:none!important;}
   .app-shell,.main-area,.page-content{display:block!important;min-height:0!important;width:100%!important;margin:0!important;padding:0!important;background:#fff!important}
   #pdfWeekView,#pdfWeekView *{print-color-adjust:exact!important;-webkit-print-color-adjust:exact!important}
 }
+@media print{
+  #pdfWeekView .pdf-shift strong,#pdfWeekView .pdf-note strong{font-size:var(--pdf-main-font,5.5pt)!important}
+  #pdfWeekView .pdf-shift small,#pdfWeekView .pdf-note small{font-size:var(--pdf-sub-font,4.4pt)!important}
+}
