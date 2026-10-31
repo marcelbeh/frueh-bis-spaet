@@ -90,6 +90,7 @@ test('dragging both shift edges changes the displayed time in 15-minute incremen
  const popupPromise=page.waitForEvent('popup');
  await page.locator('[data-action="print-plan"]').click();
  const popup=await popupPromise;
+ await popup.waitForLoadState('load');
  await expect(popup.locator('#pdfWeekView')).toContainText('Montag');
  await expect(popup.locator('#pdfWeekView')).toContainText('Anna Schmidt');
  await expect(popup.locator('style[data-pdf-print]')).toHaveCount(1);
@@ -107,6 +108,32 @@ test('dragging both shift edges changes the displayed time in 15-minute incremen
   const style=getComputedStyle(el);
   return style.backgroundColor==='rgb(255, 255, 255)';
  })).toBe(true);
+ // The grid's hourly overlay must be opaque white between its grey guide lines.
+ const printSurface=await popup.evaluate(()=>{
+  const selectors=['html','body','#pageContent','#pdfWeekView','.pdf-time-page','.pdf-time-grid','.pdf-time-axis','.pdf-time-column','.pdf-time-track'];
+  const surfaces=selectors.map(selector=>{
+   const el=document.querySelector(selector);
+   if(!el)return {selector,missing:true};
+   const style=getComputedStyle(el);
+   return {selector,backgroundColor:style.backgroundColor,backgroundImage:style.backgroundImage};
+  });
+  const track=document.querySelector('.pdf-time-track');
+  const overlay=track?getComputedStyle(track,'::after'):null;
+  const shift=document.querySelector('.pdf-time-shift.service-normal');
+  return {
+   surfaces,
+   overlay:overlay?{backgroundColor:overlay.backgroundColor,backgroundImage:overlay.backgroundImage,content:overlay.content}:null,
+   shiftClass:shift?shift.classList.contains('service-normal'):false,
+   pageSize:getComputedStyle(document.querySelector('.pdf-time-page')).height,
+   pageBreak:getComputedStyle(document.querySelector('.pdf-time-page')).breakAfter
+  };
+ });
+ expect(printSurface.surfaces.every(s=>s.missing||s.backgroundColor==='rgb(255, 255, 255)')).toBe(true);
+ expect(printSurface.overlay?.content).not.toBe('none');
+ expect(printSurface.overlay?.backgroundImage).toContain('255, 255, 255');
+ expect(printSurface.shiftClass).toBe(true);
+ expect(printSurface.pageSize).not.toBe('0px');
+ expect(printSurface.pageBreak).toBe('auto');
  expect(errors).toEqual([]);
 });
 
