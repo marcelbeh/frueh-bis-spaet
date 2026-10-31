@@ -710,3 +710,6 @@ body.resizing-shift,body.resizing-shift *{cursor:ns-resize!important;user-select
  .settings-grid .setting-row strong,
  .settings-grid .setting-row small{overflow-wrap:anywhere}
 }
+
+/* ISO calendar week labels in the monthly calendar */
+.calendar-week-number{display:inline-block;margin-left:4px;padding:2px 4px;border-radius:4px;background:#eaf1f8;color:#45617c;font-size:8px;font-weight:700;vertical-align:1px}
