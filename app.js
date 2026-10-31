@@ -372,32 +372,30 @@ function exportPlanPdf(){
   const view=document.createElement("section"); view.id="pdfWeekView";
   const staff=planningPeople().filter(p=>selectedGroup==="Alle Gruppen"||p.group===selectedGroup);
   const days=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
-  const dayHeader='<div class="pdf-time-head">Uhrzeit</div>'+days.map((day,i)=>'<div class="pdf-day-group" style="grid-column:span '+Math.max(1,staff.length)+'">'+day+'<small>'+fmt(dateForDay(i),{day:"2-digit",month:"2-digit"})+'</small></div>').join("");
-  const staffHeader='<div class="pdf-time-subhead"></div>'+days.map(()=>staff.map(p=>'<div class="pdf-staff-subhead" title="'+p.name+'">'+p.name+'</div>').join("")).join("");
-  const timeLabels='<div class="pdf-time-axis">'+Array.from({length:9},(_,i)=>'<span style="top:'+(i/8*100)+'%">'+String(6+i*2).padStart(2,"0")+':00</span>').join("")+'</div>';
-  let columns="";
-  days.forEach((day,dayIndex)=>{
-    staff.forEach((p,staffIndex)=>{
+  const dayHeaders=days.map((day,i)=>'<div class="pdf-day-head"><strong>'+day+'</strong><small>'+fmt(dateForDay(i),{day:"2-digit",month:"2-digit"})+'</small></div>').join("");
+  const staffRows=staff.map(p=>{
+    const dayCells=days.map((day,dayIndex)=>{
       const dayDate=iso(dateForDay(dayIndex)),personShifts=weekShifts().filter(s=>s.day===dayIndex&&s.person===p.name);
-      const absenceMarkup=absences.filter(a=>a.name===p.name&&dayDate>=a.from&&dayDate<=a.to).map(a=>'<div class="pdf-time-absence"><strong>'+escapeHTML(a.type)+'</strong><span>Ganztägig'+(a.status==="Offen"?" · Offen":"")+'</span></div>').join("");
-      const eventMarkup=events.filter(ev=>eventOccursOnDate(ev,dayDate)&&(ev.attendees||[]).includes(p.name)).map(ev=>{const [from,to]=ev.time.split("–");return '<div class="pdf-time-event" style="top:'+topPercent(from)+'%;height:'+heightPercent(from,to)+'%"><strong>'+escapeHTML(ev.title)+'</strong><span>'+ev.time+'</span></div>';}).join("");
-      const blocks=personShifts.map(s=>{
-        const top=(minutes(s.start)-360)/960*100;
-        const span=minutes(s.end)-minutes(s.start),height=span/960*100,pause=shiftPause(s);
-        const pauseMarkup=pause?'<i class="pdf-pause-marker" style="top:'+((pause.start-minutes(s.start))/span*100)+'%;height:'+(30/span*100)+'%">Pause · 30 Min.</i>':'';
-        return '<div class="pdf-time-shift '+shiftClass(s)+'" style="top:'+top+'%;height:'+height+'%"><strong>'+s.start+'–'+s.end+'</strong><span>'+p.name+'</span>'+pauseMarkup+'</div>';
+      const absenceMarkup=absences.filter(a=>a.name===p.name&&dayDate>=a.from&&dayDate<=a.to).map(a=>'<div class="pdf-note pdf-absence"><strong>'+escapeHTML(a.type)+'</strong><small>Ganztägig'+(a.status==="Offen"?" · Offen":"")+'</small></div>').join("");
+      const eventMarkup=events.filter(ev=>eventOccursOnDate(ev,dayDate)&&(ev.attendees||[]).includes(p.name)).map(ev=>'<div class="pdf-note pdf-event"><strong>'+escapeHTML(ev.title)+'</strong><small>'+escapeHTML(ev.time)+' · '+escapeHTML(ev.type)+'</small></div>').join("");
+      const shiftMarkup=personShifts.map(s=>{
+        const type=s.serviceType||"Normaler Dienst";
+        const group=s.group||p.group||"";
+        return '<div class="pdf-shift '+shiftClass(s)+'"><strong>'+escapeHTML(s.start)+'–'+escapeHTML(s.end)+'</strong><small>'+escapeHTML(type)+(group?' · '+escapeHTML(group):"")+'</small></div>';
       }).join("");
-      columns+='<div class="pdf-time-column" style="grid-column:'+(2+dayIndex*staff.length+staffIndex)+';grid-row:3 / span 1"><div class="pdf-time-track">'+Array.from({length:8},()=>'<i></i>').join("")+absenceMarkup+eventMarkup+blocks+'</div></div>';
-    });
-  });
-  view.innerHTML=sanitizeHTML('<h1>Dienstplan · '+weekLabel()+'</h1><div class="pdf-time-grid" style="--pdf-staff-count:'+Math.max(1,staff.length)+';--pdf-total-cols:'+Math.max(1,staff.length*7)+'">'+dayHeader+staffHeader+timeLabels+columns+'</div>');
+      const empty=personShifts.length||absenceMarkup||eventMarkup?"":'<span class="pdf-empty">–</span>';
+      return '<div class="pdf-day-cell">'+absenceMarkup+eventMarkup+shiftMarkup+empty+'</div>';
+    }).join("");
+    return '<div class="pdf-staff-cell"><strong>'+escapeHTML(p.name)+'</strong><small>'+escapeHTML(p.group||"")+'</small></div>'+dayCells;
+  }).join("");
+  const noStaff=staff.length?"":'<div class="pdf-no-staff">Für diese Auswahl sind keine Mitarbeitenden vorhanden.</div>';
+  view.innerHTML=sanitizeHTML('<header class="pdf-title"><h1>Dienstplan · '+weekLabel()+'</h1><span>'+staff.length+' Mitarbeitende'+(selectedGroup!=="Alle Gruppen"?' · '+escapeHTML(selectedGroup):"")+'</span></header><div class="pdf-week-grid" style="--pdf-staff-count:'+Math.max(1,staff.length)+'"><div class="pdf-corner">Mitarbeitende</div>'+dayHeaders+staffRows+noStaff+'</div><footer class="pdf-legend"><span><i class="pdf-dot normal"></i>Normaler Dienst</span><span><i class="pdf-dot meeting"></i>Meeting</span><span><i class="pdf-dot supervision"></i>Supervision</span><span><i class="pdf-dot church"></i>Kirchlicher Termin</span><span><i class="pdf-dot training"></i>Fortbildung</span><span><i class="pdf-dot other"></i>Sonstiges</span><span><i class="pdf-dot absence"></i>Abwesenheit</span></footer>');
   $("#pageContent").prepend(view);
   const originalTitle=document.title;
   document.title="Dienstplan-"+iso(dateForDay(0))+"-bis-"+iso(dateForDay(6));
   window.addEventListener("afterprint",()=>{document.title=originalTitle;view.remove()},{once:true});
   window.print();
 }
-
 function render(){initShifts();const content=$("#pageContent");let out="";switch(currentPage){case"dashboard":out=dashboard();break;case"dienstplan":out=dutyPage();break;case"kalender":out=calendarPage();break;case"mitarbeitende":out=employeesPage();break;case"abwesenheiten":out=absencesPage();break;case"sondertermine":out=eventsPage("Sondertermine");break;case"teammeetings":out=eventsPage("Teammeetings");break;case"supervision":out=eventsPage("Supervision");break;case"fortbildungen":out=eventsPage("Fortbildungen");break;case"auswertungen":out=analyticsPage();break;case"einstellungen":out=settingsPage();break;case"leitungsprofil":out=leaderProfilePage();break;default:out=dashboard()}content.innerHTML=sanitizeHTML(out);$$("#pageContent .card-header h2").forEach(h=>{if(h.querySelector(".card-title-icon"))return;const t=h.textContent;const key=/Arbeitszeit|Büro|Wochenstunden/.test(t)?"clock":/Zugang|Passwort/.test(t)?"lock":/Personal|Mitarbeitende|Team/.test(t)?"users":/Auswertung|Kennzahl/.test(t)?"chart":/Einstellung|Verwaltung/.test(t)?"settings":/Termin|Kalender|Abwesenheit/.test(t)?"calendar":"briefcase";h.insertAdjacentHTML("afterbegin",`<span class="card-title-icon">${uiIcon(key)}</span>`)});scheduleCloudSave();const gf=$("#groupFilter");if(gf)gf.addEventListener("change",e=>{selectedGroup=e.target.value;render()});}
 function syncNavigation(){
   $$(".nav-item[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===currentPage));
