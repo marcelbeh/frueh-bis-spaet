@@ -157,3 +157,17 @@ test('PDF export paginates large teams into readable A4 pages',async({page})=>{
  await expect(popup.locator('#pdfWeekView .pdf-time-page').nth(2)).toContainText('Mitarbeitende 21–23 von 23');
  await expect(popup.locator('#pdfWeekView .pdf-time-page').nth(0).locator('.pdf-pause-marker')).toContainText('Pause 30 Min.');
 });
+
+
+test('calendar arrows navigate by full months, not by weeks',async({page})=>{
+ await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};'}));
+ await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+ await page.evaluate(()=>{document.querySelector('#cloudLogin')?.remove();currentPage='kalender';render()});
+ const heading=page.locator('.card-header h2');
+ const before=await heading.textContent();
+ await page.locator('[data-action="next-month"]').click();
+ const after=await heading.textContent();
+ expect(after).not.toBe(before);
+ await page.locator('[data-action="prev-month"]').click();
+ await expect(heading).toHaveText(before);
+});
