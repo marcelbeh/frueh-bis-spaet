@@ -116,13 +116,20 @@ function coverageRequirement(day,time,group){
 }
 function shiftPause(s){
  const span=minutes(s.end)-minutes(s.start);
- if(span<=390)return null;
+ if(span<=360)return null;
  const start=minutes(s.start)+240;
  return {start,end:Math.min(start+30,minutes(s.end))};
 }
 function shiftWorkMinutes(s){
  const span=minutes(s.end)-minutes(s.start),pause=shiftPause(s);
  return Math.max(0,span-(pause?30:0));
+}
+function weeklyManualShiftMinutes(person,assigned=weekShifts(weekOffset)){
+ return assigned.filter(s=>s.person===person.name&&!s.generated).reduce((sum,s)=>sum+shiftWorkMinutes(s),0);
+}
+function regularHoursNeeded(person,offset=weekOffset,assigned=weekShifts(offset)){
+ const contract=Math.max(0,Number(person.hours)||0),eventsHours=eventMinutesForPersonWeek(person,offset)/60,manualHours=weeklyManualShiftMinutes(person,assigned)/60;
+ return Math.max(0,Math.round((contract-eventsHours-manualHours)*4)/4);
 }
 function shiftCoversTime(s,time){
  const pause=shiftPause(s);
@@ -161,18 +168,21 @@ function inspectCoverage(assigned){
 }
 function generateWeekPlan(){
  if(!names.length){alert("Lege zuerst Mitarbeitende mit Stammgruppe und Wochenstunden an.");navigate("mitarbeitende");return}
- const existing=weekShifts();if(existing.length&&!confirm("Diese Woche enthält bereits "+existing.length+" Dienste. Diese werden ersetzt. Fortfahren?"))return;
+ const existing=weekShifts(),retained=existing.filter(s=>!s.generated);
+ const generatedCount=existing.length-retained.length;
+ if(generatedCount&&!confirm("Vorhandene automatische Dienste dieser Woche werden neu erstellt. Manuell eingetragene Dienste und Sonderdienste bleiben erhalten. Fortfahren?"))return;
  const people=planningPeople(),frameStart=minutes(plannerSettings.frame.start),frameEnd=minutes(plannerSettings.frame.end);
  if(frameEnd<=frameStart){alert("Die allgemeine Rahmenzeit ist ungültig.");return}
- const created=[],unavailable=[],totals=[];
+ const created=[],unavailable=[];
+ const planned=[...retained];
  const ordered=people.map((person,index)=>({person,index})).sort((a,b)=>{
   const aGroup=people.filter(p=>p.group===a.person.group).length,bGroup=people.filter(p=>p.group===b.person.group).length;
   return aGroup-bGroup||Number(b.person.hours||0)-Number(a.person.hours||0);
  });
  const tm=n=>String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0");
  for(const {person:p,index} of ordered){
-  const target=Math.round((Math.max(0,Number(p.hours)||0))*4)/4;
-  if(!target)continue;
+  const target=regularHoursNeeded(p,weekOffset,retained);
+  if(target<0.25)continue;
   let assigned=0;
   const availableDays=Array.from({length:5},(_,day)=>day).filter(day=>!blockingAbsence(p,day,weekOffset)).length;
   const dailyTarget=availableDays?Math.round(target/availableDays*4)/4:0;
@@ -186,9 +196,9 @@ function generateWeekPlan(){
      const breakMinutes=duration>360?30:0,span=duration+breakMinutes;
      for(let start=frameStart;start+span<=frameEnd;start+=15){
       const from=tm(start),to=tm(start+span);
-      if(isBlocked(p,day,from,to,weekOffset)||personHasEventConflict(p,day,from,to,weekOffset)||shiftRuleConflicts(p,day,from,to,weekOffset,created).length)continue;
-      if(created.some(x=>x.person===p.name&&x.day===day&&minutes(from)<minutes(x.end)&&minutes(to)>minutes(x.start)))continue;
-      const coverage=scoreShiftCoverage(created,p,day,start,start+span);
+      if(isBlocked(p,day,from,to,weekOffset)||personHasEventConflict(p,day,from,to,weekOffset)||shiftRuleConflicts(p,day,from,to,weekOffset,planned).length)continue;
+      if(planned.some(x=>x.person===p.name&&x.day===day&&(x.weekOffset??weekOffset)===weekOffset&&minutes(from)<minutes(x.end)&&minutes(to)>minutes(x.start)))continue;
+      const coverage=scoreShiftCoverage(planned,p,day,start,start+span);
       const fairness=assigned/Math.max(1,target);
       candidates.push({start:from,end:to,duration:span,workDuration:duration,score:coverage-duration/60*0.03-fairness*0.01});
      }
@@ -197,25 +207,25 @@ function generateWeekPlan(){
     if(!candidates.length)break;
     candidates.sort((x,y)=>y.score-x.score||minutes(x.start)-minutes(y.start));
     const slot=candidates[0];
-    created.push({id:"s"+Date.now()+"-"+index+"-"+day+"-"+created.length+"-"+Math.random().toString(36).slice(2,6),person:p.name,group:p.group,serviceType:"Normaler Dienst",day,start:slot.start,end:slot.end,color:p.group==="Nest"?"green":p.group==="Sonnengruppe"?"blue":p.group==="Sternengruppe"?"purple":"yellow",weekOffset,generated:true});
+    const createdShift={id:"s"+Date.now()+"-"+index+"-"+day+"-"+created.length+"-"+Math.random().toString(36).slice(2,6),person:p.name,group:p.group,serviceType:"Normaler Dienst",day,start:slot.start,end:slot.end,color:p.group==="Nest"?"green":p.group==="Sonnengruppe"?"blue":p.group==="Sternengruppe"?"purple":"yellow",weekOffset,generated:true};
+    created.push(createdShift);planned.push(createdShift);
     const hours=slot.workDuration/60;assigned+=hours;remaining-=hours;
    }
    if(remaining>=0.25)unavailable.push(p.name+" · "+weekdays[day]+" ("+remaining.toFixed(2).replace(".",",")+" Std. wegen Rahmenzeit oder Dienstsperren nicht unterzubringen)");
   }
-  totals.push({name:p.name,target,assigned});
  }
- const validation=weeklyPlanningDiagnostics(weekOffset,created),gaps=validation.gaps,groupedGaps=new Map();
+ const validation=weeklyPlanningDiagnostics(weekOffset,planned),gaps=validation.gaps,groupedGaps=new Map();
  gaps.forEach(g=>{const key=g.group+" · "+weekdays[g.day]+" "+g.label;const old=groupedGaps.get(key);if(!old||g.count<old.count)groupedGaps.set(key,g)});
  const summary=[...groupedGaps.entries()].map(([label,g])=>label+" ("+g.count+"/"+g.required+")");
  const hourSummary=validation.hourRows.filter(x=>x.diff<-.01).map(x=>x.name+": "+Math.max(0,-x.diff).toFixed(2).replace(".",",")+" Std. offen");
  const hardIssues=validation.absenceConflicts.length+validation.blockConflicts.length+validation.overlaps.length+validation.workRuleConflicts.length+validation.eventConflicts.length;
  if(hardIssues){alert("Plan wurde nicht übernommen: Die Vorprüfung hat "+hardIssues+" harte Regelkonflikte gefunden. Bitte prüfe Abwesenheiten, Dienstsperren und Überschneidungen.");return}
  const totalTarget=validation.hourRows.reduce((n,x)=>n+x.target,0),totalAssigned=validation.hourRows.reduce((n,x)=>n+x.actual,0);
- const preview="Vorprüfung des neuen Dienstplans:\\n• "+created.length+" Dienste\\n• "+totalAssigned.toFixed(2).replace(".",",")+" von "+totalTarget.toFixed(2).replace(".",",")+" Sollstunden verteilt\\n• "+gaps.length+" Unterbesetzungsintervalle\\n• "+hourSummary.length+" Personen mit nicht verteilten Stunden"+(summary.length?"\\n\\nBeispiele Unterbesetzung: "+summary.slice(0,5).join("; "):"")+(hourSummary.length?"\\n\\nNicht verteilte Stunden: "+hourSummary.slice(0,5).join("; "):"")+".\\n\\nPlan trotz dieser Hinweise übernehmen?";
+ const preview="Vorprüfung des neuen Dienstplans:\n• "+created.length+" neue Dienste\n• "+retained.length+" manuelle Dienste bleiben erhalten\n• "+totalAssigned.toFixed(2).replace(".",",")+" von "+totalTarget.toFixed(2).replace(".",",")+" Sollstunden verteilt\n• "+gaps.length+" Unterbesetzungsintervalle\n• "+hourSummary.length+" Personen mit nicht verteilten Stunden"+(summary.length?"\n\nBeispiele Unterbesetzung: "+summary.slice(0,5).join("; "):"")+(hourSummary.length?"\n\nNicht verteilte Stunden: "+hourSummary.slice(0,5).join("; "):"")+".\n\nPlan trotz dieser Hinweise übernehmen?";
  if((gaps.length||hourSummary.length)&&!confirm(preview))return;
- shifts=shifts.filter(s=>(s.weekOffset??0)!==weekOffset);shifts.push(...created);
+ shifts=shifts.filter(s=>(s.weekOffset??0)!==weekOffset||!s.generated);shifts.push(...created);
  scheduleCloudSave();render();
- alert("Bedarfsorientierte Wochenplanung für "+weekLabel()+" erstellt: "+created.length+" Dienste. Geplante Wochenstunden: "+totals.reduce((n,x)=>n+x.assigned,0).toFixed(2).replace(".",",")+" von "+totals.reduce((n,x)=>n+x.target,0).toFixed(2).replace(".",",")+" Sollstunden. "+(hourSummary.length?"Nicht vollständig verteilte Stunden: "+hourSummary.join("; ")+". ":"Alle verfügbaren Sollstunden wurden verplant. ")+(unavailable.length?"Einschränkungen: "+unavailable.slice(0,15).join("; ")+(unavailable.length>15?" …":"")+". ":"")+(summary.length?"Mindestbesetzung noch nicht erreicht: "+summary.slice(0,12).join("; ")+(summary.length>12?" …":"")+". ":"Alle hinterlegten Mindestbesetzungen sind erreicht. ")+"Nicht unterzubringende Stunden werden ausdrücklich ausgewiesen und nicht stillschweigend verworfen.");
+ alert("Bedarfsorientierte Wochenplanung für "+weekLabel()+" erstellt: "+created.length+" neue Dienste. Manuelle Dienste und Sonderdienste wurden erhalten. Geplante Wochenstunden inklusive Sondertermine: "+totalAssigned.toFixed(2).replace(".",",")+" von "+totalTarget.toFixed(2).replace(".",",")+" Sollstunden. "+(hourSummary.length?"Nicht vollständig verteilte Stunden: "+hourSummary.join("; ")+". ":"Alle verfügbaren Sollstunden wurden verplant. ")+(unavailable.length?"Einschränkungen: "+unavailable.slice(0,15).join("; ")+(unavailable.length>15?" …":"")+". ":"")+(summary.length?"Mindestbesetzung noch nicht erreicht: "+summary.slice(0,12).join("; ")+(summary.length>12?" …":"")+". ":"Alle hinterlegten Mindestbesetzungen sind erreicht. ")+"Nicht unterzubringende Stunden werden ausdrücklich ausgewiesen und nicht stillschweigend verworfen.");
 }
 function copyWeekForward(){const source=weekShifts();if(!source.length){alert("In dieser Woche gibt es keine Dienste zum Kopieren.");return}const targetOffset=weekOffset+1,target=weekShifts(targetOffset);if(target.length&&!confirm("Die Folgewoche enthält bereits "+target.length+" Dienste. Diese werden ersetzt. Fortfahren?"))return;const copied=[],skipped=[];source.forEach((x,i)=>{const person=planningPeople().find(p=>p.name===x.person),absence=person?blockingAbsence(person,x.day,targetOffset):null,blocked=person&&isBlocked(person,x.day,x.start,x.end,targetOffset),overlap=person&&target.some(y=>y.person===x.person&&y.day===x.day&&minutes(x.start)<minutes(y.end)&&minutes(x.end)>minutes(y.start));const eventConflict=person&&personHasEventConflict(person,x.day,x.start,x.end,targetOffset);if(absence||blocked||overlap||eventConflict){skipped.push(x.person+" · "+weekdays[x.day]+" ("+(absence?"Abwesenheit: "+absence.type:blocked?"feste Dienstsperre":eventConflict?"Terminüberschneidung":"Zeitüberschneidung")+")");return}copied.push({...x,id:"s"+Date.now()+"-copy-"+i+"-"+Math.random().toString(36).slice(2,6),weekOffset:targetOffset,generated:false})});shifts=shifts.filter(s=>(s.weekOffset??0)!==targetOffset);shifts.push(...copied);scheduleCloudSave();render();alert(copied.length+" Dienste nach "+weekLabelForOffset(targetOffset)+" kopiert."+ (skipped.length?" Nicht kopiert wegen Abwesenheiten: "+skipped.join("; ")+".":"")+" Öffne mit „Nächste“ die Folgewoche.");}
 function minutes(t){const [h,m]=t.split(":").map(Number);return h*60+m}
@@ -246,7 +256,7 @@ function uiIcon(name){const icons={"home":"<path d=\"m3 10 9-7 9 7\"/><path d=\"
 
 function weeklyPlanningDiagnostics(offset=weekOffset,plannedOverride=null){
  const people=planningPeople(),planned=plannedOverride||weekShifts(offset),coverageShifts=planned.filter(x=>!x.serviceType||x.serviceType==="Normaler Dienst");
- const gaps=inspectCoverage(coverageShifts),hourRows=people.map(p=>{const target=Math.max(0,Number(p.hours)||0),actual=planned.filter(x=>x.person===p.name).reduce((n,x)=>n+shiftWorkMinutes(x)/60,0);return {name:p.name,target,actual,diff:actual-target}});
+ const gaps=inspectCoverage(coverageShifts),hourRows=people.map(p=>{const target=Math.max(0,Number(p.hours)||0),shiftHours=planned.filter(x=>x.person===p.name).reduce((n,x)=>n+shiftWorkMinutes(x)/60,0),eventHours=eventMinutesForPersonWeek(p,offset)/60,actual=shiftHours+eventHours;return {name:p.name,target,actual,shiftHours,eventHours,diff:actual-target}});
  const absenceConflicts=[],blockConflicts=[],overlaps=[],workRuleConflicts=[],eventConflicts=[];
  planned.forEach(x=>{const p=people.find(y=>y.name===x.person);if(!p)return;const absence=blockingAbsence(p,x.day,offset);if(absence)absenceConflicts.push(x.person+" · "+weekdays[x.day]+" · "+absence.type);if(isBlocked(p,x.day,x.start,x.end,offset))blockConflicts.push(x.person+" · "+weekdays[x.day]+" "+x.start+"–"+x.end);const rules=shiftRuleConflicts(p,x.day,x.start,x.end,offset,planned,x.id);rules.forEach(rule=>workRuleConflicts.push(x.person+" · "+weekdays[x.day]+" · "+rule));if(personHasEventConflict(p,x.day,x.start,x.end,offset))eventConflicts.push(x.person+" · "+weekdays[x.day]+" · Terminüberschneidung");});
  for(let i=0;i<planned.length;i++)for(let j=i+1;j<planned.length;j++){const a=planned[i],b=planned[j];if(a.person===b.person&&a.day===b.day&&minutes(a.start)<minutes(b.end)&&minutes(a.end)>minutes(b.start))overlaps.push(a.person+" · "+weekdays[a.day]+" "+a.start+"–"+a.end+" / "+b.start+"–"+b.end);}
@@ -302,19 +312,24 @@ function dutyPage(){
   const timeAxis=Array.from({length:9},(_,n)=>{const h=6+n*2;return `<span style="top:${n/8*100}%">${String(h).padStart(2,"0")}:00</span>`}).join("");
   const columns=people.map(p=>{
    const personShifts=dayShifts.filter(s=>s.person===p.name);
+   const dayDate=iso(date),dayAbsences=absences.filter(a=>a.name===p.name&&dayDate>=a.from&&dayDate<=a.to);
+   const absenceBlocks=dayAbsences.map(a=>'<div class="outlook-absence" title="'+escapeHTML(a.type)+' · '+escapeHTML(a.status||"Erfasst")+'"><strong>'+escapeHTML(a.type)+'</strong><span>Ganztägig'+(a.status==="Offen"?" · Offen":"")+'</span></div>').join("");
+   const eventBlocks=events.filter(ev=>eventOccursOnDate(ev,dayDate)&&(ev.attendees||[]).includes(p.name)).map(ev=>{const [from,to]=ev.time.split("–");const cls=ev.type==="Meeting"?"event-meeting":ev.type==="Supervision"?"event-supervision":ev.type==="Fortbildung"?"event-training":"event-special";return '<div class="outlook-event '+cls+'" style="top:'+topPercent(from)+'%;height:'+heightPercent(from,to)+'%" title="'+escapeHTML(ev.title)+' · '+ev.time+'"><strong>'+ev.time+'</strong><span>'+escapeHTML(ev.title)+'</span></div>';}).join("");
    const blocks=personShifts.map(s=>{const pause=shiftPause(s),span=minutes(s.end)-minutes(s.start);const pauseMarkup=pause?'<span class="pause-marker" style="top:'+((pause.start-minutes(s.start))/span*100)+'%;height:'+(30/span*100)+'%">Pause · 30 Min.</span>':'';return '<button class="outlook-shift '+shiftClass(s)+'" style="'+shiftPosition(s)+'" data-edit-shift="'+s.id+'" title="'+s.person+': '+s.start+'–'+s.end+(pause?' · Pause 30 Min.':'')+'"><strong>'+s.start+'–'+s.end+'</strong><span>'+(s.serviceType&&s.serviceType!=="Normaler Dienst"?s.serviceType:s.group)+'</span>'+pauseMarkup+'<i class="shift-resize-handle" data-resize-shift="'+s.id+'" title="Ziehen, um das Dienstende zu ändern" aria-label="Dienstende ziehen"></i></button>'}).join("");
-   return `<div class="outlook-staff-column"><div class="outlook-time-grid"></div>${blocks}</div>`;
+   return `<div class="outlook-staff-column"><div class="outlook-time-grid"></div>${absenceBlocks}${eventBlocks}${blocks}</div>`;
   }).join("");
   const coverageShifts=dayShifts.filter(s=>!s.serviceType||s.serviceType==="Normaler Dienst");const cover=renderCoverageStrip(coverageShifts);
-  const dayEvents=events.filter(event=>eventOccursOnDate(event,iso(date)));
+  const dayEvents=events.filter(event=>eventOccursOnDate(event,iso(date))),dayAbsenceCount=absences.filter(a=>iso(date)>=a.from&&iso(date)<=a.to).length;
   const eventStrip=dayEvents.length?`<div class="day-special-events" aria-label="Sondertermine">${dayEvents.map(event=>`<div class="day-special-event"><strong>${event.time}</strong><span>${event.title}</span><small>${event.type}${event.repeatWeekly?" · wöchentlich":""}</small></div>`).join("")}</div>`:"";
-  return `<section class="day-calendar"><header class="day-calendar-head"><div><strong>${["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"][i]}, ${fmt(date)}</strong><span>${dayShifts.length} Dienste geplant · ${dayEvents.length} Termine</span></div><div class="day-coverage-strip" aria-label="Mindestbesetzung im Zeitfenster">${cover}</div></header>${eventStrip}<div class="outlook-calendar-scroll"><div class="outlook-calendar" style="--staff-count:${Math.max(1,people.length)}"><div class="outlook-corner">Zeit</div>${staffHeaders}<div class="outlook-time-axis">${timeAxis}</div>${columns}</div></div></section>`;
+  return `<section class="day-calendar"><header class="day-calendar-head"><div><strong>${["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"][i]}, ${fmt(date)}</strong><span>${dayShifts.length} Dienste geplant · ${dayEvents.length} Termine · ${dayAbsenceCount} Abwesenheiten</span></div><div class="day-coverage-strip" aria-label="Mindestbesetzung im Zeitfenster">${cover}</div></header>${eventStrip}<div class="outlook-calendar-scroll"><div class="outlook-calendar" style="--staff-count:${Math.max(1,people.length)}"><div class="outlook-corner">Zeit</div>${staffHeaders}<div class="outlook-time-axis">${timeAxis}</div>${columns}</div></div></section>`;
  }).join("");
  return heading("Dienstplan","Wochenkalender wie in Outlook · Mitarbeitende oben, Uhrzeiten links und alle Dienste pro Tag auf einer gemeinsamen Zeitachse.",'<button class="btn" data-action="prev-week">← Vorherige</button><button class="btn" data-action="next-week">Nächste →</button><button class="btn" data-action="copy-week">Woche kopieren →</button><button class="btn" data-action="print-plan">PDF exportieren</button><button class="btn primary" data-action="generate-plan">Diese Woche automatisch planen</button><button class="btn primary" data-action="add-shift">＋ Dienst eintragen</button>')+
  `<section class="card"><div class="card-header"><div><h2>${weekLabel()}</h2><p>Jeder Tag hat eine gemeinsame vertikale Zeitachse von 06:00 bis 22:00 Uhr. Schichten überlappen zeitlich nebeneinander in den Mitarbeiterspalten. Zum Bearbeiten einen Dienst anklicken.</p></div><button class="btn primary save-plan-button" type="button" data-action="save-plan">Jetzt speichern</button></div><div class="schedule-toolbar"><select id="groupFilter" class="select-control" aria-label="Gruppe filtern"><option>Alle Gruppen</option>${groups.map(g=>`<option ${selectedGroup===g?'selected':''}>${g}</option>`).join("")}</select><div class="legend"><span style="--legend:#9adbb9">Normaler Dienst</span><span style="--legend:#b69af7">Meeting</span><span style="--legend:#83b8f7">Supervision</span><span style="--legend:#7cc9c7">Kirche</span><span style="--legend:#f0aa42">Fortbildung</span><span style="--legend:#f19aa5">Sonstiges</span></div></div><div class="day-calendar-list">${days}</div><div class="coverage-legend"><span class="coverage-low-key">0–1 Person</span><span class="coverage-watch-key">2 Personen</span><span class="coverage-ok-key">3+ Personen</span><span class="muted">Besetzungsstreifen je 2 Stunden; Schwellenwerte vorläufig.</span></div></section>${renderPlanningDiagnostics()}
- <div class="grid panel-two section-gap"><section class="card"><div class="card-header"><h2>Wochenstunden im Überblick</h2></div><div class="card-body"><div class="table-wrap"><table><thead><tr><th>Mitarbeitende</th><th>Sollstunden</th><th>Geplante Stunden*</th><th>Status</th></tr></thead><tbody>${people.map(p=>{const total=weekShifts().filter(s=>s.person===p.name).reduce((n,s)=>n+shiftWorkMinutes(s)/60,0);return `<tr><td>${p.name}</td><td>${p.hours} Std.</td><td>${total.toFixed(1)} Std.</td><td><span class="pill ${total>p.hours?'red':total<p.hours?'yellow':'green'}">${total>p.hours?'Über Soll':total<p.hours?'Prüfen':'Passt'}</span></td></tr>`}).join("")}</tbody></table></div><p class="muted" style="font-size:10px">*Pausen ab mehr als 6 Stunden tatsächlicher Arbeitszeit werden automatisch mit 30 Minuten berücksichtigt.</p></div></section><section class="card"><div class="card-header"><h2>Planungsregeln</h2></div><div class="card-body"><div class="setting-row"><div><strong>Zeitraum</strong><small>Montag bis Sonntag</small></div><span class="pill blue">7 Tage</span></div><div class="setting-row"><div><strong>Tagesansicht</strong><small>06:00 bis 22:00 Uhr</small></div><span class="pill green">16 Stunden</span></div><div class="setting-row"><div><strong>Überschneidungen</strong><small>Gemeinsame Zeitachse je Tag</small></div><span class="pill blue">Sichtbar</span></div><div class="setting-row"><div><strong>Gruppenbedarf</strong><small>Über Einstellungen konfigurierbar</small></div><button class="btn small" data-page="einstellungen">Einstellen</button></div></div></section></div>`;
+ <div class="grid panel-two section-gap"><section class="card"><div class="card-header"><h2>Wochenstunden im Überblick</h2></div><div class="card-body"><div class="table-wrap"><table><thead><tr><th>Mitarbeitende</th><th>Sollstunden</th><th>Geplant gesamt</th><th>Aufteilung</th><th>Status</th></tr></thead><tbody>${people.map(p=>{const personShifts=weekShifts().filter(s=>s.person===p.name),regularTotal=personShifts.filter(s=>!s.serviceType||s.serviceType==="Normaler Dienst").reduce((n,s)=>n+shiftWorkMinutes(s)/60,0),specialTotal=personShifts.filter(s=>s.serviceType&&s.serviceType!=="Normaler Dienst").reduce((n,s)=>n+shiftWorkMinutes(s)/60,0),eventTotal=eventMinutesForPersonWeek(p)/60,total=regularTotal+specialTotal+eventTotal;return `<tr><td>${p.name}</td><td>${p.hours} Std.</td><td>${total.toFixed(1)} Std.</td><td><small class="muted">${regularTotal.toFixed(1)} regulär · ${specialTotal.toFixed(1)} Sonderdienst · ${eventTotal.toFixed(1)} Termin</small></td><td><span class="pill ${total>p.hours?'red':total<p.hours?'yellow':'green'}">${total>p.hours?'Über Soll':total<p.hours?'Prüfen':'Passt'}</span></td></tr>`}).join("")}</tbody></table></div><p class="muted" style="font-size:10px">Reguläre Dienste, Sonderdienste und Termine zählen gemeinsam zur vertraglichen Wochenarbeitszeit. Automatische Planung berücksichtigt bereits eingetragene Zeiten.</p></div></section><section class="card"><div class="card-header"><h2>Planungsregeln</h2></div><div class="card-body"><div class="setting-row"><div><strong>Zeitraum</strong><small>Montag bis Sonntag</small></div><span class="pill blue">7 Tage</span></div><div class="setting-row"><div><strong>Tagesansicht</strong><small>06:00 bis 22:00 Uhr</small></div><span class="pill green">16 Stunden</span></div><div class="setting-row"><div><strong>Überschneidungen</strong><small>Gemeinsame Zeitachse je Tag</small></div><span class="pill blue">Sichtbar</span></div><div class="setting-row"><div><strong>Gruppenbedarf</strong><small>Über Einstellungen konfigurierbar</small></div><button class="btn small" data-page="einstellungen">Einstellen</button></div></div></section></div>`;
 }
-function eventOccursOnDate(event,date){if(event.date===date)return true;if(!event.repeatWeekly)return false;const d=new Date(date+"T12:00:00");return d.getDay()===Number(event.repeatDay);}
+function eventOccursOnDate(event,date){if(event.date===date)return true;if(!event.repeatWeekly||date<event.date)return false;const d=new Date(date+"T12:00:00");return d.getDay()===Number(event.repeatDay);}
+function eventDurationMinutes(event){const [start,end]=String(event.time||"").split("–");return start&&end?Math.max(0,minutes(end)-minutes(start)):0;}
+function eventMinutesForPersonWeek(person,offset=weekOffset){let total=0;for(let day=0;day<7;day++){const date=iso(dateForDay(day,offset));for(const event of events){if(eventOccursOnDate(event,date)&&(event.attendees||[]).includes(person.name))total+=eventDurationMinutes(event);}}return total;}
 function personHasEventConflict(person,day,start,end,offset=weekOffset){const date=iso(dateForDay(day,offset));return events.some(ev=>eventOccursOnDate(ev,date)&&(ev.attendees||[]).includes(person.name)&&minutes(start)<minutes(ev.time.split("–")[1])&&minutes(end)>minutes(ev.time.split("–")[0]));}
 function calendarPage(){
  const first=new Date(dateForDay(0).getFullYear(),dateForDay(0).getMonth(),1);
@@ -363,14 +378,16 @@ function exportPlanPdf(){
   let columns="";
   days.forEach((day,dayIndex)=>{
     staff.forEach((p,staffIndex)=>{
-      const personShifts=weekShifts().filter(s=>s.day===dayIndex&&s.person===p.name);
+      const dayDate=iso(dateForDay(dayIndex)),personShifts=weekShifts().filter(s=>s.day===dayIndex&&s.person===p.name);
+      const absenceMarkup=absences.filter(a=>a.name===p.name&&dayDate>=a.from&&dayDate<=a.to).map(a=>'<div class="pdf-time-absence"><strong>'+escapeHTML(a.type)+'</strong><span>Ganztägig'+(a.status==="Offen"?" · Offen":"")+'</span></div>').join("");
+      const eventMarkup=events.filter(ev=>eventOccursOnDate(ev,dayDate)&&(ev.attendees||[]).includes(p.name)).map(ev=>{const [from,to]=ev.time.split("–");return '<div class="pdf-time-event" style="top:'+topPercent(from)+'%;height:'+heightPercent(from,to)+'%"><strong>'+escapeHTML(ev.title)+'</strong><span>'+ev.time+'</span></div>';}).join("");
       const blocks=personShifts.map(s=>{
         const top=(minutes(s.start)-360)/960*100;
         const span=minutes(s.end)-minutes(s.start),height=span/960*100,pause=shiftPause(s);
         const pauseMarkup=pause?'<i class="pdf-pause-marker" style="top:'+((pause.start-minutes(s.start))/span*100)+'%;height:'+(30/span*100)+'%">Pause · 30 Min.</i>':'';
         return '<div class="pdf-time-shift '+shiftClass(s)+'" style="top:'+top+'%;height:'+height+'%"><strong>'+s.start+'–'+s.end+'</strong><span>'+p.name+'</span>'+pauseMarkup+'</div>';
       }).join("");
-      columns+='<div class="pdf-time-column" style="grid-column:'+(2+dayIndex*staff.length+staffIndex)+';grid-row:3 / span 1"><div class="pdf-time-track">'+Array.from({length:8},()=>'<i></i>').join("")+blocks+'</div></div>';
+      columns+='<div class="pdf-time-column" style="grid-column:'+(2+dayIndex*staff.length+staffIndex)+';grid-row:3 / span 1"><div class="pdf-time-track">'+Array.from({length:8},()=>'<i></i>').join("")+absenceMarkup+eventMarkup+blocks+'</div></div>';
     });
   });
   view.innerHTML=sanitizeHTML('<h1>Dienstplan · '+weekLabel()+'</h1><div class="pdf-time-grid" style="--pdf-staff-count:'+Math.max(1,staff.length)+';--pdf-total-cols:'+Math.max(1,staff.length*7)+'">'+dayHeader+staffHeader+timeLabels+columns+'</div>');
@@ -381,7 +398,7 @@ function exportPlanPdf(){
   window.print();
 }
 
-function render(){initShifts();const content=$("#pageContent");let out="";switch(currentPage){case"dashboard":out=dashboard();break;case"dienstplan":out=dutyPage();break;case"kalender":out=calendarPage();break;case"mitarbeitende":out=employeesPage();break;case"abwesenheiten":out=absencesPage();break;case"sondertermine":out=eventsPage("Sondertermine");break;case"teammeetings":out=eventsPage("Teammeetings");break;case"supervision":out=eventsPage("Supervision");break;case"fortbildungen":out=eventsPage("Fortbildungen");break;case"auswertungen":out=analyticsPage();break;case"einstellungen":out=settingsPage();break;case"leitungsprofil":out=leaderProfilePage();break;default:out=dashboard()}content.innerHTML=sanitizeHTML(out);$("#pageContent .card-header h2").forEach(h=>{if(h.querySelector(".card-title-icon"))return;const t=h.textContent;const key=/Arbeitszeit|Büro|Wochenstunden/.test(t)?"clock":/Zugang|Passwort/.test(t)?"lock":/Personal|Mitarbeitende|Team/.test(t)?"users":/Auswertung|Kennzahl/.test(t)?"chart":/Einstellung|Verwaltung/.test(t)?"settings":/Termin|Kalender|Abwesenheit/.test(t)?"calendar":"briefcase";h.insertAdjacentHTML("afterbegin",`<span class="card-title-icon">${uiIcon(key)}</span>`)});scheduleCloudSave();const gf=$("#groupFilter");if(gf)gf.addEventListener("change",e=>{selectedGroup=e.target.value;render()});}
+function render(){initShifts();const content=$("#pageContent");let out="";switch(currentPage){case"dashboard":out=dashboard();break;case"dienstplan":out=dutyPage();break;case"kalender":out=calendarPage();break;case"mitarbeitende":out=employeesPage();break;case"abwesenheiten":out=absencesPage();break;case"sondertermine":out=eventsPage("Sondertermine");break;case"teammeetings":out=eventsPage("Teammeetings");break;case"supervision":out=eventsPage("Supervision");break;case"fortbildungen":out=eventsPage("Fortbildungen");break;case"auswertungen":out=analyticsPage();break;case"einstellungen":out=settingsPage();break;case"leitungsprofil":out=leaderProfilePage();break;default:out=dashboard()}content.innerHTML=sanitizeHTML(out);$$("#pageContent .card-header h2").forEach(h=>{if(h.querySelector(".card-title-icon"))return;const t=h.textContent;const key=/Arbeitszeit|Büro|Wochenstunden/.test(t)?"clock":/Zugang|Passwort/.test(t)?"lock":/Personal|Mitarbeitende|Team/.test(t)?"users":/Auswertung|Kennzahl/.test(t)?"chart":/Einstellung|Verwaltung/.test(t)?"settings":/Termin|Kalender|Abwesenheit/.test(t)?"calendar":"briefcase";h.insertAdjacentHTML("afterbegin",`<span class="card-title-icon">${uiIcon(key)}</span>`)});scheduleCloudSave();const gf=$("#groupFilter");if(gf)gf.addEventListener("change",e=>{selectedGroup=e.target.value;render()});}
 function syncNavigation(){
   $$(".nav-item[data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===currentPage));
   const groups={dienstplan:"planung",kalender:"planung",mitarbeitende:"personal",abwesenheiten:"personal",sondertermine:"termine",teammeetings:"termine",supervision:"termine",fortbildungen:"termine",auswertungen:"auswertung",einstellungen:"verwaltung",leitungsprofil:"verwaltung"};
