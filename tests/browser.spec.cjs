@@ -87,5 +87,13 @@ test('dragging both shift edges changes the displayed time in 15-minute incremen
  await page.mouse.up();
  await expect(page.locator('[data-edit-shift="s1"] strong')).toHaveText('07:45–10:15');
  await expect.poll(()=>page.evaluate(()=>window.__savedState?.shifts?.[0]?.start),{timeout:2500}).toBe('07:45');
+ const popupPromise=page.waitForEvent('popup');
+ await page.locator('[data-action="print-plan"]').click();
+ const popup=await popupPromise;
+ await expect(popup.locator('#pdfWeekView')).toContainText('Montag');
+ await expect(popup.locator('#pdfWeekView')).toContainText('Test Person');
+ await popup.emulateMedia({media:'print'});
+ await expect.poll(()=>popup.locator('#pdfWeekView').evaluate(el=>getComputedStyle(el).display)).toBe('block');
+ await expect.poll(()=>popup.locator('.pdf-time-grid').evaluate(el=>getComputedStyle(el).display)).toBe('grid');
  expect(errors).toEqual([]);
 });
