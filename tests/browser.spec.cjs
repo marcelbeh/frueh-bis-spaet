@@ -31,27 +31,30 @@ test('render sanitizer strips executable HTML',async({page})=>{
 test('dragging a shift end changes the displayed time in 15-minute increments',async({page})=>{
  const stub=`
  window.__savedState=null;
- window.supabase={createClient:()=>({
-  auth:{
-   getSession:async()=>({data:{session:null},error:null}),
-   signInWithPassword:async()=>({data:{user:{id:'user-1',email:'leitung@example.test'}},error:null}),
-   onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),
-   signOut:async()=>({error:null})
-  },
-  from(table){
-   const builder={
-    select(){return this},
-    eq(){return this},
-    maybeSingle:async()=>table==='app_owner'
-     ?{data:{user_id:'user-1'},error:null}
-     :{data:{state:{names:[{name:'Test Person',initials:'TP',group:'Nest',hours:20,vacation:0,special:0,meetings:0,supervision:0,color:'green'}],groups:['Nest'],shifts:[{id:'s1',person:'Test Person',group:'Nest',serviceType:'Normaler Dienst',day:0,start:'07:00',end:'10:00',weekOffset:0}],absences:[],events:[],weekOffset:0}},updated_at:'2026-10-30T10:00:00.000Z'},error:null},
-    update(payload){window.__savedState=payload.state;return this},
-    insert(payload){window.__savedState=payload.state;return this}
-   };
-   return builder;
-  }
- })};
- `;
+ window.supabase={
+  createClient:()=>({
+   auth:{
+    getSession:async()=>({data:{session:null},error:null}),
+    signInWithPassword:async()=>({data:{user:{id:'user-1',email:'leitung@example.test'}},error:null}),
+    onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),
+    signOut:async()=>({error:null})
+   },
+   from:(table)=>{
+    const builder={
+     select(){return this;},
+     eq(){return this;},
+     maybeSingle:async function(){
+      if(table==='app_owner')return {data:{user_id:'user-1'},error:null};
+      return {data:{state:{names:[{name:'Test Person',initials:'TP',group:'Nest',hours:20,vacation:0,special:0,meetings:0,supervision:0,color:'green'}],groups:['Nest'],shifts:[{id:'s1',person:'Test Person',group:'Nest',serviceType:'Normaler Dienst',day:0,start:'07:00',end:'10:00',weekOffset:0}],absences:[],events:[],weekOffset:0},updated_at:'2026-10-30T10:00:00.000Z'},error:null};
+     },
+     update(payload){window.__savedState=payload.state;return this;},
+     insert(payload){window.__savedState=payload.state;return this;}
+    };
+    return builder;
+   }
+  })
+ };
+`;
  await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:stub}));
  const errors=[];page.on('pageerror',e=>errors.push({name:e.name,message:e.message,stack:e.stack}));page.on('console',m=>{if(m.type()==='error')errors.push({console:m.text()})});
  await page.setViewportSize({width:1440,height:1000});
