@@ -462,13 +462,16 @@ function addPersonModal(personName=null){
 let activeShiftResize=null;
 function resizeTime(value){return String(Math.floor(value/60)).padStart(2,"0")+":"+String(value%60).padStart(2,"0")}
 document.addEventListener("pointerdown",e=>{
- const handle=e.target.closest("[data-resize-shift]");if(!handle)return;
- const shift=shifts.find(x=>x.id===handle.dataset.resizeShift);if(!shift)return;
+ const handle=e.target.closest("[data-resize-shift]"),block=e.target.closest(".outlook-shift");
+ if(!handle&&!block)return;
+ const shift=shifts.find(x=>x.id===(handle?.dataset.resizeShift||block?.dataset.editShift));if(!shift)return;
+ const shiftBlock=handle?.closest(".outlook-shift")||block,rect=shiftBlock.getBoundingClientRect();
+ const edge=handle?.dataset.resizeEdge||(e.clientY<=rect.top+12?"start":e.clientY>=rect.bottom-12?"end":null);
+ if(!edge)return;
  e.preventDefault();e.stopPropagation();
- const column=handle.closest(".outlook-staff-column");if(!column)return;
- const edge=handle.dataset.resizeEdge==="start"?"start":"end";
- activeShiftResize={id:shift.id,edge,pointerId:e.pointerId,startY:e.clientY,initialStart:minutes(shift.start),initialEnd:minutes(shift.end),column,block:handle.closest(".outlook-shift"),previewStart:minutes(shift.start),previewEnd:minutes(shift.end)};
- handle.setPointerCapture?.(e.pointerId);document.body.classList.add("resizing-shift");
+ const column=shiftBlock.closest(".outlook-staff-column");if(!column)return;
+ activeShiftResize={id:shift.id,edge,pointerId:e.pointerId,startY:e.clientY,initialStart:minutes(shift.start),initialEnd:minutes(shift.end),column,block:shiftBlock,previewStart:minutes(shift.start),previewEnd:minutes(shift.end)};
+ shiftBlock.setPointerCapture?.(e.pointerId);document.body.classList.add("resizing-shift");
 });
 document.addEventListener("pointermove",e=>{
  if(!activeShiftResize||e.pointerId!==activeShiftResize.pointerId)return;
