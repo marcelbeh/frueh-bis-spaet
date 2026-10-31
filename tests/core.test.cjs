@@ -29,7 +29,7 @@ test('special events are rendered in the weekly duty plan for their date and rec
 test('duty plan supports drag-resizing a shift end with rule checks and cloud saving',()=>{
  assert.match(source,/data-resize-shift/);
  assert.match(source,/pointermove/);
- assert.match(source,/shiftRuleConflicts\(person,shift\.day,shift\.start,end,offset,shifts,shift\.id\)/);
+ assert.match(source,/shiftRuleConflicts\(person,shift\.day,start,end,offset,shifts,shift\.id\)/);
  assert.match(source,/shift\.end=end;scheduleCloudSave\(\);render\(\)/);
 });
 
@@ -50,16 +50,30 @@ test('automatic planner keeps manually entered services and replaces only genera
 });
 test('full-day absences render in weekly columns and in printable PDF output',()=>{
  assert.match(source,/class="outlook-absence"/);
- assert.match(source,/class="pdf-note pdf-absence"/);
+ assert.match(source,/class="pdf-time-absence"/);
  assert.match(source,/dayAbsenceCount/);
 });
 test('printable PDF includes attendee-specific special events',()=>{
- assert.match(source,/class="pdf-note pdf-event"/);
- assert.match(source,/eventOccursOnDate\(ev,dayDate\)/);
+ assert.match(source,/class="pdf-time-event"/);
+ assert.match(source,/eventOccursOnDate\(ev,date\)/);
 });
 
-test('PDF export uses a one-page A4 landscape matrix with white background',()=>{
- assert.match(source,/class="pdf-week-grid"/);
- assert.match(source,/class="pdf-staff-cell"/);
- assert.match(source,/class="pdf-day-cell"/);
+test('PDF export places all five weekdays in one A4 landscape time grid',()=>{
+ assert.match(source,/class="pdf-time-grid"/);
+ assert.match(source,/class="pdf-time-staff-head"/);
+ assert.match(source,/class="pdf-time-track"/);
+ assert.match(source,/const dayIndexes=\[0,1,2,3,4\]/);
+ assert.match(source,/Montag bis Freitag/);
+});
+
+test('shift resizing supports both start and end edges',()=>{
+ assert.match(source,/data-resize-edge="start"/);
+ assert.match(source,/data-resize-edge="end"/);
+ assert.match(source,/state\.edge==="start"/);
+ assert.match(source,/shift\.start=start;shift\.end=end/);
+});
+test('special services use the same editable shift form and delete action',()=>{
+ assert.match(source,/data-edit-shift=/);
+ assert.match(source,/function addShiftModal\(id=null\)/);
+ assert.match(source,/data-delete-shift=/);
 });

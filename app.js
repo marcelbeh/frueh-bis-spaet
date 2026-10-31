@@ -315,7 +315,7 @@ function dutyPage(){
    const dayDate=iso(date),dayAbsences=absences.filter(a=>a.name===p.name&&dayDate>=a.from&&dayDate<=a.to);
    const absenceBlocks=dayAbsences.map(a=>'<div class="outlook-absence" title="'+escapeHTML(a.type)+' · '+escapeHTML(a.status||"Erfasst")+'"><strong>'+escapeHTML(a.type)+'</strong><span>Ganztägig'+(a.status==="Offen"?" · Offen":"")+'</span></div>').join("");
    const eventBlocks=events.filter(ev=>eventOccursOnDate(ev,dayDate)&&(ev.attendees||[]).includes(p.name)).map(ev=>{const [from,to]=ev.time.split("–");const cls=ev.type==="Meeting"?"event-meeting":ev.type==="Supervision"?"event-supervision":ev.type==="Fortbildung"?"event-training":"event-special";return '<div class="outlook-event '+cls+'" style="top:'+topPercent(from)+'%;height:'+heightPercent(from,to)+'%" title="'+escapeHTML(ev.title)+' · '+ev.time+'"><strong>'+ev.time+'</strong><span>'+escapeHTML(ev.title)+'</span></div>';}).join("");
-   const blocks=personShifts.map(s=>{const pause=shiftPause(s),span=minutes(s.end)-minutes(s.start);const pauseMarkup=pause?'<span class="pause-marker" style="top:'+((pause.start-minutes(s.start))/span*100)+'%;height:'+(30/span*100)+'%">Pause · 30 Min.</span>':'';return '<button class="outlook-shift '+shiftClass(s)+'" style="'+shiftPosition(s)+'" data-edit-shift="'+s.id+'" title="'+s.person+': '+s.start+'–'+s.end+(pause?' · Pause 30 Min.':'')+'"><strong>'+s.start+'–'+s.end+'</strong><span>'+(s.serviceType&&s.serviceType!=="Normaler Dienst"?s.serviceType:s.group)+'</span>'+pauseMarkup+'<i class="shift-resize-handle" data-resize-shift="'+s.id+'" title="Ziehen, um das Dienstende zu ändern" aria-label="Dienstende ziehen"></i></button>'}).join("");
+   const blocks=personShifts.map(s=>{const pause=shiftPause(s),span=minutes(s.end)-minutes(s.start);const pauseMarkup=pause?'<span class="pause-marker" style="top:'+((pause.start-minutes(s.start))/span*100)+'%;height:'+(30/span*100)+'%">Pause · 30 Min.</span>':'';return '<button class="outlook-shift '+shiftClass(s)+'" style="'+shiftPosition(s)+'" data-edit-shift="'+s.id+'" title="'+s.person+': '+s.start+'–'+s.end+(pause?' · Pause 30 Min.':'')+'"><i class="shift-resize-handle shift-resize-start" data-resize-shift="'+s.id+'" data-resize-edge="start" title="Ziehen, um den Dienstbeginn zu ändern" aria-label="Dienstbeginn ziehen"></i><strong>'+s.start+'–'+s.end+'</strong><span>'+(s.serviceType&&s.serviceType!=="Normaler Dienst"?s.serviceType:s.group)+'</span>'+pauseMarkup+'<i class="shift-resize-handle shift-resize-end" data-resize-shift="'+s.id+'" data-resize-edge="end" title="Ziehen, um das Dienstende zu ändern" aria-label="Dienstende ziehen"></i></button>'}).join("");
    return `<div class="outlook-staff-column"><div class="outlook-time-grid"></div>${absenceBlocks}${eventBlocks}${blocks}</div>`;
   }).join("");
   const coverageShifts=dayShifts.filter(s=>!s.serviceType||s.serviceType==="Normaler Dienst");const cover=renderCoverageStrip(coverageShifts);
@@ -368,31 +368,35 @@ function eventsPage(type){const category=type==="Teammeetings"?"Meeting":type===
 }function settingsPage(){return heading("Einstellungen","Rahmenzeiten und Mindestbesetzung für die automatische Dienstplanung festlegen.",'<button class="btn primary" data-action="save-settings">Änderungen übernehmen</button>')+`<div class="grid settings-grid"><section class="card"><div class="card-header"><h2>Rahmenzeiten</h2></div><div class="card-body"><p>Hier legst du fest, innerhalb welcher Uhrzeiten Dienste stattfinden dürfen.</p><div class="setting-row"><div><strong>Frühester Dienstbeginn</strong><small>Vor dieser Uhrzeit darf kein Dienst starten.</small></div><input class="select-control" id="frame-start" type="time" value="${plannerSettings.frame.start}"></div><div class="setting-row"><div><strong>Spätestes Dienstende</strong><small>Nach dieser Uhrzeit darf kein Dienst enden.</small></div><input class="select-control" id="frame-end" type="time" value="${plannerSettings.frame.end}"></div></div></section><section class="card"><div class="card-header"><h2>Mindestbesetzung Kernzeit · 08–15 Uhr</h2></div><div class="card-body">${groups.map(g=>`<div class="setting-row"><div><strong>${g}</strong><small>Gleichzeitig im Dienst</small></div><select class="select-control" data-min-group="${g}">${[0,1,2,3,4,5,6].map(n=>`<option value="${n}" ${Number(plannerSettings.minimumByGroup[g])===n?"selected":""}>${n} Person(en)</option>`).join("")}</select></div>`).join("")}</div></section><section class="card"><div class="card-header"><h2>Frühschicht · 07–08 Uhr</h2></div><div class="card-body"><p>Benötigte gleichzeitige Besetzung je Gruppe.</p>${groups.map(g=>`<div class="setting-row"><div><strong>${g}</strong></div><select class="select-control" data-min-early="${g}">${[0,1,2,3,4,5,6].map(n=>`<option value="${n}" ${Number(plannerSettings.minimumEarlyByGroup[g])===n?"selected":""}>${n} Person(en)</option>`).join("")}</select></div>`).join("")}<label class="check-option"><input type="checkbox" id="merge-early" ${plannerSettings.mergeEarlyGroups?"checked":""}> Gruppen in der Frühschicht zusammenlegen</label><div class="setting-row"><div><strong>Mindestbesetzung bei Zusammenlegung</strong></div><select class="select-control" id="min-early-combined">${[1,2,3,4,5,6].map(n=>`<option value="${n}" ${Number(plannerSettings.minimumEarlyCombined)===n?"selected":""}>${n} Person(en) insgesamt</option>`).join("")}</select></div><p class="muted">Bei Aktivierung wird die Frühbesetzung gruppenübergreifend als gemeinsamer Personalpool geprüft.</p></div></section><section class="card"><div class="card-header"><h2>Spätschicht · 15–16 Uhr</h2></div><div class="card-body"><p>Benötigte gleichzeitige Besetzung je Gruppe.</p>${groups.map(g=>`<div class="setting-row"><div><strong>${g}</strong></div><select class="select-control" data-min-late="${g}">${[0,1,2,3,4,5,6].map(n=>`<option value="${n}" ${Number(plannerSettings.minimumLateByGroup[g])===n?"selected":""}>${n} Person(en)</option>`).join("")}</select></div>`).join("")}<label class="check-option"><input type="checkbox" id="merge-late" ${plannerSettings.mergeLateGroups?"checked":""}> Gruppen in der Spätschicht zusammenlegen</label><div class="setting-row"><div><strong>Mindestbesetzung bei Zusammenlegung</strong></div><select class="select-control" id="min-late-combined">${[1,2,3,4,5,6].map(n=>`<option value="${n}" ${Number(plannerSettings.minimumLateCombined)===n?"selected":""}>${n} Person(en) insgesamt</option>`).join("")}</select></div><p class="muted">Bei Aktivierung wird die Spätbesetzung gruppenübergreifend als gemeinsamer Personalpool geprüft.</p></div></section><section class="card"><div class="card-header"><h2>Automatische Vorbelegung</h2></div><div class="card-body"><p>Die Vorbelegung verteilt die vertraglichen Wochenstunden auf fünf Werktage und prüft die Besetzung in Früh-, Kern- und Spätzeit.</p><p class="muted">Individuelle Verfügbarkeiten, Pausen und gesetzliche Ruhezeiten müssen weiterhin geprüft werden.</p><button class="btn primary" data-action="generate-plan">Dienstplan für diese Woche erstellen</button></div></section></div>`}
 function leaderProfilePage(){return heading("Leitungsprofil","Persönliche Angaben, Zugangsdaten und Arbeitszeit der Leitung.",'<button class="btn primary" data-action="save-leader-profile">Profil speichern</button>')+`<div class="grid settings-grid"><section class="card"><div class="card-header"><h2>Persönliche Angaben</h2></div><div class="card-body"><div class="field"><label>Name</label><input id="leader-name" class="select-control" value="${leaderProfile.name||cloudUser?.user_metadata?.full_name||""}" placeholder="Vorname Nachname"></div><div class="field"><label>E-Mail-Adresse</label><input id="leader-email" class="select-control" type="email" value="${cloudUser?.email||""}"></div><div class="field"><label>Telefon (optional)</label><input id="leader-phone" class="select-control" type="tel" value="${leaderProfile.phone||""}"></div><p class="muted">Bei einer geänderten E-Mail-Adresse kann eine Bestätigungsmail erforderlich sein. Die Bürozeit wird nicht als Gruppenzeit verplant; für Gruppendienste zählt ausschließlich die unten angegebene Gruppenzeit.</p></div></section><section class="card"><div class="card-header"><h2>Passwort ändern</h2></div><div class="card-body"><div class="field"><label>Neues Passwort</label><input id="leader-password" class="select-control" type="password" autocomplete="new-password" placeholder="Mindestens 8 Zeichen"></div><div class="field"><label>Passwort wiederholen</label><input id="leader-password-confirm" class="select-control" type="password" autocomplete="new-password"></div><p class="muted">Leer lassen, wenn das Passwort unverändert bleiben soll.</p></div></section><section class="card"><div class="card-header"><h2>Arbeitszeit der Leitung</h2></div><div class="card-body"><div class="field"><label>Stammgruppe</label><select id="leader-group" class="select-control">${groups.map(g=>`<option ${leaderProfile.group===g?"selected":""}>${g}</option>`).join("")}</select></div><div class="field"><label>Vertragliche Wochenstunden gesamt</label><input id="leader-weekly" class="select-control" type="number" min="1" max="50" step="0.5" value="${leaderProfile.weeklyHours}"></div><div class="field"><label>Davon Bürozeit pro Woche</label><input id="leader-office" class="select-control" type="number" min="0" max="50" step="0.5" value="${leaderProfile.officeHours}"></div><div class="field"><label>Davon Zeit in der Gruppe pro Woche</label><input id="leader-group-hours" class="select-control" type="number" min="0" max="50" step="0.5" value="${leaderProfile.groupHours}"></div><p class="muted">Nur die Gruppenzeit wird als pädagogische Besetzung eingeplant. Bürozeit zählt nicht zur Gruppenbesetzung.</p></div></section><section class="card"><div class="card-header"><h2>Bürozeiten und feste Sperren</h2></div><div class="card-body"><p>Lege hier wiederkehrende Bürozeiten als feste Sperren an. Während dieser Zeiten kann die Leitung nicht zusätzlich als Gruppenbesetzung eingeplant werden.</p><button type="button" class="btn" data-manage-blocks="${leaderProfile.name}">Bürozeiten / Sperrzeiten verwalten</button></div></section></div>`}
 function exportPlanPdf(){
-  const existing=$("#pdfWeekView"); if(existing)existing.remove();
-  const view=document.createElement("section"); view.id="pdfWeekView";
+  const existing=$("#pdfWeekView");if(existing)existing.remove();
+  const view=document.createElement("section");view.id="pdfWeekView";
   const staff=planningPeople().filter(p=>selectedGroup==="Alle Gruppen"||p.group===selectedGroup);
-  const days=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
-  const dayHeaders=days.map((day,i)=>'<div class="pdf-day-head"><strong>'+day+'</strong><small>'+fmt(dateForDay(i),{day:"2-digit",month:"2-digit"})+'</small></div>').join("");
-  const staffRows=staff.map(p=>{
-    const dayCells=days.map((day,dayIndex)=>{
-      const dayDate=iso(dateForDay(dayIndex)),personShifts=weekShifts().filter(s=>s.day===dayIndex&&s.person===p.name);
-      const absenceMarkup=absences.filter(a=>a.name===p.name&&dayDate>=a.from&&dayDate<=a.to).map(a=>'<div class="pdf-note pdf-absence"><strong>'+escapeHTML(a.type)+'</strong><small>Ganztägig'+(a.status==="Offen"?" · Offen":"")+'</small></div>').join("");
-      const eventMarkup=events.filter(ev=>eventOccursOnDate(ev,dayDate)&&(ev.attendees||[]).includes(p.name)).map(ev=>'<div class="pdf-note pdf-event"><strong>'+escapeHTML(ev.title)+'</strong><small>'+escapeHTML(ev.time)+' · '+escapeHTML(ev.type)+'</small></div>').join("");
-      const shiftMarkup=personShifts.map(s=>{
-        const type=s.serviceType||"Normaler Dienst";
-        const group=s.group||p.group||"";
-        return '<div class="pdf-shift '+shiftClass(s)+'"><strong>'+escapeHTML(s.start)+'–'+escapeHTML(s.end)+'</strong><small>'+escapeHTML(type)+(group?' · '+escapeHTML(group):"")+'</small></div>';
+  const allShifts=weekShifts().filter(s=>staff.some(p=>p.name===s.person));
+  const dayNames=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag"];
+  const dayIndexes=[0,1,2,3,4];
+  const totalCols=dayIndexes.length*Math.max(1,staff.length);
+  const heads=dayIndexes.map(day=>'<div class="pdf-time-day-group" style="grid-column:span '+Math.max(1,staff.length)+'">'+dayNames[day]+' · '+fmt(dateForDay(day),{day:"2-digit",month:"2-digit"})+'</div>').join("");
+  const staffHeads=dayIndexes.map(()=>staff.map(p=>'<div class="pdf-time-staff-head" title="'+escapeHTML(p.name)+'">'+escapeHTML(p.name)+'<small>'+escapeHTML(p.group||"")+'</small></div>').join("")).join("");
+  const columns=dayIndexes.map(day=>{
+    const date=iso(dateForDay(day));
+    return staff.map(p=>{
+      const personShifts=allShifts.filter(s=>s.day===day&&s.person===p.name);
+      const absence=absences.filter(a=>a.name===p.name&&date>=a.from&&date<=a.to).map(a=>'<div class="pdf-time-absence"><strong>'+escapeHTML(a.type)+'</strong><span>Ganztägig'+(a.status==="Offen"?' · Offen':'')+'</span></div>').join("");
+      const attendeeEvents=events.filter(ev=>eventOccursOnDate(ev,date)&&(ev.attendees||[]).includes(p.name)).map(ev=>{
+        const parts=String(ev.time||"").split(/[–-]/),from=parts[0]||"06:00",to=parts[1]||from;
+        return '<div class="pdf-time-event" style="top:'+topPercent(from)+'%;height:'+heightPercent(from,to)+'%"><strong>'+escapeHTML(ev.title)+'</strong><span>'+escapeHTML(ev.time)+'</span></div>';
       }).join("");
-      const empty=personShifts.length||absenceMarkup||eventMarkup?"":'<span class="pdf-empty">–</span>';
-      return '<div class="pdf-day-cell">'+absenceMarkup+eventMarkup+shiftMarkup+empty+'</div>';
+      const blocks=personShifts.map(s=>{
+        const label=s.serviceType&&s.serviceType!=="Normaler Dienst"?s.serviceType:(s.group||p.group||"Dienst");
+        return '<div class="pdf-time-shift '+shiftClass(s)+'" style="top:'+topPercent(s.start)+'%;height:'+heightPercent(s.start,s.end)+'%"><strong>'+escapeHTML(s.start)+'–'+escapeHTML(s.end)+'</strong><span>'+escapeHTML(label)+'</span></div>';
+      }).join("");
+      return '<div class="pdf-time-column"><div class="pdf-time-track">'+absence+attendeeEvents+blocks+'</div></div>';
     }).join("");
-    return '<div class="pdf-staff-cell"><strong>'+escapeHTML(p.name)+'</strong><small>'+escapeHTML(p.group||"")+'</small></div>'+dayCells;
   }).join("");
-  const noStaff=staff.length?"":'<div class="pdf-no-staff">Für diese Auswahl sind keine Mitarbeitenden vorhanden.</div>';
-  view.innerHTML=sanitizeHTML('<header class="pdf-title"><h1>Dienstplan · '+weekLabel()+'</h1><span>'+staff.length+' Mitarbeitende'+(selectedGroup!=="Alle Gruppen"?' · '+escapeHTML(selectedGroup):"")+'</span></header><div class="pdf-week-grid" style="--pdf-staff-count:'+Math.max(1,staff.length)+';--pdf-main-font:'+(staff.length>35?'4pt':staff.length>25?'4.6pt':staff.length>18?'5.4pt':'6.2pt')+';--pdf-sub-font:'+(staff.length>35?'3.3pt':staff.length>25?'3.8pt':staff.length>18?'4.3pt':'4.8pt')+'"><div class="pdf-corner">Mitarbeitende</div>'+dayHeaders+staffRows+noStaff+'</div><footer class="pdf-legend"><span><i class="pdf-dot normal"></i>Normaler Dienst</span><span><i class="pdf-dot meeting"></i>Meeting</span><span><i class="pdf-dot supervision"></i>Supervision</span><span><i class="pdf-dot church"></i>Kirchlicher Termin</span><span><i class="pdf-dot training"></i>Fortbildung</span><span><i class="pdf-dot other"></i>Sonstiges</span><span><i class="pdf-dot absence"></i>Abwesenheit</span></footer>');
+  const timeLabels=Array.from({length:12},(_,i)=>'<span style="top:'+(i/11*100)+'%">'+String(7+i).padStart(2,"0")+':00</span>').join("");
+  view.innerHTML=sanitizeHTML('<article class="pdf-time-page"><header class="pdf-time-title"><h1>Dienstplan · '+escapeHTML(weekLabel())+'</h1><span>Montag bis Freitag · '+staff.length+' Mitarbeitende</span></header><div class="pdf-time-grid" style="--pdf-total-cols:'+totalCols+';--pdf-staff-font:'+(staff.length>20?'3pt':staff.length>15?'3.7pt':staff.length>10?'4.4pt':'5.2pt')+'"><div class="pdf-time-head">Zeit</div>'+heads+'<div class="pdf-time-subhead"></div>'+staffHeads+'<div class="pdf-time-axis">'+timeLabels+'</div>'+columns+'</div><footer class="pdf-time-legend"><span class="normal">Normaler Dienst</span><span class="meeting">Meeting</span><span class="supervision">Supervision</span><span class="church">Kirchlicher Termin</span><span class="training">Fortbildung</span><span class="other">Sonstiges</span><span class="absence">Abwesenheit</span></footer></article>');
   $("#pageContent").prepend(view);
-  const originalTitle=document.title;
-  document.title="Dienstplan-"+iso(dateForDay(0))+"-bis-"+iso(dateForDay(6));
+  const originalTitle=document.title;document.title="Dienstplan-"+iso(dateForDay(0))+"-bis-"+iso(dateForDay(4));
   window.addEventListener("afterprint",()=>{document.title=originalTitle;view.remove()},{once:true});
   window.print();
 }
@@ -451,39 +455,48 @@ function addPersonModal(personName=null){
 let activeShiftResize=null;
 function resizeTime(value){return String(Math.floor(value/60)).padStart(2,"0")+":"+String(value%60).padStart(2,"0")}
 document.addEventListener("pointerdown",e=>{
- const handle=e.target.closest("[data-resize-shift]");if(!handle)return;
- const shift=shifts.find(x=>x.id===handle.dataset.resizeShift);if(!shift)return;
+ const handle=e.target.closest("[data-resize-shift]"),block=e.target.closest(".outlook-shift");
+ if(!handle&&!block)return;
+ const shift=shifts.find(x=>x.id===(handle?.dataset.resizeShift||block?.dataset.editShift));if(!shift)return;
+ const shiftBlock=handle?.closest(".outlook-shift")||block,rect=shiftBlock.getBoundingClientRect();
+ const edge=handle?.dataset.resizeEdge||(e.clientY<=rect.top+12?"start":e.clientY>=rect.bottom-12?"end":null);
+ if(!edge)return;
  e.preventDefault();e.stopPropagation();
- const column=handle.closest(".outlook-staff-column");if(!column)return;
- activeShiftResize={id:shift.id,pointerId:e.pointerId,startY:e.clientY,initialEnd:minutes(shift.end),column,block:handle.closest(".outlook-shift"),previewEnd:minutes(shift.end)};
- handle.setPointerCapture?.(e.pointerId);document.body.classList.add("resizing-shift");
+ const column=shiftBlock.closest(".outlook-staff-column");if(!column)return;
+ activeShiftResize={id:shift.id,edge,pointerId:e.pointerId,startY:e.clientY,initialStart:minutes(shift.start),initialEnd:minutes(shift.end),column,block:shiftBlock,previewStart:minutes(shift.start),previewEnd:minutes(shift.end)};
+ document.body.classList.add("resizing-shift");
 });
 document.addEventListener("pointermove",e=>{
  if(!activeShiftResize||e.pointerId!==activeShiftResize.pointerId)return;
  const state=activeShiftResize,rect=state.column.getBoundingClientRect(),shift=shifts.find(x=>x.id===state.id);if(!shift)return;
  const delta=Math.round((e.clientY-state.startY)/Math.max(1,rect.height)*960/15)*15;
- const next=Math.max(minutes(shift.start)+15,Math.min(1320,state.initialEnd+delta));state.previewEnd=next;
- if(state.block){state.block.style.height=heightPercent(shift.start,resizeTime(next))+"%";const label=state.block.querySelector("strong");if(label)label.textContent=shift.start+"–"+resizeTime(next);}
+ if(state.edge==="start")state.previewStart=Math.max(360,Math.min(state.initialEnd-15,state.initialStart+delta));
+ else state.previewEnd=Math.max(state.initialStart+15,Math.min(1320,state.initialEnd+delta));
+ if(state.block){
+  const start=resizeTime(state.previewStart),end=resizeTime(state.previewEnd);
+  state.block.style.top=topPercent(start)+"%";state.block.style.height=heightPercent(start,end)+"%";
+  const label=state.block.querySelector("strong");if(label)label.textContent=start+"–"+end;
+ }
 });
 function finishShiftResize(){
  if(!activeShiftResize)return;
  const state=activeShiftResize;activeShiftResize=null;document.body.classList.remove("resizing-shift");
  const shift=shifts.find(x=>x.id===state.id);if(!shift){render();return}
- const end=resizeTime(state.previewEnd),person=planningPeople().find(p=>p.name===shift.person),offset=shift.weekOffset??weekOffset;
+ const start=resizeTime(state.previewStart),end=resizeTime(state.previewEnd),person=planningPeople().find(p=>p.name===shift.person),offset=shift.weekOffset??weekOffset;
  let issue="";
- if(minutes(end)<=minutes(shift.start))issue="Das Dienstende muss nach dem Beginn liegen.";
- else if(minutes(end)>minutes(plannerSettings.frame.end))issue="Das Dienstende liegt außerhalb der Rahmenzeit.";
- else if(!person)issue="Die Mitarbeitende Person wurde nicht gefunden.";
+ if(minutes(end)<=minutes(start))issue="Der Dienst muss mindestens 15 Minuten dauern.";
+ else if(minutes(start)<minutes(plannerSettings.frame.start)||minutes(end)>minutes(plannerSettings.frame.end))issue="Der Dienst liegt außerhalb der Rahmenzeit.";
+ else if(!person)issue="Die mitarbeitende Person wurde nicht gefunden.";
  else if(blockingAbsence(person,shift.day,offset))issue="Für diese Person ist an diesem Tag eine Abwesenheit erfasst.";
- else if(isBlocked(person,shift.day,shift.start,end,offset))issue="Der verlängerte Dienst überschneidet sich mit einer festen Dienstsperre.";
- else if(personHasEventConflict(person,shift.day,shift.start,end,offset))issue="Der verlängerte Dienst überschneidet sich mit einem Termin.";
- else {const rules=shiftRuleConflicts(person,shift.day,shift.start,end,offset,shifts,shift.id);if(rules.length)issue=rules.join("; ");}
- if(!issue&&shifts.some(x=>x.id!==shift.id&&x.person===shift.person&&x.day===shift.day&&(x.weekOffset??0)===offset&&minutes(shift.start)<minutes(x.end)&&minutes(end)>minutes(x.start)))issue="Der verlängerte Dienst überschneidet sich mit einem anderen Dienst derselben Person.";
+ else if(isBlocked(person,shift.day,start,end,offset))issue="Der Dienst überschneidet sich mit einer festen Dienstsperre.";
+ else if(personHasEventConflict(person,shift.day,start,end,offset))issue="Der Dienst überschneidet sich mit einem Termin.";
+ else {const rules=shiftRuleConflicts(person,shift.day,start,end,offset,shifts,shift.id);if(rules.length)issue=rules.join("; ");}
+ if(!issue&&shifts.some(x=>x.id!==shift.id&&x.person===shift.person&&x.day===shift.day&&(x.weekOffset??0)===offset&&minutes(start)<minutes(x.end)&&minutes(end)>minutes(x.start)))issue="Der Dienst überschneidet sich mit einem anderen Dienst derselben Person.";
  if(issue){alert(issue+" Die ursprüngliche Zeit bleibt erhalten.");render();return}
- shift.end=end;scheduleCloudSave();render();
+ shift.start=start;shift.end=end;scheduleCloudSave();render();
 }
 document.addEventListener("pointerup",e=>{if(activeShiftResize&&e.pointerId===activeShiftResize.pointerId)finishShiftResize()});
-document.addEventListener("pointercancel",e=>{if(!activeShiftResize||e.pointerId!==activeShiftResize.pointerId)return;activeShiftResize=null;document.body.classList.remove("resizing-shift");render()});
+document.addEventListener("pointercancel",e=>{if(!activeShiftResize||e.pointerId!==activeShiftResize.pointerId)return;if(e.pointerType==="mouse"){finishShiftResize();return}activeShiftResize=null;document.body.classList.remove("resizing-shift");render()});
 document.addEventListener("click",e=>{
  if(e.target.closest("[data-resize-shift]")){e.preventDefault();e.stopPropagation();return;}
  const menuToggle=e.target.closest("[data-menu-toggle]");if(menuToggle){const shell=document.querySelector(".app-shell");if(shell?.classList.contains("sidebar-collapsed")){const target=menuToggle.dataset.defaultPage;if(target)navigate(target);return}const key=menuToggle.dataset.menuToggle,children=$("[data-nav-children='"+key+"']"),open=menuToggle.getAttribute("aria-expanded")!=="true";menuToggle.setAttribute("aria-expanded",String(open));children.hidden=!open;return}
