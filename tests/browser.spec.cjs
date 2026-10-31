@@ -85,6 +85,7 @@ test('dragging both shift edges changes the displayed time in 15-minute incremen
  await page.mouse.move(shiftBounds.x+shiftBounds.width/2,shiftBounds.y-6,{steps:4});
  await expect.poll(()=>page.evaluate(()=>activeShiftResize?.previewStart)).toBe(405);
  await page.mouse.up();
+ await expect.poll(()=>page.evaluate(()=>window.__lastResizeIssue)).toBe('');
  await expect(page.locator('[data-edit-shift="s1"] strong')).toHaveText('06:45–10:15');
  await expect.poll(()=>page.evaluate(()=>window.__savedState?.shifts?.[0]?.start),{timeout:2500}).toBe('06:45');
  expect(errors).toEqual([]);
