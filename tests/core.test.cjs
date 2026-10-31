@@ -58,11 +58,13 @@ test('printable PDF includes attendee-specific special events',()=>{
  assert.match(source,/eventOccursOnDate\(ev,date\)/);
 });
 
-test('PDF export uses a vertical time grid with staff columns and two days per A4 page',()=>{
+test('PDF export places all five weekdays in one A4 landscape time grid',()=>{
  assert.match(source,/class="pdf-time-grid"/);
  assert.match(source,/class="pdf-time-staff-head"/);
  assert.match(source,/class="pdf-time-track"/);
- assert.match(source,/for\(let first=0;first<7;first\+=2\)/);
+ assert.match(source,/const dayIndexes=\[0,1,2,3,4\]/);
+ assert.match(source,/Montag bis Freitag/);
+ assert.match(source,/size:A4 landscape/);
 });
 
 test('shift resizing supports both start and end edges',()=>{
