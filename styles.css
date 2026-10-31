@@ -634,3 +634,42 @@ body.resizing-shift,body.resizing-shift *{cursor:ns-resize!important;user-select
 .btn.danger{background:#b42318!important;border-color:#b42318!important;color:#fff!important}
 .btn.danger:hover{background:#912018!important;border-color:#912018!important}
 .reset-settings-card{border-color:#efc5c2!important}
+
+
+/* PDF labels: keep service times and names readable in narrow time columns. */
+#pdfWeekView .pdf-time-shift strong,
+#pdfWeekView .pdf-time-shift span,
+#pdfWeekView .pdf-time-event strong,
+#pdfWeekView .pdf-time-event span,
+#pdfWeekView .pdf-time-absence strong,
+#pdfWeekView .pdf-time-absence span {
+  writing-mode:vertical-rl!important;
+  text-orientation:mixed!important;
+  transform:rotate(180deg)!important;
+  white-space:nowrap!important;
+}
+@media print {
+  #pdfWeekView .pdf-time-shift,
+  #pdfWeekView .pdf-time-event,
+  #pdfWeekView .pdf-time-absence {
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+  }
+  #pdfWeekView .pdf-time-shift {gap:.5mm!important}
+  #pdfWeekView .pdf-time-event {gap:.5mm!important}
+  #pdfWeekView .pdf-time-absence {gap:1mm!important}
+  #pdfWeekView .pdf-time-shift strong,
+  #pdfWeekView .pdf-time-shift span,
+  #pdfWeekView .pdf-time-event strong,
+  #pdfWeekView .pdf-time-event span,
+  #pdfWeekView .pdf-time-absence strong,
+  #pdfWeekView .pdf-time-absence span {
+    overflow:visible!important;
+    max-width:100%!important;
+    font-size:4.1pt!important;
+    line-height:1!important;
+    margin:0!important;
+  }
+}
