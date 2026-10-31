@@ -37,7 +37,7 @@ Der Anwendungscode verwendet die Tabellen `app_owner` (freigeschaltete Leitungsz
 - Bürozeiten der Leitung werden nicht als feste Zeitblöcke geplant; nur die Gruppenzeit kann als Besetzung erscheinen.
 - Genehmigte bzw. erfasste Abwesenheiten und feste Dienstsperren blockieren neue automatische und manuelle Dienste. Bereits vorhandene Dienste werden nicht automatisch gelöscht; die Planprüfung weist Konflikte aus.
 - Urlaub wird anhand der je Person hinterlegten regulären Arbeitstage berechnet; gesetzliche NRW-Feiertage werden abgezogen. Betriebliche Schließtage werden noch nicht automatisch berücksichtigt.
-- Die Monatskalenderansicht, Druckausgabe und Darstellung auf realen Mobilgeräten sind noch nicht durch einen echten Browser-/iPhone-End-to-End-Test abgenommen.
+- Die Monatskalendernavigation, die mehrseitige Druckausgabe und die mobile Browseransicht sind durch Playwright-Tests abgedeckt. Ein zusätzlicher Abnahmetest auf realen iPhones und Tablets steht noch aus.
 - Die Speicherung erfolgt als gemeinsamer JSON-Datensatz. Eine optimistische Versionsprüfung erkennt konkurrierende Änderungen und verhindert das unbemerkte Überschreiben eines neueren Datenstands. Eine automatische Zusammenführung paralleler Änderungen gibt es nicht.
 - Es gibt derzeit keine nachgewiesene automatisierte Datenbanksicherung oder vollständige Prüfung der RLS-Policies.
 
