@@ -396,12 +396,14 @@ function exportPlanPdf(){
   const staff=planningPeople().filter(p=>selectedGroup==="Alle Gruppen"||p.group===selectedGroup);
   const dayNames=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag"];
   const dayIndexes=[0,1,2,3,4],pageSize=10,pages=[];
+  const pdfGroups=[...new Set(staff.map(p=>p.group).filter(Boolean))];
+  const pdfGroupClass=group=>{const index=pdfGroups.indexOf(group);return index>=0?" pdf-group-"+(index%6):""};
   for(let offset=0;offset<Math.max(1,staff.length);offset+=pageSize){
     const pageStaff=staff.slice(offset,offset+pageSize);
     const allShifts=weekShifts().filter(s=>pageStaff.some(p=>p.name===s.person));
     const totalCols=dayIndexes.length*Math.max(1,pageStaff.length);
     const heads=dayIndexes.map(day=>'<div class="pdf-time-day-group" style="grid-column:span '+Math.max(1,pageStaff.length)+'">'+dayNames[day]+' · '+fmt(dateForDay(day),{day:"2-digit",month:"2-digit"})+'</div>').join("");
-    const staffHeads=dayIndexes.map(()=>pageStaff.map(p=>'<div class="pdf-time-staff-head" title="'+escapeHTML(p.name)+'">'+escapeHTML(p.name)+'<small>'+escapeHTML(p.group||"")+'</small></div>').join("")).join("");
+    const staffHeads=dayIndexes.map(()=>pageStaff.map(p=>'<div class="pdf-time-staff-head'+pdfGroupClass(p.group)+'" title="'+escapeHTML(p.name)+'">'+escapeHTML(p.name)+'<small>'+escapeHTML(p.group||"")+'</small></div>').join("")).join("");
     const columns=dayIndexes.map(day=>{
       const date=iso(dateForDay(day));
       return pageStaff.map(p=>{
@@ -416,7 +418,7 @@ function exportPlanPdf(){
           const label=x.serviceType&&x.serviceType!=="Normaler Dienst"?x.serviceType:(x.group||p.group||"Dienst");
           const pause=shiftPause(x),span=minutes(x.end)-minutes(x.start),pauseMinutes=pause?pause.end-pause.start:0;
           const pauseMarkup=pause?'<i class="pdf-pause-marker" style="top:'+((pause.start-minutes(x.start))/span*100)+'%;height:'+(pauseMinutes/span*100)+'%">Pause '+pauseMinutes+' Min.</i>':'';
-          return '<div class="pdf-time-shift '+shiftClass(x)+'" style="top:'+topPercent(x.start)+'%;height:'+heightPercent(x.start,x.end)+'%"><strong>'+escapeHTML(x.start)+'–'+escapeHTML(x.end)+'</strong><span>'+escapeHTML(label)+'</span>'+pauseMarkup+'</div>';
+          return '<div class="pdf-time-shift '+shiftClass(x)+pdfGroupClass(x.group||p.group)+'" style="top:'+topPercent(x.start)+'%;height:'+heightPercent(x.start,x.end)+'%"><strong>'+escapeHTML(x.start)+'–'+escapeHTML(x.end)+'</strong><span>'+escapeHTML(label)+'</span>'+pauseMarkup+'</div>';
         }).join("");
         return '<div class="pdf-time-column"><div class="pdf-time-track">'+closureMarkup+absence+attendeeEvents+blocks+'</div></div>';
       }).join("");
