@@ -460,3 +460,15 @@
 .event-special{background:#fce8eb;border-left-color:#c65a6a;color:#803746;}
 body.resizing-shift{cursor:ns-resize!important;user-select:none!important;}
 body.resizing-shift *{cursor:ns-resize!important;user-select:none!important;}
+
+/* Ganztägige Abwesenheiten im Wochenplan: eigener, gut sichtbarer Tagesblock */
+.outlook-absence{position:absolute;inset:0;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:8px 4px;box-sizing:border-box;background:repeating-linear-gradient(135deg,rgba(250,225,228,.92) 0,rgba(250,225,228,.92) 9px,rgba(255,242,243,.94) 9px,rgba(255,242,243,.94) 18px);border:1px solid #e6aeb5;color:#8d3441;text-align:center;pointer-events:none}
+.outlook-absence strong{font-size:12px;font-weight:800;overflow-wrap:anywhere}
+.outlook-absence span{font-size:10px;font-weight:650}
+.outlook-event{z-index:2}
+.outlook-shift{z-index:3}
+.pdf-time-absence{position:absolute;inset:0;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:1mm;padding:2mm .5mm;box-sizing:border-box;background:repeating-linear-gradient(135deg,#fbe8ea 0,#fbe8ea 2mm,#fff5f6 2mm,#fff5f6 4mm);border:.2mm solid #d99aa3;color:#843743;text-align:center;overflow:hidden}
+.pdf-time-absence strong,.pdf-time-absence span{font-size:4.5pt;overflow-wrap:anywhere}
+.pdf-time-event{position:absolute;z-index:2;left:.15mm;right:.15mm;overflow:hidden;padding:.3mm;border:.15mm solid #bca9df;border-left:.6mm solid #8061c8;border-radius:.4mm;background:#eee8fb;color:#49347a;text-align:center;line-height:1.05}
+.pdf-time-event strong,.pdf-time-event span{display:block;font-size:3.5pt;overflow-wrap:anywhere;white-space:normal}
+.pdf-time-shift{z-index:3}
