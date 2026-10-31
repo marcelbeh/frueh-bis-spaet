@@ -113,7 +113,7 @@ function initShifts(){ /* Neue Dienstpläne starten leer. */ }
 function weekShifts(offset=weekOffset){return shifts.filter(s=>(s.weekOffset??0)===offset)}
 function weekLabelForOffset(offset){return "Mo. "+fmt(dateForDay(0,offset))+" – So. "+fmt(dateForDay(6,offset))+" "+dateForDay(6,offset).getFullYear()}
 function coverageRequirement(day,time,group){
- const early=time>=420&&time<480,late=time>=900&&time<960,core=time>=480&&time<900;
+ const early=time>=435&&time<480,late=time>=900&&time<975,core=time>=480&&time<900;
  if(early&&plannerSettings.mergeEarlyGroups)return {scope:"combined",required:Number(plannerSettings.minimumEarlyCombined)||0,weight:2.5,label:"Frühdienst gemeinsam"};
  if(late&&plannerSettings.mergeLateGroups)return {scope:"combined",required:Number(plannerSettings.minimumLateCombined)||0,weight:2.5,label:"Spätdienst gemeinsam"};
  if(early)return {scope:"group",required:Number(plannerSettings.minimumEarlyByGroup[group])||0,weight:2.5,label:"Frühdienst"};
@@ -153,7 +153,7 @@ function countCoverage(assigned,day,time,group,scope){
 }
 function scoreShiftCoverage(assigned,person,day,start,end){
  let score=0;
- for(let time=420;time<960;time+=15){
+ for(let time=435;time<975;time+=15);
   if(time<start||time>=end)continue;
   const span=end-start,pauseMinutes=span>570?45:span>360?30:0,pause=pauseMinutes?{start:start+240,end:Math.min(start+240+pauseMinutes,end)}:null;if(pause&&time>=pause.start&&time<pause.end)continue;
   const demand=coverageRequirement(day,time,person.group);
@@ -166,7 +166,7 @@ function scoreShiftCoverage(assigned,person,day,start,end){
 }
 function inspectCoverage(assigned,offset=weekOffset){
  const gaps=[];
- for(let day=0;day<5;day++)for(let time=420;time<960;time+=15){
+ for(let day=0;day<5;day++)for(let time=435;time<975;time+=15){
   if(isClosureDay(day,offset))continue;
   const checked=new Set();
   for(const group of groups){
@@ -296,7 +296,7 @@ function renderPlanningDiagnostics(offset=weekOffset){
  return '<section class="card planning-diagnostics"><div class="card-header"><div><h2>Planprüfung</h2><p>Automatische Kontrolle der Mindestbesetzung, Sollstunden und harten Verfügbarkeitsregeln.</p></div><span class="status-pill '+(totalGaps||under.length||over.length||issues?'status-warning':'status-ok')+'">'+(totalGaps||under.length||over.length||issues?'Prüfung erforderlich':'Keine Auffälligkeiten')+'</span></div><div class="card-body"><ul class="diagnostic-list">'+lines.join("")+'</ul><div class="table-wrap"><table><thead><tr><th>Mitarbeitende</th><th>Soll</th><th>Geplant</th><th>Abweichung</th></tr></thead><tbody>'+d.hourRows.map(x=>'<tr><td>'+x.name+'</td><td>'+x.target.toFixed(2).replace(".",",")+' h</td><td>'+x.actual.toFixed(2).replace(".",",")+' h</td><td class="'+(Math.abs(x.diff)<.01?'':'status-warning')+'">'+(x.diff>0?'+':'')+x.diff.toFixed(2).replace(".",",")+' h</td></tr>').join("")+'</tbody></table></div></div></section>';
 }
 function renderCoverageStrip(coverageShifts){
- const periods=[{key:"early",label:"Früh",start:420,end:480,time:"07–08"},{key:"core",label:"Kernzeit",start:480,end:900,time:"08–15"},{key:"late",label:"Spät",start:900,end:960,time:"15–16"}];
+ const periods=[{key:"early",label:"Früh",start:435,end:480,time:"07:15–08:00"},{key:"core",label:"Kerndienst",start:480,end:900,time:"08:00–15:00"},{key:"late",label:"Spät",start:900,end:975,time:"15:00–16:15"}];
  return periods.map(period=>{
   const times=[];for(let t=period.start;t<period.end;t+=15)times.push(t);
   const merged=(period.key==="early"&&plannerSettings.mergeEarlyGroups)||(period.key==="late"&&plannerSettings.mergeLateGroups);
