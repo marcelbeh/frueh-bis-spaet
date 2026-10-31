@@ -503,7 +503,7 @@ function finishShiftResize(){
  shift.start=start;shift.end=end;scheduleCloudSave();render();
 }
 document.addEventListener("pointerup",e=>{if(activeShiftResize&&e.pointerId===activeShiftResize.pointerId)finishShiftResize()});
-document.addEventListener("pointercancel",e=>{if(!activeShiftResize||e.pointerId!==activeShiftResize.pointerId)return;activeShiftResize=null;document.body.classList.remove("resizing-shift");render()});
+document.addEventListener("pointercancel",e=>{if(!activeShiftResize||e.pointerId!==activeShiftResize.pointerId)return;if(e.pointerType==="mouse"){finishShiftResize();return}activeShiftResize=null;document.body.classList.remove("resizing-shift");render()});
 document.addEventListener("click",e=>{
  if(e.target.closest("[data-resize-shift]")){e.preventDefault();e.stopPropagation();return;}
  const menuToggle=e.target.closest("[data-menu-toggle]");if(menuToggle){const shell=document.querySelector(".app-shell");if(shell?.classList.contains("sidebar-collapsed")){const target=menuToggle.dataset.defaultPage;if(target)navigate(target);return}const key=menuToggle.dataset.menuToggle,children=$("[data-nav-children='"+key+"']"),open=menuToggle.getAttribute("aria-expanded")!=="true";menuToggle.setAttribute("aria-expanded",String(open));children.hidden=!open;return}
