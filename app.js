@@ -27,7 +27,7 @@ const SUPABASE_URL = "https://pcwcghbzksopfyrgzyht.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_OznU91iPtKK2nsjTJA2q6Q_LuxXyzUB";
 const cloud = window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) : null;
 let cloudReady = false, cloudUser = null, saveTimer = null, cloudUpdatedAt = null, cloudSaveInFlight = false;
-function cloudSnapshot(){return {version:1,baseMonday:iso(baseMonday),names,groups,plannerSettings,leaderProfile,events,absences,shifts,weekOffset,selectedGroup};}
+function cloudSnapshot(){return {version:1,baseMonday:iso(baseMonday),names,groups,plannerSettings,leaderProfile,events,absences,closures,shifts,weekOffset,selectedGroup};}
 function applyCloudSnapshot(s){
  if(!s||typeof s!=="object")return;
  if(Array.isArray(s.names))names=s.names;
@@ -36,6 +36,7 @@ function applyCloudSnapshot(s){
  if(s.plannerSettings&&typeof s.plannerSettings==="object"){plannerSettings.frame={...plannerSettings.frame,...(s.plannerSettings.frame||{})};plannerSettings.minimumByGroup={...plannerSettings.minimumByGroup,...(s.plannerSettings.minimumByGroup||{})};plannerSettings.minimumEarlyByGroup={...plannerSettings.minimumEarlyByGroup,...(s.plannerSettings.minimumEarlyByGroup||{})};plannerSettings.minimumLateByGroup={...plannerSettings.minimumLateByGroup,...(s.plannerSettings.minimumLateByGroup||{})};plannerSettings.mergeEarlyGroups=!!s.plannerSettings.mergeEarlyGroups;plannerSettings.mergeLateGroups=!!s.plannerSettings.mergeLateGroups;plannerSettings.minimumEarlyCombined=Number(s.plannerSettings.minimumEarlyCombined??plannerSettings.minimumEarlyCombined);plannerSettings.minimumLateCombined=Number(s.plannerSettings.minimumLateCombined??plannerSettings.minimumLateCombined);}
  if(Array.isArray(s.events))events=s.events;
  if(Array.isArray(s.absences))absences=s.absences;
+ if(Array.isArray(s.closures))closures=s.closures;
  if(Array.isArray(s.shifts))shifts=s.shifts;
  if(Number.isInteger(s.weekOffset))weekOffset=s.weekOffset;
  if(s.baseMonday){const saved=new Date(s.baseMonday+"T12:00:00");if(!Number.isNaN(saved.getTime())){const elapsed=Math.round((baseMonday-saved)/604800000);if(elapsed){shifts=shifts.map(x=>({...x,weekOffset:(x.weekOffset??0)-elapsed}));weekOffset-=elapsed;}}}
@@ -101,6 +102,7 @@ let calendarMonthOffset = 0;
 let selectedGroup = "Alle Gruppen";
 let events = [];
 let absences = [];
+let closures = [];
 let shifts = [];
 const baseMonday = (()=>{const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d})();
 function dateForDay(day, offset=weekOffset){const d=new Date(baseMonday);d.setDate(d.getDate()+offset*7+day);return d}
@@ -162,9 +164,10 @@ function scoreShiftCoverage(assigned,person,day,start,end){
  }
  return score;
 }
-function inspectCoverage(assigned){
+function inspectCoverage(assigned,offset=weekOffset){
  const gaps=[];
  for(let day=0;day<5;day++)for(let time=420;time<960;time+=15){
+  if(isClosureDay(day,offset))continue;
   const checked=new Set();
   for(const group of groups){
    const demand=coverageRequirement(day,time,group);
@@ -231,7 +234,7 @@ function generateWeekPlan(){
  const summary=[...groupedGaps.entries()].map(([label,g])=>label+" ("+g.count+"/"+g.required+")");
  const hourSummary=validation.hourRows.filter(x=>x.diff<-.01).map(x=>x.name+": "+Math.max(0,-x.diff).toFixed(2).replace(".",",")+" Std. offen");
  const overHourSummary=validation.hourRows.filter(x=>x.diff>.01).map(x=>x.name+": "+x.diff.toFixed(2).replace(".",",")+" Std. über Soll");
- const hardIssues=validation.absenceConflicts.length+validation.blockConflicts.length+validation.overlaps.length+validation.workRuleConflicts.length+validation.eventConflicts.length;
+ const hardIssues=validation.absenceConflicts.length+validation.blockConflicts.length+validation.overlaps.length+validation.workRuleConflicts.length+validation.eventConflicts.length+validation.closureConflicts.length;
  if(hardIssues){alert("Plan wurde nicht übernommen: Die Vorprüfung hat "+hardIssues+" harte Regelkonflikte gefunden. Bitte prüfe Abwesenheiten, Dienstsperren und Überschneidungen.");return}
  const totalTarget=validation.hourRows.reduce((n,x)=>n+x.target,0),totalAssigned=validation.hourRows.reduce((n,x)=>n+x.actual,0);
  const preview="Vorprüfung des neuen Dienstplans:\n• "+created.length+" neue Dienste\n• "+retained.length+" manuelle Dienste bleiben erhalten\n• "+totalAssigned.toFixed(2).replace(".",",")+" von "+totalTarget.toFixed(2).replace(".",",")+" Sollstunden verteilt\n• "+gaps.length+" Unterbesetzungsintervalle\n• "+hourSummary.length+" Personen mit nicht verteilten Stunden\n• "+overHourSummary.length+" Personen über Sollstunden"+(summary.length?"\n\nBeispiele Unterbesetzung: "+summary.slice(0,5).join("; "):"")+(hourSummary.length?"\n\nNicht verteilte Stunden: "+hourSummary.slice(0,5).join("; "):"")+(overHourSummary.length?"\n\nStunden über Soll: "+overHourSummary.slice(0,5).join("; "):"")+".\n\nPlan trotz dieser Hinweise übernehmen?";
@@ -246,13 +249,15 @@ function escapeHTML(value){return String(value??"").replace(/[&<>"']/g,ch=>({"&"
 function sanitizeHTML(markup){const template=document.createElement("template");template.innerHTML=String(markup??"");template.content.querySelectorAll("script,style,iframe,object,embed,base,meta").forEach(node=>node.remove());template.content.querySelectorAll("*").forEach(node=>[...node.attributes].forEach(attr=>{const name=attr.name.toLowerCase(),value=attr.value.trim().toLowerCase();if(name.startsWith("on")||name==="srcdoc"||((name==="href"||name==="src"||name==="xlink:href"||name==="action"||name==="formaction"||name==="poster")&&(value.startsWith("javascript:")||value.startsWith("vbscript:")||value.startsWith("data:text/html")))||(name==="style"&&(value.includes("expression(")||value.includes("javascript:"))))node.removeAttribute(attr.name);}));return template.innerHTML;}
 function easterSunday(year){const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),month=Math.floor((h+l-7*m+114)/31),day=(h+l-7*m+114)%31+1;return new Date(year,month-1,day,12);}
 function nrwPublicHolidays(year){const e=easterSunday(year),add=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return iso(x);};return new Set([year+"-01-01",year+"-05-01",year+"-10-03",year+"-11-01",year+"-12-25",year+"-12-26",add(e,-2),add(e,1),add(e,39),add(e,50),add(e,60)]);}
-function isWorkingDay(date){const d=new Date(date+"T12:00:00");return d.getDay()!==0&&d.getDay()!==6&&!nrwPublicHolidays(d.getFullYear()).has(date);}
+function isClosureDate(date){return closures.some(c=>date>=c.from&&date<=c.to)}
+function isClosureDay(day,offset=weekOffset){return isClosureDate(iso(dateForDay(day,offset)))}
+function isWorkingDay(date){const d=new Date(date+"T12:00:00");return d.getDay()!==0&&d.getDay()!==6&&!nrwPublicHolidays(d.getFullYear()).has(date)&&!isClosureDate(date);}
 function shiftRuleConflicts(person,day,start,end,offset=weekOffset,assigned=shifts,excludeId=null){const issues=[],span=minutes(end)-minutes(start),sameDay=assigned.filter(x=>x.person===person.name&&x.day===day&&(x.weekOffset??offset)===offset&&x.id!==excludeId),dailyWork=sameDay.reduce((sum,x)=>sum+shiftWorkMinutes(x),0)+shiftWorkMinutes({start,end});if(dailyWork>600)issues.push("Tägliche Arbeitszeit über zehn Stunden");if(shiftWorkMinutes({start,end})>360&&!shiftPause({start,end}))issues.push("Pause fehlt");const date=dateForDay(day,offset),prev=assigned.filter(x=>x.person===person.name&&x.id!==excludeId).map(x=>({...x,date:dateForDay(x.day,x.weekOffset??offset)}));for(const x of prev){const diff=Math.round((date-x.date)/86400000);if(diff===1&&minutes(start)+1440-minutes(x.end)<660)issues.push("Ruhezeit unter elf Stunden");if(diff===-1&&minutes(x.start)+1440-minutes(end)<660)issues.push("Ruhezeit unter elf Stunden");}return issues;}
 function personBlocks(person){if(!Array.isArray(person.blocks))person.blocks=[];if(person.isLeader)leaderProfile.blocks=person.blocks;return person.blocks}
 function calendarDaysBetween(from,to){if(!from||!to||to<from)return 0;const start=new Date(from+"T12:00:00"),end=new Date(to+"T12:00:00");let count=0;for(const d=new Date(start);d<=end;d.setDate(d.getDate()+1)){const day=iso(d);if(isWorkingDay(day))count++}return count}
 function personWorkingDays(person){return Array.isArray(person?.workdays)?person.workdays.map(Number):[0,1,2,3,4]}
-function personWorksOnDay(person,day){return personWorkingDays(person).includes(Number(day))}
-function vacationDaysForPerson(person,from,to){if(!from||!to||to<from)return 0;const workingDays=new Set(personWorkingDays(person)),start=new Date(from+"T12:00:00"),end=new Date(to+"T12:00:00");let count=0;for(const d=new Date(start);d<=end;d.setDate(d.getDate()+1)){const date=iso(d),weekday=(d.getDay()+6)%7;if(workingDays.has(weekday)&&!nrwPublicHolidays(d.getFullYear()).has(date))count++}return count}
+function personWorksOnDay(person,day,offset=weekOffset){return personWorkingDays(person).includes(Number(day))&&!isClosureDay(day,offset)}
+function vacationDaysForPerson(person,from,to){if(!from||!to||to<from)return 0;const workingDays=new Set(personWorkingDays(person)),start=new Date(from+"T12:00:00"),end=new Date(to+"T12:00:00");let count=0;for(const d=new Date(start);d<=end;d.setDate(d.getDate()+1)){const date=iso(d),weekday=(d.getDay()+6)%7;if(workingDays.has(weekday)&&isWorkingDay(date))count++}return count}
 function vacationDaysForPersonInYear(person,absence,year){const from=absence.from>year+"-01-01"?absence.from:year+"-01-01",to=absence.to<year+"-12-31"?absence.to:year+"-12-31";return to<from?0:vacationDaysForPerson(person,from,to)}
 function blockingAbsence(person,day,offset=weekOffset){const date=iso(dateForDay(day,offset));return absences.find(a=>a.name===person.name&&a.status!=="Offen"&&date>=a.from&&date<=a.to)||null}
 function absenceDays(absence){const person=names.find(p=>p.name===absence.name);return absence.type==="Urlaub"?(person?vacationDaysForPerson(person,absence.from,absence.to):calendarDaysBetween(absence.from,absence.to)):(absence.days??calendarDaysBetween(absence.from,absence.to))}
@@ -273,20 +278,20 @@ function uiIcon(name){const icons={"home":"<path d=\"m3 10 9-7 9 7\"/><path d=\"
 
 function weeklyPlanningDiagnostics(offset=weekOffset,plannedOverride=null){
  const people=planningPeople(),planned=plannedOverride||weekShifts(offset),coverageShifts=planned.filter(x=>!x.serviceType||x.serviceType==="Normaler Dienst");
- const gaps=inspectCoverage(coverageShifts),hourRows=people.map(p=>{const target=Math.max(0,Number(p.hours)||0),shiftHours=planned.filter(x=>x.person===p.name).reduce((n,x)=>n+shiftWorkMinutes(x)/60,0),eventHours=eventMinutesForPersonWeek(p,offset)/60,actual=shiftHours+eventHours;return {name:p.name,target,actual,shiftHours,eventHours,diff:actual-target}});
- const absenceConflicts=[],blockConflicts=[],overlaps=[],workRuleConflicts=[],eventConflicts=[];
- planned.forEach(x=>{const p=people.find(y=>y.name===x.person);if(!p)return;const absence=blockingAbsence(p,x.day,offset);if(absence)absenceConflicts.push(x.person+" · "+weekdays[x.day]+" · "+absence.type);if(isBlocked(p,x.day,x.start,x.end,offset))blockConflicts.push(x.person+" · "+weekdays[x.day]+" "+x.start+"–"+x.end);const rules=shiftRuleConflicts(p,x.day,x.start,x.end,offset,planned,x.id);rules.forEach(rule=>workRuleConflicts.push(x.person+" · "+weekdays[x.day]+" · "+rule));if(personHasEventConflict(p,x.day,x.start,x.end,offset))eventConflicts.push(x.person+" · "+weekdays[x.day]+" · Terminüberschneidung");});
+ const gaps=inspectCoverage(coverageShifts,offset),hourRows=people.map(p=>{const target=Math.max(0,Number(p.hours)||0),shiftHours=planned.filter(x=>x.person===p.name).reduce((n,x)=>n+shiftWorkMinutes(x)/60,0),eventHours=eventMinutesForPersonWeek(p,offset)/60,actual=shiftHours+eventHours;return {name:p.name,target,actual,shiftHours,eventHours,diff:actual-target}});
+ const absenceConflicts=[],blockConflicts=[],overlaps=[],workRuleConflicts=[],eventConflicts=[],closureConflicts=[];
+ planned.forEach(x=>{const p=people.find(y=>y.name===x.person);if(!p)return;if(isClosureDay(x.day,offset))closureConflicts.push(x.person+" · "+weekdays[x.day]+" · Einrichtung geschlossen");const absence=blockingAbsence(p,x.day,offset);if(absence)absenceConflicts.push(x.person+" · "+weekdays[x.day]+" · "+absence.type);if(isBlocked(p,x.day,x.start,x.end,offset))blockConflicts.push(x.person+" · "+weekdays[x.day]+" "+x.start+"–"+x.end);const rules=shiftRuleConflicts(p,x.day,x.start,x.end,offset,planned,x.id);rules.forEach(rule=>workRuleConflicts.push(x.person+" · "+weekdays[x.day]+" · "+rule));if(personHasEventConflict(p,x.day,x.start,x.end,offset))eventConflicts.push(x.person+" · "+weekdays[x.day]+" · Terminüberschneidung");});
  for(let i=0;i<planned.length;i++)for(let j=i+1;j<planned.length;j++){const a=planned[i],b=planned[j];if(a.person===b.person&&a.day===b.day&&minutes(a.start)<minutes(b.end)&&minutes(a.end)>minutes(b.start))overlaps.push(a.person+" · "+weekdays[a.day]+" "+a.start+"–"+a.end+" / "+b.start+"–"+b.end);}
- return {gaps,hourRows,absenceConflicts,blockConflicts,overlaps,workRuleConflicts,eventConflicts};
+ return {gaps,hourRows,absenceConflicts,blockConflicts,overlaps,workRuleConflicts,eventConflicts,closureConflicts};
 }
 function renderPlanningDiagnostics(offset=weekOffset){
- const d=weeklyPlanningDiagnostics(offset),totalGaps=d.gaps.length,under=d.hourRows.filter(x=>x.diff<-.01),over=d.hourRows.filter(x=>x.diff>.01),issues=d.absenceConflicts.length+d.blockConflicts.length+d.overlaps.length+d.workRuleConflicts.length+d.eventConflicts.length;
+ const d=weeklyPlanningDiagnostics(offset),totalGaps=d.gaps.length,under=d.hourRows.filter(x=>x.diff<-.01),over=d.hourRows.filter(x=>x.diff>.01),issues=d.absenceConflicts.length+d.blockConflicts.length+d.overlaps.length+d.workRuleConflicts.length+d.eventConflicts.length+d.closureConflicts.length;
  const lines=[];
  if(totalGaps)lines.push('<li><strong>'+totalGaps+' Unterbesetzungsintervalle</strong> in der Mindestbesetzung; Beispiele: '+d.gaps.slice(0,5).map(x=>weekdays[x.day]+' '+String(Math.floor(x.time/60)).padStart(2,"0")+':'+String(x.time%60).padStart(2,"0")+' · '+x.group+' · '+x.label+' '+x.count+'/'+x.required).join('; ')+'</li>');
  else lines.push('<li>Alle eingetragenen Mindestbesetzungen sind in den geprüften Zeitintervallen erreicht.</li>');
  if(under.length)lines.push('<li><strong>Nicht verteilte Sollstunden:</strong> '+under.map(x=>x.name+' '+Math.max(0,-x.diff).toFixed(2).replace(".",",")+' Std.').join('; ')+'</li>');
  if(over.length)lines.push('<li><strong>Über Soll:</strong> '+over.map(x=>x.name+' '+x.diff.toFixed(2).replace(".",",")+' Std.').join('; ')+'</li>');
- if(issues)lines.push('<li><strong>Regelkonflikte:</strong> '+d.absenceConflicts.length+' Abwesenheit, '+d.blockConflicts.length+' feste Sperre(n), '+d.overlaps.length+' Überschneidung(en), '+d.workRuleConflicts.length+' Arbeitszeitregel(n), '+d.eventConflicts.length+' Terminüberschneidung(en).</li>');
+ if(issues)lines.push('<li><strong>Regelkonflikte:</strong> '+d.absenceConflicts.length+' Abwesenheit, '+d.blockConflicts.length+' feste Sperre(n), '+d.overlaps.length+' Überschneidung(en), '+d.workRuleConflicts.length+' Arbeitszeitregel(n), '+d.eventConflicts.length+' Terminüberschneidung(en), '+d.closureConflicts.length+' Schließtag-Konflikt(e).</li>');
  else lines.push('<li>Keine Konflikte mit Abwesenheiten, festen Sperren oder Doppelbelegungen gefunden.</li>');
  return '<section class="card planning-diagnostics"><div class="card-header"><div><h2>Planprüfung</h2><p>Automatische Kontrolle der Mindestbesetzung, Sollstunden und harten Verfügbarkeitsregeln.</p></div><span class="status-pill '+(totalGaps||under.length||over.length||issues?'status-warning':'status-ok')+'">'+(totalGaps||under.length||over.length||issues?'Prüfung erforderlich':'Keine Auffälligkeiten')+'</span></div><div class="card-body"><ul class="diagnostic-list">'+lines.join("")+'</ul><div class="table-wrap"><table><thead><tr><th>Mitarbeitende</th><th>Soll</th><th>Geplant</th><th>Abweichung</th></tr></thead><tbody>'+d.hourRows.map(x=>'<tr><td>'+x.name+'</td><td>'+x.target.toFixed(2).replace(".",",")+' h</td><td>'+x.actual.toFixed(2).replace(".",",")+' h</td><td class="'+(Math.abs(x.diff)<.01?'':'status-warning')+'">'+(x.diff>0?'+':'')+x.diff.toFixed(2).replace(".",",")+' h</td></tr>').join("")+'</tbody></table></div></div></section>';
 }
@@ -569,7 +574,7 @@ document.addEventListener("click",e=>{
   groups.splice(0,groups.length,...factoryGroups);
   Object.assign(plannerSettings,JSON.parse(JSON.stringify(factoryPlannerSettings)));
   leaderProfile=JSON.parse(JSON.stringify(factoryLeaderProfile));
-  events=[];absences=[];shifts=[];weekOffset=0;selectedGroup="Alle Gruppen";
+  events=[];absences=[];closures=[];shifts=[];weekOffset=0;selectedGroup="Alle Gruppen";
   const saved=await saveCloudState();
   if(!saved){applyCloudSnapshot(previous);render();alert("Das Zurücksetzen konnte nicht in der Datenbank gespeichert werden. Der bisherige Datenbestand wurde in dieser Sitzung wiederhergestellt.");return;}
   render();
