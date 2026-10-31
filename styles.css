@@ -609,7 +609,7 @@ body.resizing-shift,body.resizing-shift *{cursor:ns-resize!important;user-select
   #pdfWeekView .pdf-time-page, #pdfWeekView .pdf-time-grid,
   #pdfWeekView .pdf-time-axis, #pdfWeekView .pdf-time-column,
   #pdfWeekView .pdf-time-track {
-    background-color:#fff!important;
+    background:#fff!important;background-color:#fff!important;color-scheme:light!important;print-color-adjust:exact!important;-webkit-print-color-adjust:exact!important;
   }
   #pdfWeekView .pdf-time-track {
     background-image:repeating-linear-gradient(
@@ -623,8 +623,8 @@ body.resizing-shift,body.resizing-shift *{cursor:ns-resize!important;user-select
   #pdfWeekView .pdf-time-track:after {
     background-image:repeating-linear-gradient(
       to bottom,
-      transparent 0,
-      transparent calc(6.25% - .25mm),
+      #fff 0,
+      #fff calc(6.25% - .25mm),
       #9eacba calc(6.25% - .25mm),
       #9eacba 6.25%
     )!important;
