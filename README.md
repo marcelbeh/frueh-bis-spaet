@@ -32,7 +32,8 @@ Der Anwendungscode verwendet die Tabellen `app_owner` (freigeschaltete Leitungsz
 ## Fachliche Grenzen – vor produktivem Einsatz klären
 
 - Die automatische Vorbelegung verteilt Wochenstunden dynamisch auf die verbleibenden verfügbaren Werktage. Die Zuweisung ist weiterhin heuristisch und garantiert keine optimale oder vollständige Lösung. Nicht verteilte sowie über dem Soll liegende Stunden und Unterbesetzungen werden in der Vorprüfung ausgewiesen.
-- Mindestbesetzung wird in 15-Minuten-Intervallen geprüft. Unterbesetzungen werden in der Planprüfung angezeigt; die Vorbelegung garantiert keine vollständige Erfüllung aller Besetzungsziele.
+- Mindestbesetzung wird in 15-Minuten-Intervallen geprüft. Sonderdienste wie Meetings, Supervision und Fortbildungen zählen nicht als Gruppenbesetzung. Unterbesetzungen werden in der Planprüfung angezeigt; die Vorbelegung garantiert keine vollständige Erfüllung aller Besetzungsziele.
+- Die Planungsprüfung testet mehrere Gruppen, Teilzeit-Arbeitstage, Termine, Abwesenheiten, Dienstsperren und manuelle Sonderdienste gemeinsam. Die automatische Verteilung bleibt heuristisch; bei nicht unterzubringenden Stunden wird erst nach Prüfung aller verfügbaren Wochentage gewarnt.
 - Die App berücksichtigt bei Diensten eine 30-minütige Pause bei mehr als sechs Stunden sowie 45 Minuten bei mehr als neun Stunden Nettoarbeitszeit, tägliche Höchstarbeitszeit und elf Stunden Ruhezeit. Das ersetzt keine vollständige arbeitsrechtliche Prüfung und berücksichtigt nicht alle Tarif-, Teilzeit- oder betrieblichen Sonderregeln.
 - Bürozeiten der Leitung werden nicht als feste Zeitblöcke geplant; nur die Gruppenzeit kann als Besetzung erscheinen.
 - Genehmigte bzw. erfasste Abwesenheiten und feste Dienstsperren blockieren neue automatische und manuelle Dienste. Bereits vorhandene Dienste werden nicht automatisch gelöscht; die Planprüfung weist Konflikte aus.
