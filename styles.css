@@ -673,3 +673,8 @@ body.resizing-shift,body.resizing-shift *{cursor:ns-resize!important;user-select
     margin:0!important;
   }
 }
+
+
+/* Closure periods are visible as non-working days in both calendar views. */
+.closure-events{border-left:3px solid #c65a6a;background:#fff4f4}
+.closure-event{background:#fff0f1!important;border-color:#efc9ce!important;color:#843743!important}
