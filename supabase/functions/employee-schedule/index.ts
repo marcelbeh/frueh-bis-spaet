@@ -61,12 +61,12 @@ Deno.serve(async (request: Request) => {
   if (!token) return jsonResponse({ error: "Authentication required" }, 401, origin);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!supabaseUrl || !serviceRoleKey) {
+  const adminKey = Deno.env.get("SUPABASE_SECRET_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !adminKey) {
     return jsonResponse({ error: "Employee schedule is unavailable" }, 503, origin);
   }
 
-  const admin = createClient(supabaseUrl, serviceRoleKey, {
+  const admin = createClient(supabaseUrl, adminKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
   const { data: authData, error: authError } = await admin.auth.getUser(token);
