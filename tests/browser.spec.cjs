@@ -142,7 +142,7 @@ test('PDF export paginates large teams into readable A4 pages',async({page})=>{
  await page.evaluate(()=>{
   document.querySelector('#cloudLogin')?.remove();
   names=Array.from({length:23},(_,i)=>({name:'Mitarbeiter '+String(i+1).padStart(2,'0'),initials:'M'+(i+1),group:groups[i%groups.length],hours:30,vacation:30,color:'green'}));
-  shifts=[];
+  shifts=[{id:'long-shift',person:'Mitarbeiter 01',group:groups[0],serviceType:'Normaler Dienst',day:0,start:'07:00',end:'14:00',weekOffset:0}];
   selectedGroup='Alle Gruppen';
   currentPage='dienstplan';
   render();
@@ -155,4 +155,5 @@ test('PDF export paginates large teams into readable A4 pages',async({page})=>{
  await expect(popup.locator('#pdfWeekView .pdf-time-page').nth(1).locator('.pdf-time-staff-head')).toHaveCount(50);
  await expect(popup.locator('#pdfWeekView .pdf-time-page').nth(2).locator('.pdf-time-staff-head')).toHaveCount(15);
  await expect(popup.locator('#pdfWeekView .pdf-time-page').nth(2)).toContainText('Mitarbeitende 21–23 von 23');
+ await expect(popup.locator('#pdfWeekView .pdf-time-page').nth(0).locator('.pdf-pause-marker')).toContainText('Pause 30 Min.');
 });
