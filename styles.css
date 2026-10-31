@@ -680,3 +680,33 @@ body.resizing-shift,body.resizing-shift *{cursor:ns-resize!important;user-select
 .closure-event{background:#fff0f1!important;border-color:#efc9ce!important;color:#843743!important}
 
 #pdfWeekView .pdf-time-closure{background:#fff0f1!important;border-color:#efc9ce!important;border-left-color:#c65a6a!important;color:#843743!important}
+
+
+/* Keep settings rows inside narrow Safari/iPhone viewports. */
+@media(max-width:760px){
+ .settings-grid .setting-row{gap:8px;min-width:0}
+ .settings-grid .setting-row>div{flex:1 1 0;min-width:0}
+ .settings-grid .setting-row>select,
+ .settings-grid .setting-row>input{flex:0 1 44%;width:44%;max-width:44%;min-width:0;box-sizing:border-box}
+ .settings-grid .setting-row>button{max-width:44%;white-space:normal}
+ .settings-grid .setting-row strong,
+ .settings-grid .setting-row small{overflow-wrap:anywhere}
+}
+
+
+/* Tablets keep the full-width schedule scroll area but stack dense day headers. */
+@media(min-width:761px) and (max-width:900px){
+ .page-heading{display:block}
+ .page-heading .actions{margin-top:14px}
+ .day-calendar-list,.day-calendar{width:100%;min-width:0;max-width:100%}
+ .day-calendar-head{align-items:flex-start;flex-direction:column}
+ .day-coverage-strip{width:100%;max-width:none;grid-template-columns:repeat(3,minmax(0,1fr))}
+ .outlook-calendar-scroll{width:100%;min-width:0;max-width:100%;overflow-x:auto}
+ .settings-grid .setting-row{gap:8px;min-width:0}
+ .settings-grid .setting-row>div{flex:1 1 0;min-width:0}
+ .settings-grid .setting-row>select,
+ .settings-grid .setting-row>input{flex:0 1 44%;width:44%;max-width:44%;min-width:0;box-sizing:border-box}
+ .settings-grid .setting-row>button{max-width:44%;white-space:normal}
+ .settings-grid .setting-row strong,
+ .settings-grid .setting-row small{overflow-wrap:anywhere}
+}
