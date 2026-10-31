@@ -1,7 +1,7 @@
 const {test,expect}=require('@playwright/test');
 test('login screen loads and fits mobile viewport',async({page})=>{
  await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),signInWithPassword:async()=>({data:{},error:null}),signOut:async()=>({error:null})}})};'}));
- const errors=[];page.on('pageerror',e=>errors.push(e.stack||e.message));
+ const errors=[];page.on('pageerror',e=>errors.push({name:e.name,message:e.message,stack:e.stack}));page.on('console',m=>{if(m.type()==='error')errors.push({console:m.text()})});
  await page.setViewportSize({width:390,height:844});
  await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
  await expect(page.locator('#cloudLoginForm')).toBeVisible();
