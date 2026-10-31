@@ -381,30 +381,36 @@ function exportPlanPdf(){
   const existing=$("#pdfWeekView");if(existing)existing.remove();
   const view=document.createElement("section");view.id="pdfWeekView";
   const staff=planningPeople().filter(p=>selectedGroup==="Alle Gruppen"||p.group===selectedGroup);
-  const allShifts=weekShifts().filter(s=>staff.some(p=>p.name===s.person));
   const dayNames=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag"];
-  const dayIndexes=[0,1,2,3,4];
-  const totalCols=dayIndexes.length*Math.max(1,staff.length);
-  const heads=dayIndexes.map(day=>'<div class="pdf-time-day-group" style="grid-column:span '+Math.max(1,staff.length)+'">'+dayNames[day]+' · '+fmt(dateForDay(day),{day:"2-digit",month:"2-digit"})+'</div>').join("");
-  const staffHeads=dayIndexes.map(()=>staff.map(p=>'<div class="pdf-time-staff-head" title="'+escapeHTML(p.name)+'">'+escapeHTML(p.name)+'<small>'+escapeHTML(p.group||"")+'</small></div>').join("")).join("");
-  const columns=dayIndexes.map(day=>{
-    const date=iso(dateForDay(day));
-    return staff.map(p=>{
-      const personShifts=allShifts.filter(s=>s.day===day&&s.person===p.name);
-      const absence=absences.filter(a=>a.name===p.name&&date>=a.from&&date<=a.to).map(a=>'<div class="pdf-time-absence"><strong>'+escapeHTML(a.type)+'</strong><span>Ganztägig'+(a.status==="Offen"?' · Offen':'')+'</span></div>').join("");
-      const attendeeEvents=events.filter(ev=>eventOccursOnDate(ev,date)&&(ev.attendees||[]).includes(p.name)).map(ev=>{
-        const parts=String(ev.time||"").split(/[–-]/),from=parts[0]||"06:00",to=parts[1]||from;
-        return '<div class="pdf-time-event" style="top:'+topPercent(from)+'%;height:'+heightPercent(from,to)+'%"><strong>'+escapeHTML(ev.title)+'</strong><span>'+escapeHTML(ev.time)+'</span></div>';
+  const dayIndexes=[0,1,2,3,4],pageSize=10,pages=[];
+  for(let offset=0;offset<Math.max(1,staff.length);offset+=pageSize){
+    const pageStaff=staff.slice(offset,offset+pageSize);
+    const allShifts=weekShifts().filter(s=>pageStaff.some(p=>p.name===s.person));
+    const totalCols=dayIndexes.length*Math.max(1,pageStaff.length);
+    const heads=dayIndexes.map(day=>'<div class="pdf-time-day-group" style="grid-column:span '+Math.max(1,pageStaff.length)+'">'+dayNames[day]+' · '+fmt(dateForDay(day),{day:"2-digit",month:"2-digit"})+'</div>').join("");
+    const staffHeads=dayIndexes.map(()=>pageStaff.map(p=>'<div class="pdf-time-staff-head" title="'+escapeHTML(p.name)+'">'+escapeHTML(p.name)+'<small>'+escapeHTML(p.group||"")+'</small></div>').join("")).join("");
+    const columns=dayIndexes.map(day=>{
+      const date=iso(dateForDay(day));
+      return pageStaff.map(p=>{
+        const personShifts=allShifts.filter(s=>s.day===day&&s.person===p.name);
+        const absence=absences.filter(a=>a.name===p.name&&date>=a.from&&date<=a.to).map(a=>'<div class="pdf-time-absence"><strong>'+escapeHTML(a.type)+'</strong><span>Ganztägig'+(a.status==="Offen"?' · Offen':'')+'</span></div>').join("");
+        const attendeeEvents=events.filter(ev=>eventOccursOnDate(ev,date)&&(ev.attendees||[]).includes(p.name)).map(ev=>{
+          const parts=String(ev.time||"").split(/[–-]/),from=parts[0]||"06:00",to=parts[1]||from;
+          return '<div class="pdf-time-event" style="top:'+topPercent(from)+'%;height:'+heightPercent(from,to)+'%"><strong>'+escapeHTML(ev.title)+'</strong><span>'+escapeHTML(ev.time)+'</span></div>';
+        }).join("");
+        const blocks=personShifts.map(x=>{
+          const label=x.serviceType&&x.serviceType!=="Normaler Dienst"?x.serviceType:(x.group||p.group||"Dienst");
+          return '<div class="pdf-time-shift '+shiftClass(x)+'" style="top:'+topPercent(x.start)+'%;height:'+heightPercent(x.start,x.end)+'%"><strong>'+escapeHTML(x.start)+'–'+escapeHTML(x.end)+'</strong><span>'+escapeHTML(label)+'</span></div>';
+        }).join("");
+        return '<div class="pdf-time-column"><div class="pdf-time-track">'+absence+attendeeEvents+blocks+'</div></div>';
       }).join("");
-      const blocks=personShifts.map(s=>{
-        const label=s.serviceType&&s.serviceType!=="Normaler Dienst"?s.serviceType:(s.group||p.group||"Dienst");
-        return '<div class="pdf-time-shift '+shiftClass(s)+'" style="top:'+topPercent(s.start)+'%;height:'+heightPercent(s.start,s.end)+'%"><strong>'+escapeHTML(s.start)+'–'+escapeHTML(s.end)+'</strong><span>'+escapeHTML(label)+'</span></div>';
-      }).join("");
-      return '<div class="pdf-time-column"><div class="pdf-time-track">'+absence+attendeeEvents+blocks+'</div></div>';
     }).join("");
-  }).join("");
-  const timeLabels=Array.from({length:12},(_,i)=>'<span style="top:'+(i/11*100)+'%">'+String(7+i).padStart(2,"0")+':00</span>').join("");
-  view.innerHTML=sanitizeHTML('<article class="pdf-time-page"><header class="pdf-time-title"><h1>Dienstplan · '+escapeHTML(weekLabel())+'</h1><span>Montag bis Freitag · '+staff.length+' Mitarbeitende</span></header><div class="pdf-time-grid" style="--pdf-total-cols:'+totalCols+';--pdf-staff-font:'+(staff.length>20?'3pt':staff.length>15?'3.7pt':staff.length>10?'4.4pt':'5.2pt')+'"><div class="pdf-time-head">Zeit</div>'+heads+'<div class="pdf-time-subhead"></div>'+staffHeads+'<div class="pdf-time-axis">'+timeLabels+'</div>'+columns+'</div><footer class="pdf-time-legend"><span class="normal">Normaler Dienst</span><span class="meeting">Meeting</span><span class="supervision">Supervision</span><span class="church">Kirchlicher Termin</span><span class="training">Fortbildung</span><span class="other">Sonstiges</span><span class="absence">Abwesenheit</span></footer></article>');
+    const timeLabels=Array.from({length:12},(_,i)=>'<span style="top:'+(i/11*100)+'%">'+String(7+i).padStart(2,"0")+':00</span>').join("");
+    const range=pageStaff.length?('Mitarbeitende '+(offset+1)+'–'+(offset+pageStaff.length)+' von '+staff.length):"Keine Mitarbeitenden";
+    pages.push('<article class="pdf-time-page"><header class="pdf-time-title"><h1>Dienstplan · '+escapeHTML(weekLabel())+'</h1><span>Montag bis Freitag · '+range+'</span></header><div class="pdf-time-grid" style="--pdf-total-cols:'+totalCols+';--pdf-staff-font:'+(pageStaff.length>8?'4.8pt':'5.2pt')+'"><div class="pdf-time-head">Zeit</div>'+heads+'<div class="pdf-time-subhead"></div>'+staffHeads+'<div class="pdf-time-axis">'+timeLabels+'</div>'+columns+'</div><footer class="pdf-time-legend"><span class="normal">Normaler Dienst</span><span class="meeting">Meeting</span><span class="supervision">Supervision</span><span class="church">Kirchlicher Termin</span><span class="training">Fortbildung</span><span class="other">Sonstiges</span><span class="absence">Abwesenheit</span></footer></article>');
+    if(!staff.length)break;
+  }
+  view.innerHTML=sanitizeHTML(pages.join(""));
   const printWindow=window.open("","_blank");
   if(!printWindow){alert("Der PDF-Export wurde vom Browser blockiert. Bitte Pop-ups für diese App erlauben und erneut versuchen.");return}
   const stylesheet=document.querySelector('link[rel="stylesheet"]')?.href||new URL("./styles.css",location.href).href;
