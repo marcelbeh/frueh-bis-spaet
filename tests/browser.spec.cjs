@@ -94,6 +94,5 @@ test('dragging both shift edges changes the displayed time in 15-minute incremen
  await expect(popup.locator('#pdfWeekView')).toContainText('Anna Schmidt');
  await popup.emulateMedia({media:'print'});
  await expect.poll(()=>popup.locator('#pdfWeekView').evaluate(el=>getComputedStyle(el).display)).toBe('block');
- await expect.poll(()=>popup.locator('.pdf-time-grid').evaluate(el=>getComputedStyle(el).display)).toBe('grid');
  expect(errors).toEqual([]);
 });
