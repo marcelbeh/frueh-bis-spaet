@@ -50,10 +50,19 @@ test('automatic planner keeps manually entered services and replaces only genera
 });
 test('full-day absences render in weekly columns and in printable PDF output',()=>{
  assert.match(source,/class="outlook-absence"/);
- assert.match(source,/class="pdf-time-absence"/);
+ assert.match(source,/class="pdf-note pdf-absence"/);
  assert.match(source,/dayAbsenceCount/);
 });
 test('printable PDF includes attendee-specific special events',()=>{
- assert.match(source,/class="pdf-time-event"/);
+ assert.match(source,/class="pdf-note pdf-event"/);
  assert.match(source,/eventOccursOnDate\(ev,dayDate\)/);
+});
+
+test('PDF export uses a one-page A4 landscape matrix with white background',()=>{
+ assert.match(source,/class="pdf-week-grid"/);
+ assert.match(source,/class="pdf-staff-cell"/);
+ assert.match(source,/class="pdf-day-cell"/);
+ assert.match(source,/size:A4 landscape/);
+ assert.match(source,/#pdfWeekView\{display:block!important/);
+ assert.match(source,/background:#fff!important/);
 });
