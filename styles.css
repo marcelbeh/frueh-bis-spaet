@@ -472,3 +472,47 @@ body.resizing-shift *{cursor:ns-resize!important;user-select:none!important;}
 .pdf-time-event{position:absolute;z-index:2;left:.15mm;right:.15mm;overflow:hidden;padding:.3mm;border:.15mm solid #bca9df;border-left:.6mm solid #8061c8;border-radius:.4mm;background:#eee8fb;color:#49347a;text-align:center;line-height:1.05}
 .pdf-time-event strong,.pdf-time-event span{display:block;font-size:3.5pt;overflow-wrap:anywhere;white-space:normal}
 .pdf-time-shift{z-index:3}
+
+
+/* A4-PDF: gut lesbare Wochenmatrix mit weißem Hintergrund */
+#pdfWeekView{display:none}
+@page{size:A4 landscape;margin:5mm}
+@media print{
+  html,body{background:#fff!important;color:#172b3f!important}
+  body *{box-shadow:none!important;text-shadow:none!important}
+  #pdfWeekView{display:block!important;width:100%!important;height:auto!important;background:#fff!important;color:#172b3f!important;font-family:Arial,Helvetica,sans-serif!important}
+  #pageContent>:not(#pdfWeekView){display:none!important}
+  #pdfWeekView .pdf-title{height:9mm;display:flex;align-items:flex-start;justify-content:space-between;background:#fff!important;color:#172b3f!important}
+  #pdfWeekView .pdf-title h1{margin:0!important;font-size:12pt!important;line-height:1.1!important;color:#17324d!important}
+  #pdfWeekView .pdf-title span{font-size:7pt!important;color:#536579!important}
+  #pdfWeekView .pdf-week-grid{display:grid!important;grid-template-columns:27mm repeat(7,minmax(0,1fr))!important;grid-template-rows:8mm repeat(var(--pdf-staff-count),minmax(0,1fr))!important;width:100%!important;height:177mm!important;border-top:.3mm solid #aebdca!important;border-left:.3mm solid #aebdca!important;background:#fff!important;break-inside:avoid!important}
+  #pdfWeekView .pdf-corner,#pdfWeekView .pdf-day-head,#pdfWeekView .pdf-staff-cell,#pdfWeekView .pdf-day-cell{box-sizing:border-box!important;min-width:0!important;border-right:.25mm solid #c5d0da!important;border-bottom:.25mm solid #c5d0da!important}
+  #pdfWeekView .pdf-corner{display:flex!important;align-items:center!important;justify-content:center!important;padding:1mm!important;background:#edf2f6!important;font-size:6pt!important;font-weight:700!important}
+  #pdfWeekView .pdf-day-head{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:.5mm!important;background:#eaf0f6!important;color:#17324d!important}
+  #pdfWeekView .pdf-day-head strong{font-size:6.5pt!important}
+  #pdfWeekView .pdf-day-head small{font-size:5pt!important;color:#536579!important}
+  #pdfWeekView .pdf-staff-cell{display:flex!important;flex-direction:column!important;justify-content:center!important;gap:.4mm!important;padding:.6mm 1mm!important;background:#f7f9fb!important;overflow:hidden!important}
+  #pdfWeekView .pdf-staff-cell strong{font-size:5.5pt!important;line-height:1.05!important;overflow-wrap:anywhere!important;color:#26394d!important}
+  #pdfWeekView .pdf-staff-cell small{font-size:4.5pt!important;color:#64758a!important}
+  #pdfWeekView .pdf-day-cell{display:flex!important;flex-direction:column!important;justify-content:center!important;gap:.45mm!important;padding:.45mm!important;background:#fff!important;overflow:hidden!important}
+  #pdfWeekView .pdf-shift,#pdfWeekView .pdf-note{display:block!important;min-width:0!important;overflow:hidden!important;border:.25mm solid #cbd5e1!important;border-left:1mm solid #9aaaba!important;border-radius:.7mm!important;padding:.45mm .6mm!important;background:#f3f6f8!important;color:#24364a!important;line-height:1.05!important}
+  #pdfWeekView .pdf-shift strong,#pdfWeekView .pdf-note strong{display:block!important;font-size:5pt!important;font-weight:700!important;white-space:nowrap!important;color:inherit!important}
+  #pdfWeekView .pdf-shift small,#pdfWeekView .pdf-note small{display:block!important;margin-top:.25mm!important;font-size:4.2pt!important;line-height:1.05!important;white-space:normal!important;overflow-wrap:anywhere!important;color:inherit!important}
+  #pdfWeekView .pdf-shift.service-normal{background:#e4f4e9!important;border-color:#b4d9c0!important;border-left-color:#3d9562!important;color:#205c3b!important}
+  #pdfWeekView .pdf-shift.service-meeting{background:#f0eafb!important;border-color:#d5c7ee!important;border-left-color:#8061c8!important;color:#503b7a!important}
+  #pdfWeekView .pdf-shift.service-supervision{background:#e8f1fb!important;border-color:#c5d9ef!important;border-left-color:#4d83bd!important;color:#28547e!important}
+  #pdfWeekView .pdf-shift.service-church{background:#e4f3e8!important;border-color:#bddbc5!important;border-left-color:#4b9660!important;color:#285c38!important}
+  #pdfWeekView .pdf-shift.service-fortbildung{background:#fff2dc!important;border-color:#f0d8a9!important;border-left-color:#d18a24!important;color:#805315!important}
+  #pdfWeekView .pdf-shift.service-other{background:#fbeaec!important;border-color:#edc4c9!important;border-left-color:#c65a6a!important;color:#843743!important}
+  #pdfWeekView .pdf-absence{background:#fff0f1!important;border-color:#efc9ce!important;border-left-color:#c65a6a!important;color:#843743!important}
+  #pdfWeekView .pdf-event{background:#f1edfa!important;border-color:#d7cbea!important;border-left-color:#8061c8!important;color:#503b7a!important}
+  #pdfWeekView .pdf-empty{display:block!important;text-align:center!important;color:#b0bac4!important;font-size:7pt!important}
+  #pdfWeekView .pdf-no-staff{grid-column:2/9;display:flex;align-items:center;justify-content:center;font-size:8pt;color:#64758a}
+  #pdfWeekView .pdf-legend{display:flex!important;flex-wrap:wrap!important;gap:3mm!important;align-items:center!important;padding-top:1.5mm!important;font-size:5pt!important;color:#536579!important;background:#fff!important}
+  #pdfWeekView .pdf-legend span{display:flex!important;align-items:center!important;gap:1mm!important}
+  #pdfWeekView .pdf-dot{display:inline-block!important;width:2mm!important;height:2mm!important;border-radius:50%!important;background:#aebdca!important}
+  #pdfWeekView .pdf-dot.normal{background:#3d9562!important}.pdf-dot.meeting{background:#8061c8!important}.pdf-dot.supervision{background:#4d83bd!important}.pdf-dot.church{background:#4b9660!important}.pdf-dot.training{background:#d18a24!important}.pdf-dot.other,.pdf-dot.absence{background:#c65a6a!important}
+  .sidebar,.topbar,footer:not(#pdfWeekView .pdf-legend),.page-heading,.btn,.mobile-menu{display:none!important}
+  .app-shell,.main-area,.page-content{display:block!important;min-height:0!important;width:100%!important;margin:0!important;padding:0!important;background:#fff!important}
+  #pdfWeekView,#pdfWeekView *{print-color-adjust:exact!important;-webkit-print-color-adjust:exact!important}
+}
