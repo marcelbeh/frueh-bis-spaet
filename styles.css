@@ -602,3 +602,31 @@ body.resizing-shift,body.resizing-shift *{cursor:ns-resize!important;user-select
  #pdfWeekView .pdf-time-legend{height:4mm!important;gap:2.5mm!important;font-size:4.5pt!important}
  #pdfWeekView .pdf-time-legend span:before{width:1.7mm!important;height:1.7mm!important}
 }
+
+/* Print/PDF: never let transparent grid stripes expose a dark page background. */
+@media print {
+  html, body, #pageContent, #pdfWeekView,
+  #pdfWeekView .pdf-time-page, #pdfWeekView .pdf-time-grid,
+  #pdfWeekView .pdf-time-axis, #pdfWeekView .pdf-time-column,
+  #pdfWeekView .pdf-time-track {
+    background-color:#fff!important;
+  }
+  #pdfWeekView .pdf-time-track {
+    background-image:repeating-linear-gradient(
+      to bottom,
+      #fff 0,
+      #fff calc(1.5625% - .12mm),
+      #e0e6eb calc(1.5625% - .12mm),
+      #e0e6eb 1.5625%
+    )!important;
+  }
+  #pdfWeekView .pdf-time-track:after {
+    background-image:repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(6.25% - .25mm),
+      #9eacba calc(6.25% - .25mm),
+      #9eacba 6.25%
+    )!important;
+  }
+}
