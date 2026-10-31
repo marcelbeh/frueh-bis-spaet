@@ -100,3 +100,27 @@ test('dragging both shift edges changes the displayed time in 15-minute incremen
  })).toBe(true);
  expect(errors).toEqual([]);
 });
+
+test('factory reset clears saved operational data after explicit confirmation',async({page})=>{
+ const stub=`
+ window.__savedState=null;
+ window.supabase={createClient:()=>({
+  auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},
+  from:()=>({update(payload){window.__savedState=payload.state;return this;},eq(){return this;},select(){return this;},maybeSingle:async()=>({data:{updated_at:'2026-10-31T09:00:00.000Z'},error:null})})
+ })};
+ `;
+ await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:stub}));
+ await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+ await page.evaluate(()=>{
+  document.querySelector('#cloudLogin')?.remove();
+  cloudReady=true;cloudUser={id:'user-1'};cloudUpdatedAt='2026-10-31T08:00:00.000Z';
+  shifts=[{id:'old',person:names[0].name,day:0,start:'08:00',end:'12:00',weekOffset:0}];
+  events=[{id:'event-old',title:'Meeting'}];absences=[{id:'absence-old',name:names[0].name}];
+  currentPage='einstellungen';render();
+ });
+ await expect(page.locator('[data-action="reset-system"]')).toBeVisible();
+ page.on('dialog',async dialog=>{if(dialog.type()==='prompt')await dialog.accept('RESET');else await dialog.accept();});
+ await page.locator('[data-action="reset-system"]').click();
+ await expect.poll(()=>page.evaluate(()=>window.__savedState?.shifts?.length)).toBe(0);
+ expect(await page.evaluate(()=>({events:events.length,absences:absences.length,shifts:shifts.length,names:names.length,groups:groups.length,weekOffset,selectedGroup}))).toEqual({events:0,absences:0,shifts:0,names:11,groups:3,weekOffset:0,selectedGroup:'Alle Gruppen'});
+});
