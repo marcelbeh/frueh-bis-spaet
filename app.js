@@ -471,7 +471,7 @@ document.addEventListener("pointerdown",e=>{
  e.preventDefault();e.stopPropagation();
  const column=shiftBlock.closest(".outlook-staff-column");if(!column)return;
  activeShiftResize={id:shift.id,edge,pointerId:e.pointerId,startY:e.clientY,initialStart:minutes(shift.start),initialEnd:minutes(shift.end),column,block:shiftBlock,previewStart:minutes(shift.start),previewEnd:minutes(shift.end)};
- shiftBlock.setPointerCapture?.(e.pointerId);document.body.classList.add("resizing-shift");
+ document.body.classList.add("resizing-shift");
 });
 document.addEventListener("pointermove",e=>{
  if(!activeShiftResize||e.pointerId!==activeShiftResize.pointerId)return;
