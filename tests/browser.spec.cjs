@@ -28,7 +28,7 @@ test('render sanitizer strips executable HTML',async({page})=>{
  expect(cleaned).not.toContain('srcdoc');
 });
 
-test('dragging a shift end changes the displayed time in 15-minute increments',async({page})=>{
+test('dragging both shift edges changes the displayed time in 15-minute increments',async({page})=>{
  const stub=`
  window.__savedState=null;
  window.supabase={
@@ -67,7 +67,7 @@ test('dragging a shift end changes the displayed time in 15-minute increments',a
   scheduleCloudSave=()=>{window.__savedState=cloudSnapshot()};
   currentPage='dienstplan';render();
  });
- const handle=page.locator('[data-resize-shift="s1"]');
+ const handle=page.locator('[data-resize-shift="s1"][data-resize-edge="end"]');
  await expect(handle).toBeVisible();
  const bounds=await handle.boundingBox();
  await page.mouse.move(bounds.x+bounds.width/2,bounds.y+bounds.height/2);
@@ -76,5 +76,13 @@ test('dragging a shift end changes the displayed time in 15-minute increments',a
  await page.mouse.up();
  await expect(page.locator('[data-edit-shift="s1"] strong')).toHaveText('07:00–10:15');
  await expect.poll(()=>page.evaluate(()=>window.__savedState?.shifts?.[0]?.end),{timeout:2500}).toBe('10:15');
+ const startHandle=page.locator('[data-resize-shift="s1"][data-resize-edge="start"]');
+ const startBounds=await startHandle.boundingBox();
+ await page.mouse.move(startBounds.x+startBounds.width/2,startBounds.y+startBounds.height/2);
+ await page.mouse.down();
+ await page.mouse.move(startBounds.x+startBounds.width/2,startBounds.y+startBounds.height/2-8,{steps:4});
+ await page.mouse.up();
+ await expect(page.locator('[data-edit-shift="s1"] strong')).toHaveText('06:45–10:15');
+ await expect.poll(()=>page.evaluate(()=>window.__savedState?.shifts?.[0]?.start),{timeout:2500}).toBe('06:45');
  expect(errors).toEqual([]);
 });
