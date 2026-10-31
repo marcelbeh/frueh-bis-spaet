@@ -76,11 +76,11 @@ async function loadCloudData(user){
 }
 function removeEmployeePortal(){
  document.getElementById("employeePortal")?.remove();
- const shell=document.querySelector(".app-shell");if(shell)shell.hidden=false;
+ const shell=document.querySelector(".app-shell");if(shell){shell.hidden=false;shell.style.removeProperty("display");}
 }
 function showEmployeePortal(payload){
  removeEmployeePortal();
- const shell=document.querySelector(".app-shell");if(shell)shell.hidden=true;
+ const shell=document.querySelector(".app-shell");if(shell){shell.hidden=true;shell.style.display="none";}
  const shifts=(Array.isArray(payload?.shifts)?payload.shifts:[]).filter(s=>s&&/^\d{4}-\d{2}-\d{2}$/.test(s.date||"")&&/^\d{2}:\d{2}$/.test(s.start||"")&&/^\d{2}:\d{2}$/.test(s.end||"")).sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start));
  const rows=shifts.map(s=>{const date=new Date(s.date+"T12:00:00");const label=new Intl.DateTimeFormat("de-DE",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(date);return '<li class="employee-shift"><div><strong>'+escapeHTML(label)+'</strong><span>'+escapeHTML(s.serviceType||"Dienst")+'</span></div><time>'+escapeHTML(s.start)+'–'+escapeHTML(s.end)+'</time></li>'}).join("");
  const portal=document.createElement("main");portal.id="employeePortal";portal.className="employee-portal";
