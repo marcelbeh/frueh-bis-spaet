@@ -315,7 +315,7 @@ function dutyPage(){
    const dayDate=iso(date),dayAbsences=absences.filter(a=>a.name===p.name&&dayDate>=a.from&&dayDate<=a.to);
    const absenceBlocks=dayAbsences.map(a=>'<div class="outlook-absence" title="'+escapeHTML(a.type)+' · '+escapeHTML(a.status||"Erfasst")+'"><strong>'+escapeHTML(a.type)+'</strong><span>Ganztägig'+(a.status==="Offen"?" · Offen":"")+'</span></div>').join("");
    const eventBlocks=events.filter(ev=>eventOccursOnDate(ev,dayDate)&&(ev.attendees||[]).includes(p.name)).map(ev=>{const [from,to]=ev.time.split("–");const cls=ev.type==="Meeting"?"event-meeting":ev.type==="Supervision"?"event-supervision":ev.type==="Fortbildung"?"event-training":"event-special";return '<div class="outlook-event '+cls+'" style="top:'+topPercent(from)+'%;height:'+heightPercent(from,to)+'%" title="'+escapeHTML(ev.title)+' · '+ev.time+'"><strong>'+ev.time+'</strong><span>'+escapeHTML(ev.title)+'</span></div>';}).join("");
-   const blocks=personShifts.map(s=>{const pause=shiftPause(s),span=minutes(s.end)-minutes(s.start);const pauseMarkup=pause?'<span class="pause-marker" style="top:'+((pause.start-minutes(s.start))/span*100)+'%;height:'+(30/span*100)+'%">Pause · 30 Min.</span>':'';return '<button class="outlook-shift '+shiftClass(s)+'" style="'+shiftPosition(s)+'" data-edit-shift="'+s.id+'" title="'+s.person+': '+s.start+'–'+s.end+(pause?' · Pause 30 Min.':'')+'"><strong>'+s.start+'–'+s.end+'</strong><span>'+(s.serviceType&&s.serviceType!=="Normaler Dienst"?s.serviceType:s.group)+'</span>'+pauseMarkup+'<i class="shift-resize-handle" data-resize-shift="'+s.id+'" title="Ziehen, um das Dienstende zu ändern" aria-label="Dienstende ziehen"></i></button>'}).join("");
+   const blocks=personShifts.map(s=>{const pause=shiftPause(s),span=minutes(s.end)-minutes(s.start);const pauseMarkup=pause?'<span class="pause-marker" style="top:'+((pause.start-minutes(s.start))/span*100)+'%;height:'+(30/span*100)+'%">Pause · 30 Min.</span>':'';return '<button class="outlook-shift '+shiftClass(s)+'" style="'+shiftPosition(s)+'" data-edit-shift="'+s.id+'" title="'+s.person+': '+s.start+'–'+s.end+(pause?' · Pause 30 Min.':'')+'"><i class="shift-resize-handle shift-resize-start" data-resize-shift="'+s.id+'" data-resize-edge="start" title="Ziehen, um den Dienstbeginn zu ändern" aria-label="Dienstbeginn ziehen"></i><strong>'+s.start+'–'+s.end+'</strong><span>'+(s.serviceType&&s.serviceType!=="Normaler Dienst"?s.serviceType:s.group)+'</span>'+pauseMarkup+'<i class="shift-resize-handle shift-resize-end" data-resize-shift="'+s.id+'" data-resize-edge="end" title="Ziehen, um das Dienstende zu ändern" aria-label="Dienstende ziehen"></i></button>'}).join("");
    return `<div class="outlook-staff-column"><div class="outlook-time-grid"></div>${absenceBlocks}${eventBlocks}${blocks}</div>`;
   }).join("");
   const coverageShifts=dayShifts.filter(s=>!s.serviceType||s.serviceType==="Normaler Dienst");const cover=renderCoverageStrip(coverageShifts);
@@ -466,32 +466,38 @@ document.addEventListener("pointerdown",e=>{
  const shift=shifts.find(x=>x.id===handle.dataset.resizeShift);if(!shift)return;
  e.preventDefault();e.stopPropagation();
  const column=handle.closest(".outlook-staff-column");if(!column)return;
- activeShiftResize={id:shift.id,pointerId:e.pointerId,startY:e.clientY,initialEnd:minutes(shift.end),column,block:handle.closest(".outlook-shift"),previewEnd:minutes(shift.end)};
+ const edge=handle.dataset.resizeEdge==="start"?"start":"end";
+ activeShiftResize={id:shift.id,edge,pointerId:e.pointerId,startY:e.clientY,initialStart:minutes(shift.start),initialEnd:minutes(shift.end),column,block:handle.closest(".outlook-shift"),previewStart:minutes(shift.start),previewEnd:minutes(shift.end)};
  handle.setPointerCapture?.(e.pointerId);document.body.classList.add("resizing-shift");
 });
 document.addEventListener("pointermove",e=>{
  if(!activeShiftResize||e.pointerId!==activeShiftResize.pointerId)return;
  const state=activeShiftResize,rect=state.column.getBoundingClientRect(),shift=shifts.find(x=>x.id===state.id);if(!shift)return;
  const delta=Math.round((e.clientY-state.startY)/Math.max(1,rect.height)*960/15)*15;
- const next=Math.max(minutes(shift.start)+15,Math.min(1320,state.initialEnd+delta));state.previewEnd=next;
- if(state.block){state.block.style.height=heightPercent(shift.start,resizeTime(next))+"%";const label=state.block.querySelector("strong");if(label)label.textContent=shift.start+"–"+resizeTime(next);}
+ if(state.edge==="start")state.previewStart=Math.max(360,Math.min(state.initialEnd-15,state.initialStart+delta));
+ else state.previewEnd=Math.max(state.initialStart+15,Math.min(1320,state.initialEnd+delta));
+ if(state.block){
+  const start=resizeTime(state.previewStart),end=resizeTime(state.previewEnd);
+  state.block.style.top=topPercent(start)+"%";state.block.style.height=heightPercent(start,end)+"%";
+  const label=state.block.querySelector("strong");if(label)label.textContent=start+"–"+end;
+ }
 });
 function finishShiftResize(){
  if(!activeShiftResize)return;
  const state=activeShiftResize;activeShiftResize=null;document.body.classList.remove("resizing-shift");
  const shift=shifts.find(x=>x.id===state.id);if(!shift){render();return}
- const end=resizeTime(state.previewEnd),person=planningPeople().find(p=>p.name===shift.person),offset=shift.weekOffset??weekOffset;
+ const start=resizeTime(state.previewStart),end=resizeTime(state.previewEnd),person=planningPeople().find(p=>p.name===shift.person),offset=shift.weekOffset??weekOffset;
  let issue="";
- if(minutes(end)<=minutes(shift.start))issue="Das Dienstende muss nach dem Beginn liegen.";
- else if(minutes(end)>minutes(plannerSettings.frame.end))issue="Das Dienstende liegt außerhalb der Rahmenzeit.";
- else if(!person)issue="Die Mitarbeitende Person wurde nicht gefunden.";
+ if(minutes(end)<=minutes(start))issue="Der Dienst muss mindestens 15 Minuten dauern.";
+ else if(minutes(start)<minutes(plannerSettings.frame.start)||minutes(end)>minutes(plannerSettings.frame.end))issue="Der Dienst liegt außerhalb der Rahmenzeit.";
+ else if(!person)issue="Die mitarbeitende Person wurde nicht gefunden.";
  else if(blockingAbsence(person,shift.day,offset))issue="Für diese Person ist an diesem Tag eine Abwesenheit erfasst.";
- else if(isBlocked(person,shift.day,shift.start,end,offset))issue="Der verlängerte Dienst überschneidet sich mit einer festen Dienstsperre.";
- else if(personHasEventConflict(person,shift.day,shift.start,end,offset))issue="Der verlängerte Dienst überschneidet sich mit einem Termin.";
- else {const rules=shiftRuleConflicts(person,shift.day,shift.start,end,offset,shifts,shift.id);if(rules.length)issue=rules.join("; ");}
- if(!issue&&shifts.some(x=>x.id!==shift.id&&x.person===shift.person&&x.day===shift.day&&(x.weekOffset??0)===offset&&minutes(shift.start)<minutes(x.end)&&minutes(end)>minutes(x.start)))issue="Der verlängerte Dienst überschneidet sich mit einem anderen Dienst derselben Person.";
+ else if(isBlocked(person,shift.day,start,end,offset))issue="Der Dienst überschneidet sich mit einer festen Dienstsperre.";
+ else if(personHasEventConflict(person,shift.day,start,end,offset))issue="Der Dienst überschneidet sich mit einem Termin.";
+ else {const rules=shiftRuleConflicts(person,shift.day,start,end,offset,shifts,shift.id);if(rules.length)issue=rules.join("; ");}
+ if(!issue&&shifts.some(x=>x.id!==shift.id&&x.person===shift.person&&x.day===shift.day&&(x.weekOffset??0)===offset&&minutes(start)<minutes(x.end)&&minutes(end)>minutes(x.start)))issue="Der Dienst überschneidet sich mit einem anderen Dienst derselben Person.";
  if(issue){alert(issue+" Die ursprüngliche Zeit bleibt erhalten.");render();return}
- shift.end=end;scheduleCloudSave();render();
+ shift.start=start;shift.end=end;scheduleCloudSave();render();
 }
 document.addEventListener("pointerup",e=>{if(activeShiftResize&&e.pointerId===activeShiftResize.pointerId)finishShiftResize()});
 document.addEventListener("pointercancel",e=>{if(!activeShiftResize||e.pointerId!==activeShiftResize.pointerId)return;activeShiftResize=null;document.body.classList.remove("resizing-shift");render()});
