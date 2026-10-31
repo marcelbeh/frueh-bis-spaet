@@ -76,11 +76,11 @@ test('dragging both shift edges changes the displayed time in 15-minute incremen
  await page.mouse.up();
  await expect(page.locator('[data-edit-shift="s1"] strong')).toHaveText('07:00–10:15');
  await expect.poll(()=>page.evaluate(()=>window.__savedState?.shifts?.[0]?.end),{timeout:2500}).toBe('10:15');
- const startHandle=page.locator('[data-resize-shift="s1"][data-resize-edge="start"]');
- const startBounds=await startHandle.boundingBox();
- await page.mouse.move(startBounds.x+startBounds.width/2,startBounds.y+startBounds.height/2);
+ const shiftBlock=page.locator('[data-edit-shift="s1"]');
+ const shiftBounds=await shiftBlock.boundingBox();
+ await page.mouse.move(shiftBounds.x+shiftBounds.width/2,shiftBounds.y+2);
  await page.mouse.down();
- await page.mouse.move(startBounds.x+startBounds.width/2,startBounds.y+startBounds.height/2-8,{steps:4});
+ await page.mouse.move(shiftBounds.x+shiftBounds.width/2,shiftBounds.y-6,{steps:4});
  await page.mouse.up();
  await expect(page.locator('[data-edit-shift="s1"] strong')).toHaveText('06:45–10:15');
  await expect.poll(()=>page.evaluate(()=>window.__savedState?.shifts?.[0]?.start),{timeout:2500}).toBe('06:45');
