@@ -19,9 +19,9 @@ test('WebKit mobile and tablet layouts stay within the viewport',async({browser}
    await page.evaluate(route=>{currentPage=route;render()},route);
    const metrics=await page.evaluate(()=>{
     const scroller=document.querySelector('.outlook-calendar-scroll');
-    return {viewport:document.documentElement.clientWidth,document:document.documentElement.scrollWidth,body:document.body.scrollWidth,scrollerWidth:scroller?.scrollWidth??0,scrollerClient:scroller?.clientWidth??0};
+    const viewportWidth=document.documentElement.clientWidth;const offenders=[...document.querySelectorAll('body *')].map(el=>{const rect=el.getBoundingClientRect(),style=getComputedStyle(el);return {tag:el.tagName,cls:String(el.className||''),right:Math.round(rect.right),width:Math.round(rect.width),overflow:style.overflowX,text:(el.innerText||'').trim().slice(0,55)}}).filter(x=>x.right>viewportWidth+1&&x.width>0).sort((a,b)=>b.right-a.right).slice(0,12);return {viewport:viewportWidth,document:document.documentElement.scrollWidth,body:document.body.scrollWidth,scrollerWidth:scroller?.scrollWidth??0,scrollerClient:scroller?.clientWidth??0,offenders};
    });
-   expect(metrics.document,route+' document width at '+viewport.width).toBeLessThanOrEqual(metrics.viewport);
+   expect(metrics.document,route+' document width at '+viewport.width+' offenders='+JSON.stringify(metrics.offenders)).toBeLessThanOrEqual(metrics.viewport);
    expect(metrics.body,route+' body width at '+viewport.width).toBeLessThanOrEqual(metrics.viewport);
    if(route==='dienstplan')expect(metrics.scrollerWidth).toBeGreaterThan(metrics.scrollerClient);
   }
