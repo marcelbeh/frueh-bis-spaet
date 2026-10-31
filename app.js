@@ -45,7 +45,7 @@ function applyCloudSnapshot(s){
 function showCloudLogin(message="Bitte mit deinem Leitungszugang anmelden."){
  let layer=document.getElementById("cloudLogin");
  if(!layer){layer=document.createElement("div");layer.id="cloudLogin";layer.style.cssText="position:fixed;inset:0;z-index:99999;background:#f4f7fb;display:grid;place-items:center;padding:22px;font-family:inherit";
- layer.innerHTML='<form id="cloudLoginForm" style="background:white;width:min(100%,420px);padding:28px;border-radius:18px;box-shadow:0 12px 40px #1c35501c"><div style="font-size:28px;font-weight:750;color:#19304b;margin-bottom:8px">Früh bis spät</div><p style="color:#66758a;margin:0 0 22px">Geschützter Leitungszugang</p><label style="display:block;font-weight:600;margin:12px 0 6px">E-Mail-Adresse</label><input name="email" type="email" autocomplete="username" required style="box-sizing:border-box;width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:9px;font:inherit"><label style="display:block;font-weight:600;margin:14px 0 6px">Passwort</label><input name="password" type="password" autocomplete="current-password" required style="box-sizing:border-box;width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:9px;font:inherit"><p id="cloudLoginMessage" style="color:#64748b;font-size:14px;min-height:20px"></p><button type="submit" style="width:100%;padding:14px;border:0;border-radius:10px;background:#1d6b54;color:white;font:inherit;font-weight:700">Anmelden</button></form>';
+ layer.innerHTML='<form id="cloudLoginForm" style="background:white;width:min(100%,420px);padding:28px;border-radius:18px;box-shadow:0 12px 40px #1c35501c"><div style="font-size:28px;font-weight:750;color:#19304b;margin-bottom:8px">Früh bis spät</div><p style="color:#66758a;margin:0 0 22px">Geschützter Zugang für Leitung und Mitarbeitende</p><label style="display:block;font-weight:600;margin:12px 0 6px">E-Mail-Adresse</label><input name="email" type="email" autocomplete="username" required style="box-sizing:border-box;width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:9px;font:inherit"><label style="display:block;font-weight:600;margin:14px 0 6px">Passwort</label><input name="password" type="password" autocomplete="current-password" required style="box-sizing:border-box;width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:9px;font:inherit"><p id="cloudLoginMessage" style="color:#64748b;font-size:14px;min-height:20px"></p><button type="submit" style="width:100%;padding:14px;border:0;border-radius:10px;background:#1d6b54;color:white;font:inherit;font-weight:700">Anmelden</button></form>';
  document.body.appendChild(layer);
  layer.querySelector("#cloudLoginForm").addEventListener("submit",async e=>{e.preventDefault();const form=e.currentTarget,button=form.querySelector("button"),msg=form.querySelector("#cloudLoginMessage");button.disabled=true;button.textContent="Anmeldung läuft …";msg.textContent="";const fd=new FormData(form);const {data,error}=await cloud.auth.signInWithPassword({email:fd.get("email"),password:fd.get("password")});button.disabled=false;button.textContent="Anmelden";if(error){msg.textContent="Anmeldung fehlgeschlagen: "+error.message;return}await loadCloudData(data.user);});
  }
@@ -58,12 +58,34 @@ function addCloudLogout(){const right=document.querySelector(".topbar-right");if
 async function loadCloudData(user){
  cloudReady=false;cloudUser=user;
  const owner=await cloud.from("app_owner").select("user_id").eq("user_id",user.id).maybeSingle();
- if(owner.error||!owner.data){showCloudError("Dieser Zugang ist nicht als Leitung freigeschaltet. Bitte die Supabase-Berechtigungen prüfen.");await cloud.auth.signOut();return;}
+ if(owner.error){showCloudError("Die Berechtigungen konnten nicht geprüft werden. "+owner.error.message);return;}
+ if(!owner.data){
+  const employee=await cloud.from("employee_access").select("person_name").eq("user_id",user.id).maybeSingle();
+  if(employee.error||!employee.data){showCloudLogin("Dieser Zugang ist nicht als Leitung oder Mitarbeitende freigeschaltet.");await cloud.auth.signOut();return;}
+  const {data:portal,error:portalError}=await cloud.functions.invoke("employee-schedule");
+  if(portalError||!portal){showCloudLogin("Deine Dienste konnten nicht geladen werden. Bitte wende dich an die Leitung.");await cloud.auth.signOut();return;}
+  document.getElementById("cloudLogin")?.remove();
+  showEmployeePortal(portal);return;
+ }
  const result=await cloud.from("app_state").select("state,updated_at").eq("id",1).maybeSingle();
  if(result.error){showCloudError("Die gespeicherten Daten konnten nicht geladen werden. "+result.error.message);return;}
  if(result.data?.state)applyCloudSnapshot(result.data.state);cloudUpdatedAt=result.data?.updated_at||null;
  cloudReady=true;document.getElementById("cloudLogin")?.remove();addCloudLogout();render();const status=document.getElementById("cloudSaveStatus");if(status)status.textContent="Gespeichert";
  if(!result.data)await saveCloudState();
+}
+function removeEmployeePortal(){
+ document.getElementById("employeePortal")?.remove();
+ const shell=document.querySelector(".app-shell");if(shell)shell.hidden=false;
+}
+function showEmployeePortal(payload){
+ removeEmployeePortal();
+ const shell=document.querySelector(".app-shell");if(shell)shell.hidden=true;
+ const shifts=(Array.isArray(payload?.shifts)?payload.shifts:[]).filter(s=>s&&/^\\d{4}-\\d{2}-\\d{2}$/.test(s.date||"")&&/^\\d{2}:\\d{2}$/.test(s.start||"")&&/^\\d{2}:\\d{2}$/.test(s.end||"")).sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start));
+ const rows=shifts.map(s=>{const date=new Date(s.date+"T12:00:00");const label=new Intl.DateTimeFormat("de-DE",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(date);return '<li class="employee-shift"><div><strong>'+escapeHTML(label)+'</strong><span>'+escapeHTML(s.serviceType||"Dienst")+'</span></div><time>'+escapeHTML(s.start)+'–'+escapeHTML(s.end)+'</time></li>'}).join("");
+ const portal=document.createElement("main");portal.id="employeePortal";portal.className="employee-portal";
+ portal.innerHTML='<header class="employee-portal-header"><div><span class="employee-portal-brand">🌈 Früh bis spät</span><h1>Meine Dienste</h1><p>Angemeldet als '+escapeHTML(payload?.employeeName||"Mitarbeitende")+'</p></div><button class="btn small" type="button" data-employee-logout>Abmelden</button></header><section class="employee-schedule-card"><h2>Dein Dienstplan</h2>'+(rows?'<ol class="employee-shift-list">'+rows+'</ol>':'<p class="employee-empty">Für dich sind derzeit keine Dienste eingetragen.</p>')+'</section>';
+ document.body.appendChild(portal);
+ portal.querySelector("[data-employee-logout]")?.addEventListener("click",async event=>{const button=event.currentTarget;button.disabled=true;await cloud.auth.signOut();cloudReady=false;cloudUser=null;removeEmployeePortal();showCloudLogin("Du wurdest abgemeldet.")});
 }
 function showCloudError(message){console.error("Cloud-Fehler:",message);window.alert("Es ist ein Fehler aufgetreten:\n\n"+message);}
 async function saveCloudState(){
