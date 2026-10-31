@@ -576,3 +576,6 @@ body.resizing-shift,body.resizing-shift *{cursor:ns-resize!important;user-select
  .sidebar,.topbar,footer:not(.pdf-time-legend),.page-heading,.btn,.mobile-menu{display:none!important}
  .app-shell,.main-area,.page-content{display:block!important;min-height:0!important;width:100%!important;margin:0!important;padding:0!important;background:#fff!important}
 }
+/* Keep the top and bottom resize targets independent and inside the shift hit area */
+.shift-resize-start{top:0!important;bottom:auto!important;height:10px!important;z-index:12!important}
+.shift-resize-end{top:auto!important;bottom:0!important;height:10px!important;z-index:12!important}
