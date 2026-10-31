@@ -147,7 +147,7 @@ function shiftCoversTime(s,time){
  return minutes(s.start)<=time&&minutes(s.end)>time&&!(pause&&time>=pause.start&&time<pause.end);
 }
 function countCoverage(assigned,day,time,group,scope){
- return assigned.filter(x=>x.day===day&&shiftCoversTime(x,time)&&(scope==="combined"||x.group===group)).length;
+ return assigned.filter(x=>(!x.serviceType||x.serviceType==="Normaler Dienst")&&x.day===day&&shiftCoversTime(x,time)&&(scope==="combined"||x.group===group)).length;
 }
 function scoreShiftCoverage(assigned,person,day,start,end){
  let score=0;
@@ -222,8 +222,9 @@ function generateWeekPlan(){
     created.push(createdShift);planned.push(createdShift);
     const hours=slot.workDuration/60;assigned+=hours;remaining-=hours;
    }
-   if(remaining>=0.25)unavailable.push(p.name+" · "+weekdays[day]+" ("+remaining.toFixed(2).replace(".",",")+" Std. wegen Rahmenzeit oder Dienstsperren nicht unterzubringen)");
   }
+  const personRemaining=Math.max(0,target-assigned);
+  if(personRemaining>=0.25)unavailable.push(p.name+" · "+personRemaining.toFixed(2).replace(".",",")+" Std. konnten in dieser Woche wegen Rahmenzeit, Terminen oder Dienstsperren nicht untergebracht werden");
  }
  const validation=weeklyPlanningDiagnostics(weekOffset,planned),gaps=validation.gaps,groupedGaps=new Map();
  gaps.forEach(g=>{const key=g.group+" · "+weekdays[g.day]+" "+g.label;const old=groupedGaps.get(key);if(!old||g.count<old.count)groupedGaps.set(key,g)});
