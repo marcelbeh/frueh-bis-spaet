@@ -22,6 +22,7 @@ jobs:
         with:
           node-version: 22
       - run: npm install
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps chromium webkit
       - run: python3 -m http.server 4173 > /tmp/kita-http.log 2>&1 & sleep 3
       - run: npm run test:browser
+      - run: npm run test:webkit
