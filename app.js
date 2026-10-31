@@ -122,11 +122,12 @@ function shiftPause(s){
  const span=minutes(s.end)-minutes(s.start);
  if(span<=360)return null;
  const start=minutes(s.start)+240;
- return {start,end:Math.min(start+30,minutes(s.end))};
+ const duration=span>570?45:30;
+ return {start,end:Math.min(start+duration,minutes(s.end))};
 }
 function shiftWorkMinutes(s){
  const span=minutes(s.end)-minutes(s.start),pause=shiftPause(s);
- return Math.max(0,span-(pause?30:0));
+ return Math.max(0,span-(pause?pause.end-pause.start:0));
 }
 function weeklyManualShiftMinutes(person,assigned=weekShifts(weekOffset)){
  return assigned.filter(s=>s.person===person.name&&!s.generated).reduce((sum,s)=>sum+shiftWorkMinutes(s),0);
@@ -134,6 +135,11 @@ function weeklyManualShiftMinutes(person,assigned=weekShifts(weekOffset)){
 function regularHoursNeeded(person,offset=weekOffset,assigned=weekShifts(offset)){
  const contract=Math.max(0,Number(person.hours)||0),eventsHours=eventMinutesForPersonWeek(person,offset)/60,manualHours=weeklyManualShiftMinutes(person,assigned)/60;
  return Math.max(0,Math.round((contract-eventsHours-manualHours)*4)/4);
+}
+function dailyPlanningTarget(target,assigned,remainingDays){
+ if(remainingDays<=0)return 0;
+ const remaining=Math.max(0,target-assigned);
+ return Math.min(remaining,Math.ceil((remaining/remainingDays)*4)/4);
 }
 function shiftCoversTime(s,time){
  const pause=shiftPause(s);
@@ -146,7 +152,7 @@ function scoreShiftCoverage(assigned,person,day,start,end){
  let score=0;
  for(let time=420;time<960;time+=15){
   if(time<start||time>=end)continue;
-  const pause=(end-start)>390?{start:start+240,end:start+270}:null;if(pause&&time>=pause.start&&time<pause.end)continue;
+  const span=end-start,pauseMinutes=span>570?45:span>360?30:0,pause=pauseMinutes?{start:start+240,end:Math.min(start+240+pauseMinutes,end)}:null;if(pause&&time>=pause.start&&time<pause.end)continue;
   const demand=coverageRequirement(day,time,person.group);
   if(!demand.required)continue;
   const count=countCoverage(assigned,day,time,person.group,demand.scope);
@@ -188,16 +194,15 @@ function generateWeekPlan(){
   const target=regularHoursNeeded(p,weekOffset,retained);
   if(target<0.25)continue;
   let assigned=0;
-  const availableDays=Array.from({length:5},(_,day)=>day).filter(day=>!blockingAbsence(p,day,weekOffset)).length;
-  const dailyTarget=availableDays?Math.round(target/availableDays*4)/4:0;
   for(let day=0;day<5;day++){
    const absence=blockingAbsence(p,day,weekOffset);
    if(absence){unavailable.push(p.name+" · "+weekdays[day]+" (Abwesenheit: "+absence.type+")");continue}
-   let remaining=Math.min(dailyTarget,target-assigned),guard=0;
+   const remainingDays=Array.from({length:5-day},(_,i)=>day+i).filter(nextDay=>!blockingAbsence(p,nextDay,weekOffset)).length;
+   let remaining=dailyPlanningTarget(target,assigned,remainingDays),guard=0;
    while(remaining>=0.25&&guard++<40){
     const candidates=[];
     for(let duration=Math.min(Math.floor(remaining*4)*15,frameEnd-frameStart);duration>=15;duration-=15){
-     const breakMinutes=duration>360?30:0,span=duration+breakMinutes;
+     const breakMinutes=duration>540?45:duration>360?30:0,span=duration+breakMinutes;
      for(let start=frameStart;start+span<=frameEnd;start+=15){
       const from=tm(start),to=tm(start+span);
       if(isBlocked(p,day,from,to,weekOffset)||personHasEventConflict(p,day,from,to,weekOffset)||shiftRuleConflicts(p,day,from,to,weekOffset,planned).length)continue;
@@ -319,7 +324,7 @@ function dutyPage(){
    const dayDate=iso(date),dayAbsences=absences.filter(a=>a.name===p.name&&dayDate>=a.from&&dayDate<=a.to);
    const absenceBlocks=dayAbsences.map(a=>'<div class="outlook-absence" title="'+escapeHTML(a.type)+' · '+escapeHTML(a.status||"Erfasst")+'"><strong>'+escapeHTML(a.type)+'</strong><span>Ganztägig'+(a.status==="Offen"?" · Offen":"")+'</span></div>').join("");
    const eventBlocks=events.filter(ev=>eventOccursOnDate(ev,dayDate)&&(ev.attendees||[]).includes(p.name)).map(ev=>{const [from,to]=ev.time.split("–");const cls=ev.type==="Meeting"?"event-meeting":ev.type==="Supervision"?"event-supervision":ev.type==="Fortbildung"?"event-training":"event-special";return '<div class="outlook-event '+cls+'" style="top:'+topPercent(from)+'%;height:'+heightPercent(from,to)+'%" title="'+escapeHTML(ev.title)+' · '+ev.time+'"><strong>'+ev.time+'</strong><span>'+escapeHTML(ev.title)+'</span></div>';}).join("");
-   const blocks=personShifts.map(s=>{const pause=shiftPause(s),span=minutes(s.end)-minutes(s.start);const pauseMarkup=pause?'<span class="pause-marker" style="top:'+((pause.start-minutes(s.start))/span*100)+'%;height:'+(30/span*100)+'%">Pause · 30 Min.</span>':'';return '<button class="outlook-shift '+shiftClass(s)+'" style="'+shiftPosition(s)+'" data-edit-shift="'+s.id+'" title="'+s.person+': '+s.start+'–'+s.end+(pause?' · Pause 30 Min.':'')+'"><i class="shift-resize-handle shift-resize-start" data-resize-shift="'+s.id+'" data-resize-edge="start" title="Ziehen, um den Dienstbeginn zu ändern" aria-label="Dienstbeginn ziehen"></i><strong>'+s.start+'–'+s.end+'</strong><span>'+(s.serviceType&&s.serviceType!=="Normaler Dienst"?s.serviceType:s.group)+'</span>'+pauseMarkup+'<i class="shift-resize-handle shift-resize-end" data-resize-shift="'+s.id+'" data-resize-edge="end" title="Ziehen, um das Dienstende zu ändern" aria-label="Dienstende ziehen"></i></button>'}).join("");
+   const blocks=personShifts.map(s=>{const pause=shiftPause(s),span=minutes(s.end)-minutes(s.start);const pauseDuration=pause?pause.end-pause.start:0,pauseMarkup=pause?'<span class="pause-marker" style="top:'+((pause.start-minutes(s.start))/span*100)+'%;height:'+(pauseDuration/span*100)+'%">Pause · '+pauseDuration+' Min.</span>':'';return '<button class="outlook-shift '+shiftClass(s)+'" style="'+shiftPosition(s)+'" data-edit-shift="'+s.id+'" title="'+s.person+': '+s.start+'–'+s.end+(pause?' · Pause '+pauseDuration+' Min.':'')+'"><i class="shift-resize-handle shift-resize-start" data-resize-shift="'+s.id+'" data-resize-edge="start" title="Ziehen, um den Dienstbeginn zu ändern" aria-label="Dienstbeginn ziehen"></i><strong>'+s.start+'–'+s.end+'</strong><span>'+(s.serviceType&&s.serviceType!=="Normaler Dienst"?s.serviceType:s.group)+'</span>'+pauseMarkup+'<i class="shift-resize-handle shift-resize-end" data-resize-shift="'+s.id+'" data-resize-edge="end" title="Ziehen, um das Dienstende zu ändern" aria-label="Dienstende ziehen"></i></button>'}).join("");
    return `<div class="outlook-staff-column"><div class="outlook-time-grid"></div>${absenceBlocks}${eventBlocks}${blocks}</div>`;
   }).join("");
   const coverageShifts=dayShifts.filter(s=>!s.serviceType||s.serviceType==="Normaler Dienst");const cover=renderCoverageStrip(coverageShifts);
