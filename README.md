@@ -46,6 +46,26 @@ Der Anwendungscode verwendet die Tabellen `app_owner` (freigeschaltete Leitungsz
 
 Die Anwendung startet mit elf Beispieldatensätzen, sofern kein gespeicherter Supabase-Zustand geladen wird. Vor echtem Personaleinsatz müssen Beispieldaten entfernt und Datenschutz, Zugriffsrechte, Aufbewahrung, Backups und fachliche Regeln geklärt werden.
 
+
+## Mitarbeitendenzugang (erster Ausbauschritt)
+
+Mitarbeitende können sich mit einem eigenen Supabase-Auth-Konto anmelden und sehen ausschließlich ihre eigenen Dienste. Der Zugriff ist zunächst schreibgeschützt. Der Browser erhält weder den gemeinsamen `app_state`-Datensatz noch Dienste anderer Personen.
+
+Zur Einrichtung eines Testkontos:
+
+1. Lege im Supabase-Dashboard unter **Authentication → Users** einen Benutzer an oder lade ihn ein.
+2. Führe `supabase/employee_access.sql` einmal im SQL Editor aus.
+3. Verknüpfe das Auth-Konto mit dem Mitarbeitendennamen, der im Dienstplan steht:
+
+   ```sql
+   insert into public.employee_access (user_id, person_name)
+   values ('<AUTH-USER-UUID>', '<Name wie im Dienstplan>');
+   ```
+
+4. Veröffentliche `supabase/functions/employee-schedule/index.ts` als Edge Function `employee-schedule` mit aktivierter JWT-Prüfung.
+
+Zum Entziehen des Mitarbeiterzugangs entferne den Eintrag aus `employee_access` und deaktiviere das Auth-Konto. Der Leitungsszugang bleibt über `app_owner` separat geregelt.
+
 ## Veröffentlichung
 
 GitHub Pages kann die statischen Dateien aus dem Hauptbranch veröffentlichen. Nach Änderungen an JavaScript oder CSS müssen die Versionsparameter in `index.html` aktualisiert werden, damit Browser die neuen Dateien laden.
