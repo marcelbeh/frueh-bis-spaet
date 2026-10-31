@@ -62,6 +62,7 @@ test('dragging both shift edges changes the displayed time in 15-minute incremen
  await page.evaluate(()=>{
   document.querySelector('#cloudLogin')?.remove();
   const person=names[0];
+  shifts=shifts.filter(s=>s.id!=='s1');
   shifts.push({id:'s1',person:person.name,group:person.group,serviceType:'Normaler Dienst',day:0,start:'07:00',end:'10:00',weekOffset:0});
   window.__savedState=null;
   scheduleCloudSave=()=>{window.__savedState=cloudSnapshot()};
