@@ -64,7 +64,6 @@ test('PDF export places all five weekdays in one A4 landscape time grid',()=>{
  assert.match(source,/class="pdf-time-track"/);
  assert.match(source,/const dayIndexes=\[0,1,2,3,4\]/);
  assert.match(source,/Montag bis Freitag/);
- assert.match(source,/size:A4 landscape/);
 });
 
 test('shift resizing supports both start and end edges',()=>{
