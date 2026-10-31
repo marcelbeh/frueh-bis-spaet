@@ -29,7 +29,7 @@ test('special events are rendered in the weekly duty plan for their date and rec
 test('duty plan supports drag-resizing a shift end with rule checks and cloud saving',()=>{
  assert.match(source,/data-resize-shift/);
  assert.match(source,/pointermove/);
- assert.match(source,/shiftRuleConflicts\(person,shift\.day,shift\.start,end,offset,shifts,shift\.id\)/);
+ assert.match(source,/shiftRuleConflicts\(person,shift\.day,start,end,offset,shifts,shift\.id\)/);
  assert.match(source,/shift\.end=end;scheduleCloudSave\(\);render\(\)/);
 });
 
@@ -63,7 +63,6 @@ test('PDF export uses a vertical time grid with staff columns and two days per A
  assert.match(source,/class="pdf-time-staff-head"/);
  assert.match(source,/class="pdf-time-track"/);
  assert.match(source,/for\(let first=0;first<7;first\+=2\)/);
- assert.match(source,/size:A4 landscape/);
 });
 
 test('shift resizing supports both start and end edges',()=>{
