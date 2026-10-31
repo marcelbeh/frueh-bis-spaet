@@ -188,3 +188,22 @@ test('employee form saves individual regular workdays',async({page})=>{
  const saved=await page.evaluate(()=>names.find(p=>p.name==='Teilzeit Test')?.workdays);
  expect(saved).toEqual([0,2,4]);
 });
+
+
+test('large weekly team stays within the mobile viewport with an internally scrollable staff grid',async({page})=>{
+ await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};'}));
+ await page.setViewportSize({width:390,height:844});
+ await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+ await page.evaluate(()=>{
+  document.querySelector('#cloudLogin')?.remove();
+  names=Array.from({length:23},(_,i)=>({name:'Mitarbeiter '+String(i+1).padStart(2,'0'),initials:'M'+(i+1),group:groups[i%groups.length],hours:30,vacation:30,color:'green'}));
+  currentPage='dienstplan';
+  render();
+ });
+ const sizes=await page.evaluate(()=>{
+  const scroll=document.querySelector('.outlook-calendar-scroll');
+  return {viewport:document.documentElement.clientWidth,document:document.documentElement.scrollWidth,scrollWidth:scroll.scrollWidth,clientWidth:scroll.clientWidth};
+ });
+ expect(sizes.document).toBeLessThanOrEqual(sizes.viewport);
+ expect(sizes.scrollWidth).toBeGreaterThan(sizes.clientWidth);
+});
