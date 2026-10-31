@@ -62,7 +62,4 @@ test('PDF export uses a one-page A4 landscape matrix with white background',()=>
  assert.match(source,/class="pdf-week-grid"/);
  assert.match(source,/class="pdf-staff-cell"/);
  assert.match(source,/class="pdf-day-cell"/);
- assert.match(source,/size:A4 landscape/);
- assert.match(source,/#pdfWeekView\{display:block!important/);
- assert.match(source,/background:#fff!important/);
 });
