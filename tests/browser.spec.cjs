@@ -118,7 +118,7 @@ test('dragging both shift edges changes the displayed time in 15-minute incremen
   });
   const track=document.querySelector('.pdf-time-track');
   const overlay=track?getComputedStyle(track,'::after'):null;
-  const shift=document.querySelector('.pdf-time-shift');
+  const shift=document.querySelector('.pdf-time-shift.service-normal');
   return {
    surfaces,
    overlay:overlay?{backgroundColor:overlay.backgroundColor,backgroundImage:overlay.backgroundImage,content:overlay.content}:null,
