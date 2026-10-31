@@ -50,16 +50,30 @@ test('automatic planner keeps manually entered services and replaces only genera
 });
 test('full-day absences render in weekly columns and in printable PDF output',()=>{
  assert.match(source,/class="outlook-absence"/);
- assert.match(source,/class="pdf-note pdf-absence"/);
+ assert.match(source,/class="pdf-time-absence"/);
  assert.match(source,/dayAbsenceCount/);
 });
 test('printable PDF includes attendee-specific special events',()=>{
- assert.match(source,/class="pdf-note pdf-event"/);
- assert.match(source,/eventOccursOnDate\(ev,dayDate\)/);
+ assert.match(source,/class="pdf-time-event"/);
+ assert.match(source,/eventOccursOnDate\(ev,date\)/);
 });
 
-test('PDF export uses a one-page A4 landscape matrix with white background',()=>{
- assert.match(source,/class="pdf-week-grid"/);
- assert.match(source,/class="pdf-staff-cell"/);
- assert.match(source,/class="pdf-day-cell"/);
+test('PDF export uses a vertical time grid with staff columns and two days per A4 page',()=>{
+ assert.match(source,/class="pdf-time-grid"/);
+ assert.match(source,/class="pdf-time-staff-head"/);
+ assert.match(source,/class="pdf-time-track"/);
+ assert.match(source,/for\(let first=0;first<7;first\+=2\)/);
+ assert.match(source,/size:A4 landscape/);
+});
+
+test('shift resizing supports both start and end edges',()=>{
+ assert.match(source,/data-resize-edge="start"/);
+ assert.match(source,/data-resize-edge="end"/);
+ assert.match(source,/state\.edge==="start"/);
+ assert.match(source,/shift\.start=start;shift\.end=end/);
+});
+test('special services use the same editable shift form and delete action',()=>{
+ assert.match(source,/data-edit-shift=/);
+ assert.match(source,/function addShiftModal\(id=null\)/);
+ assert.match(source,/data-delete-shift=/);
 });
