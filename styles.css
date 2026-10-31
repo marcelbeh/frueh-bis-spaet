@@ -557,6 +557,19 @@ body.resizing-shift,body.resizing-shift *{cursor:ns-resize!important;user-select
  #pdfWeekView .pdf-time-shift strong,#pdfWeekView .pdf-time-shift span,#pdfWeekView .pdf-time-event strong,#pdfWeekView .pdf-time-event span,#pdfWeekView .pdf-time-absence strong,#pdfWeekView .pdf-time-absence span{display:block!important;font-size:4pt!important;white-space:normal!important;overflow-wrap:anywhere!important;color:inherit!important}
  #pdfWeekView .pdf-time-shift strong{font-weight:800!important}
  #pdfWeekView .pdf-time-shift.service-normal{background:#e5f6ec!important;border-color:#b5ddc3!important;border-left-color:#3d9562!important;color:#205c3b!important}
+ /* PDF-only group colors: regular shifts and staff headers share the same group tint. */
+ #pdfWeekView .pdf-time-staff-head.pdf-group-0{background:#e5f3eb!important;color:#205c3b!important}
+ #pdfWeekView .pdf-time-shift.service-normal.pdf-group-0{background:#e5f3eb!important;border-color:#b8d9c5!important;border-left-color:#438b60!important;color:#205c3b!important}
+ #pdfWeekView .pdf-time-staff-head.pdf-group-1{background:#e6effb!important;color:#28527d!important}
+ #pdfWeekView .pdf-time-shift.service-normal.pdf-group-1{background:#e6effb!important;border-color:#bfd2ed!important;border-left-color:#4b79b5!important;color:#28527d!important}
+ #pdfWeekView .pdf-time-staff-head.pdf-group-2{background:#fff1dd!important;color:#805315!important}
+ #pdfWeekView .pdf-time-shift.service-normal.pdf-group-2{background:#fff1dd!important;border-color:#eed5a8!important;border-left-color:#c58a31!important;color:#805315!important}
+ #pdfWeekView .pdf-time-staff-head.pdf-group-3{background:#f0eafb!important;color:#59447f!important}
+ #pdfWeekView .pdf-time-shift.service-normal.pdf-group-3{background:#f0eafb!important;border-color:#d6c9ec!important;border-left-color:#8065b2!important;color:#59447f!important}
+ #pdfWeekView .pdf-time-staff-head.pdf-group-4{background:#e0f2f1!important;color:#216563!important}
+ #pdfWeekView .pdf-time-shift.service-normal.pdf-group-4{background:#e0f2f1!important;border-color:#b8dcda!important;border-left-color:#398b87!important;color:#216563!important}
+ #pdfWeekView .pdf-time-staff-head.pdf-group-5{background:#fbeaec!important;color:#843c4a!important}
+ #pdfWeekView .pdf-time-shift.service-normal.pdf-group-5{background:#fbeaec!important;border-color:#edc5cc!important;border-left-color:#bf6372!important;color:#843c4a!important}
  #pdfWeekView .pdf-time-shift.service-meeting{background:#f0eafb!important;border-color:#d5c7ee!important;border-left-color:#8061c8!important;color:#503b7a!important}
  #pdfWeekView .pdf-time-shift.service-supervision{background:#e8f1fb!important;border-color:#c5d9ef!important;border-left-color:#4d83bd!important;color:#28547e!important}
  #pdfWeekView .pdf-time-shift.service-church{background:#e4f3e8!important;border-color:#bddbc5!important;border-left-color:#4b9660!important;color:#285c38!important}
