@@ -286,3 +286,60 @@ test('special-service meetings do not falsely satisfy the automatic staffing sco
  });
  expect(result).toEqual({meetingOnly:0,normalOnly:1,combined:1});
 });
+
+
+test('closure periods are saved, visible, excluded from planning and not charged as vacation',async({page})=>{
+ await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};'}));
+ await page.setViewportSize({width:1440,height:1000});
+ await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+ await page.evaluate(()=>{document.querySelector('#cloudLogin')?.remove();window.alert=()=>{};scheduleCloudSave=()=>{};currentPage='einstellungen';render()});
+ await page.locator('#closure-from').fill('2026-10-26');
+ await page.locator('#closure-to').fill('2026-10-28');
+ await page.locator('#closure-label').fill('Herbstschließzeit');
+ await page.locator('[data-action="add-closure"]').click();
+ await expect(page.getByText('Herbstschließzeit')).toBeVisible();
+ const saved=await page.evaluate(()=>{
+  names=[{name:'Test Person',initials:'TP',group:'Nest',hours:12,vacation:30,workdays:[0,1,2,3,4],color:'green'}];
+  groups.splice(0,groups.length,'Nest');
+  plannerSettings.frame={start:'07:00',end:'16:00'};
+  plannerSettings.minimumByGroup={Nest:0};plannerSettings.minimumEarlyByGroup={Nest:0};plannerSettings.minimumLateByGroup={Nest:0};
+  events=[];absences=[];shifts=[];weekOffset=0;selectedGroup='Alle Gruppen';
+  const snapshot=cloudSnapshot();
+  closures=[];
+  applyCloudSnapshot(snapshot);
+  const requestedVacation=vacationDaysForPerson(names[0],'2026-10-26','2026-10-30');
+  window.confirm=()=>true;
+  generateWeekPlan();
+  const generated=weekShifts(0);
+  return {snapshotClosures:snapshot.closures.length,restoredClosures:closures.length,requestedVacation,plannedDays:[...new Set(generated.map(x=>x.day))],plannedHours:generated.reduce((sum,x)=>sum+shiftWorkMinutes(x),0)/60,diagnostics:weeklyPlanningDiagnostics(0,generated).closureConflicts.length};
+ });
+ expect(saved.snapshotClosures).toBe(1);
+ expect(saved.restoredClosures).toBe(1);
+ expect(saved.requestedVacation).toBe(2);
+ expect(saved.plannedDays.every(day=>day===3||day===4)).toBe(true);
+ expect(saved.plannedHours).toBe(12);
+ expect(saved.diagnostics).toBe(0);
+ await page.evaluate(()=>{currentPage='kalender';render()});
+ await expect(page.getByText('Herbstschließzeit').first()).toBeVisible();
+ await page.evaluate(()=>{currentPage='dienstplan';render()});
+ await expect(page.locator('.closure-event')).toHaveCount(3);
+ const conflictCount=await page.evaluate(()=>{
+  shifts.push({id:'closed-day-manual',person:'Test Person',group:'Nest',serviceType:'Normaler Dienst',day:0,start:'08:00',end:'10:00',weekOffset:0});
+  const count=weeklyPlanningDiagnostics(0).closureConflicts.length;
+  shifts=shifts.filter(x=>x.id!=='closed-day-manual');
+  return count;
+ });
+ expect(conflictCount).toBe(1);
+ await page.evaluate(()=>addShiftModal());
+ await page.locator('#shiftForm select[name="day"]').selectOption('0');
+ await page.locator('#shiftForm input[name="start"]').fill('08:00');
+ await page.locator('#shiftForm input[name="end"]').fill('10:00');
+ await page.locator('#shiftForm button[type="submit"]').click();
+ expect(await page.evaluate(()=>shifts.some(x=>x.day===0))).toBe(false);
+ await page.locator('#closeModal').click();
+ const popupPromise=page.waitForEvent('popup');
+ await page.locator('[data-action="print-plan"]').click();
+ const popup=await popupPromise;
+ await expect(popup.locator('.pdf-time-closure')).toHaveCount(3);
+ await expect(popup.locator('.pdf-time-closure').first()).toContainText('Herbstschließzeit');
+});
