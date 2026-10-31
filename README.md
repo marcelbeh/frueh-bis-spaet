@@ -62,7 +62,7 @@ Zur Einrichtung eines Testkontos:
    values ('<AUTH-USER-UUID>', '<Name wie im Dienstplan>');
    ```
 
-4. Veröffentliche `supabase/functions/employee-schedule/index.ts` als Edge Function `employee-schedule` mit aktivierter JWT-Prüfung.
+4. Veröffentliche `supabase/functions/employee-schedule/index.ts` als Edge Function `employee-schedule` mit aktivierter JWT-Prüfung. Hinterlege einen serverseitigen Supabase Secret Key als Function Secret `SUPABASE_SECRET_KEY`; die Funktion nutzt andernfalls den eingebauten `SUPABASE_SERVICE_ROLE_KEY`.
 
 Zum Entziehen des Mitarbeiterzugangs entferne den Eintrag aus `employee_access` und deaktiviere das Auth-Konto. Der Leitungszugang bleibt über `app_owner` separat geregelt. Wenn ein Name im Dienstplan geändert wird, muss auch `person_name` in `employee_access` angepasst werden.
 
