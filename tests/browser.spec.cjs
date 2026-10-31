@@ -113,10 +113,10 @@ test('factory reset clears saved operational data after explicit confirmation',a
  await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
  await page.evaluate(()=>{
   document.querySelector('#cloudLogin')?.remove();
-  cloudReady=true;cloudUser={id:'user-1'};cloudUpdatedAt='2026-10-31T08:00:00.000Z';
+  cloudReady=false;cloudUser={id:'user-1'};cloudUpdatedAt='2026-10-31T08:00:00.000Z';
   shifts=[{id:'old',person:names[0].name,day:0,start:'08:00',end:'12:00',weekOffset:0}];
   events=[{id:'event-old',title:'Meeting'}];absences=[{id:'absence-old',name:names[0].name}];
-  currentPage='einstellungen';render();
+  currentPage='einstellungen';render();cloudReady=true;
  });
  await expect(page.locator('[data-action="reset-system"]')).toBeVisible();
  page.on('dialog',async dialog=>{if(dialog.type()==='prompt')await dialog.accept('RESET');else await dialog.accept();});
