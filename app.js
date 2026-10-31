@@ -492,7 +492,7 @@ function finishShiftResize(){
  else if(personHasEventConflict(person,shift.day,start,end,offset))issue="Der Dienst überschneidet sich mit einem Termin.";
  else {const rules=shiftRuleConflicts(person,shift.day,start,end,offset,shifts,shift.id);if(rules.length)issue=rules.join("; ");}
  if(!issue&&shifts.some(x=>x.id!==shift.id&&x.person===shift.person&&x.day===shift.day&&(x.weekOffset??0)===offset&&minutes(start)<minutes(x.end)&&minutes(end)>minutes(x.start)))issue="Der Dienst überschneidet sich mit einem anderen Dienst derselben Person.";
- window.__lastResizeIssue=issue;if(issue){alert(issue+" Die ursprüngliche Zeit bleibt erhalten.");render();return}
+ if(issue){alert(issue+" Die ursprüngliche Zeit bleibt erhalten.");render();return}
  shift.start=start;shift.end=end;scheduleCloudSave();render();
 }
 document.addEventListener("pointerup",e=>{if(activeShiftResize&&e.pointerId===activeShiftResize.pointerId)finishShiftResize()});
