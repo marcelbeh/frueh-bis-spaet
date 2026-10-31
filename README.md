@@ -23,7 +23,7 @@ Der Anwendungscode verwendet die Tabellen `app_owner` (freigeschaltete Leitungsz
 - Dashboard und Wochenübersicht
 - Dienstplan mit Wochenwechsel, Gruppenfilter, manueller Bearbeitung, Ziehen beider Dienstgrenzen in 15-Minuten-Schritten und PDF-Druckansicht mit vertikalen Zeitbox-Beschriftungen; große Teams werden automatisch auf mehrere A4-Seiten verteilt
 - automatische Vorbelegung als bearbeitbarer Entwurf
-- Mitarbeitenden-Stammdaten und feste Dienstsperren
+- Mitarbeitenden-Stammdaten mit individuell konfigurierbaren regulären Arbeitstagen sowie feste Dienstsperren
 - Abwesenheiten und Urlaubskonto (vereinfachte Werktagszählung)
 - Sondertermine mit Kategorien und Teilnehmendenauswahl
 - Auswertungen aus den vorhandenen Diensteinträgen
@@ -36,7 +36,7 @@ Der Anwendungscode verwendet die Tabellen `app_owner` (freigeschaltete Leitungsz
 - Die App berücksichtigt bei Diensten eine 30-minütige Pause bei mehr als sechs Stunden sowie 45 Minuten bei mehr als neun Stunden Nettoarbeitszeit, tägliche Höchstarbeitszeit und elf Stunden Ruhezeit. Das ersetzt keine vollständige arbeitsrechtliche Prüfung und berücksichtigt nicht alle Tarif-, Teilzeit- oder betrieblichen Sonderregeln.
 - Bürozeiten der Leitung werden nicht als feste Zeitblöcke geplant; nur die Gruppenzeit kann als Besetzung erscheinen.
 - Genehmigte bzw. erfasste Abwesenheiten und feste Dienstsperren blockieren neue automatische und manuelle Dienste. Bereits vorhandene Dienste werden nicht automatisch gelöscht; die Planprüfung weist Konflikte aus.
-- Urlaub wird aktuell als Montag-bis-Freitag-Zählung berechnet; gesetzliche NRW-Feiertage werden abgezogen. Betriebliche Schließtage und individuelle Arbeitstage von Teilzeitkräften werden noch nicht berücksichtigt.
+- Urlaub wird anhand der je Person hinterlegten regulären Arbeitstage berechnet; gesetzliche NRW-Feiertage werden abgezogen. Betriebliche Schließtage werden noch nicht automatisch berücksichtigt.
 - Die Monatskalenderansicht, Druckausgabe und Darstellung auf realen Mobilgeräten sind noch nicht durch einen echten Browser-/iPhone-End-to-End-Test abgenommen.
 - Die Speicherung erfolgt als gemeinsamer JSON-Datensatz. Eine optimistische Versionsprüfung erkennt konkurrierende Änderungen und verhindert das unbemerkte Überschreiben eines neueren Datenstands. Eine automatische Zusammenführung paralleler Änderungen gibt es nicht.
 - Es gibt derzeit keine nachgewiesene automatisierte Datenbanksicherung oder vollständige Prüfung der RLS-Policies.
