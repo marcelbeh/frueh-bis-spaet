@@ -30,7 +30,7 @@ test('WebKit mobile and tablet layouts stay within the viewport',async({browser}
  const viewports=[{width:390,height:844},{width:430,height:932},{width:768,height:1024}];
  for(const viewport of viewports){
   await page.setViewportSize(viewport);
-  for(const route of ['dienstplan','mitarbeitende','kalender','einstellungen']){
+  for(const route of ['dashboard','dienstplan','mitarbeitende','kalender','einstellungen']){
    await page.evaluate(route=>{currentPage=route;render()},route);
    const metrics=await page.evaluate(()=>{
     const scroller=document.querySelector('.outlook-calendar-scroll');
@@ -38,6 +38,7 @@ test('WebKit mobile and tablet layouts stay within the viewport',async({browser}
    });
    expect(metrics.document,route+' document width at '+viewport.width+' offenders='+JSON.stringify(metrics.offenders)+' chain='+JSON.stringify(metrics.chain)).toBeLessThanOrEqual(metrics.viewport);
    expect(metrics.body,route+' body width at '+viewport.width).toBeLessThanOrEqual(metrics.viewport);
+   if(route==='dashboard')expect(await page.locator('.stats .stat').first().evaluate(el=>getComputedStyle(el).backgroundColor)).toBe('rgb(255, 255, 255)');
    if(route==='dienstplan')expect(metrics.scrollerWidth).toBeGreaterThan(metrics.scrollerClient);
   }
  }
