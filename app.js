@@ -84,7 +84,7 @@ function showEmployeePortal(payload){
  let weekOffset=Number.isInteger(payload?.weekOffset)?payload.weekOffset:0;
  let loading=false;
  const portal=document.createElement("main");portal.id="employeePortal";portal.className="employee-portal";
- portal.innerHTML='<header class="employee-portal-header"><div><span class="employee-portal-brand">🌈 Früh bis spät</span><h1>Gesamtdienstplan</h1><p>Angemeldet als '+escapeHTML(payload?.employeeName||"Mitarbeitende")+' · Nur Ansicht</p></div><button class="btn small" type="button" data-employee-logout>Abmelden</button></header><section class="employee-schedule-card employee-overview-card"><div class="employee-overview-heading"><div><h2>Wochenübersicht</h2><p>Alle Dienste im Team für die ausgewählte Kalenderwoche</p></div><span id="employeePlanStatus" class="employee-plan-status" aria-live="polite"></span></div><nav class="employee-week-nav" aria-label="Kalenderwoche"><button class="employee-week-button" type="button" data-employee-week-step="-1" aria-label="Vorherige Kalenderwoche">‹</button><strong id="employeeWeekLabel"></strong><button class="employee-week-button" type="button" data-employee-week-step="1" aria-label="Nächste Kalenderwoche">›</button></nav><div id="employeeWeekContent" aria-live="polite"></div></section><section class="employee-schedule-card employee-personal-card"><h2>Meine Dienste</h2><div id="employeePersonalContent"></div></section>';
+ portal.innerHTML='<header class="employee-portal-header"><div><span class="employee-portal-brand">🌈 Früh bis spät</span><h1>Meine Dienste</h1><p>Angemeldet als '+escapeHTML(payload?.employeeName||"Mitarbeitende")+' · Nur Ansicht</p></div><button class="btn small" type="button" data-employee-logout>Abmelden</button></header><section class="employee-schedule-card employee-overview-card"><div class="employee-overview-heading"><div><h2>Gesamtdienstplan</h2><p>Alle Dienste im Team für die ausgewählte Kalenderwoche</p></div><span id="employeePlanStatus" class="employee-plan-status" aria-live="polite"></span></div><nav class="employee-week-nav" aria-label="Kalenderwoche"><button class="employee-week-button" type="button" data-employee-week-step="-1" aria-label="Vorherige Kalenderwoche">‹</button><strong id="employeeWeekLabel"></strong><button class="employee-week-button" type="button" data-employee-week-step="1" aria-label="Nächste Kalenderwoche">›</button></nav><div id="employeeWeekContent" aria-live="polite"></div></section><section class="employee-schedule-card employee-personal-card"><h2>Meine Dienste</h2><div id="employeePersonalContent"></div></section>';
  document.body.appendChild(portal);
  function weekMonday(offset){
   const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Berlin",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
@@ -100,7 +100,7 @@ function showEmployeePortal(payload){
   return "KW "+isoCalendarWeek(monday)+"/"+thursday.getFullYear()+" · "+range;
  }
  function validShifts(){
-  return (Array.isArray(payload?.shifts)?payload.shifts:[]).filter(s=>s&&/^\d{4}-\d{2}-\d{2}$/.test(s.date||"")&&/^\d{2}:\d{2}$/.test(s.start||"")&&/^\d{2}:\d{2}$/.test(s.end||"")).sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start));
+  return (Array.isArray(payload?.shifts)?payload.shifts:[]).filter(s=>s&&/^\d{4}-\d{2}-\d{2}$/.test(s.date||"")&&/^\d{2}:\d{2}$/.test(s.start||"")&&/^\d{2}:\d{2}$/.test(s.end||"")).map(s=>({...s,person:typeof s.person==="string"?s.person:payload?.employeeName||"Team",group:typeof s.group==="string"?s.group:"Team"})).sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start));
  }
  function renderWeek(){
   const label=portal.querySelector("#employeeWeekLabel"),content=portal.querySelector("#employeeWeekContent"),personal=portal.querySelector("#employeePersonalContent"),status=portal.querySelector("#employeePlanStatus");
@@ -113,7 +113,7 @@ function showEmployeePortal(payload){
    return;
   }
   const shifts=validShifts();
-  const planExists=payload?.planExists===true;
+  const planExists=payload?.planExists===true||(payload?.planExists===undefined&&shifts.length>0);
   if(status){status.textContent=planExists?"Dienstplan angelegt":"Noch kein Dienstplan angelegt";status.classList.toggle("is-empty",!planExists);}
   if(!planExists){
    if(content)content.innerHTML='<div class="employee-plan-empty"><span class="employee-plan-empty-icon" aria-hidden="true">▦</span><strong>Für diese Kalenderwoche ist noch kein Dienstplan angelegt.</strong><p>Sobald die Leitung den Plan erstellt, erscheint hier die Teamübersicht.</p></div>';
@@ -141,7 +141,7 @@ function showEmployeePortal(payload){
    const own=shifts.filter(s=>s.person===payload?.employeeName);
    personal.innerHTML=own.length?'<ol class="employee-shift-list">'+own.map(s=>{
     const date=new Date(s.date+"T12:00:00");
-    const label=new Intl.DateTimeFormat("de-DE",{weekday:"long",day:"numeric",month:"long"}).format(date);
+    const label=new Intl.DateTimeFormat("de-DE",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(date);
     return '<li class="employee-shift"><div><strong>'+escapeHTML(label)+'</strong><span>'+escapeHTML(s.group||"Team")+' · '+escapeHTML(s.serviceType||"Dienst")+'</span></div><time>'+escapeHTML(s.start)+'–'+escapeHTML(s.end)+'</time></li>';
    }).join("")+'</ol>':'<p class="employee-empty">Für dich sind in dieser Kalenderwoche keine Dienste eingetragen.</p>';
   }
