@@ -1184,6 +1184,14 @@ h1,h2,h3,h4,.brand-copy,.employee-sidebar-brand,.page-title,.modal-title{font-fa
 .sidebar .sidebar-avatar{background:var(--wuselo-lavender);color:var(--wuselo-plum)}
 .sidebar .sidebar-collapse,.sidebar .sidebar-logout{background:color-mix(in srgb,var(--wuselo-white) 14%,var(--wuselo-plum));border-color:color-mix(in srgb,var(--wuselo-white) 22%,var(--wuselo-plum));color:var(--wuselo-white)}
 .sidebar .sidebar-collapse:hover,.sidebar .sidebar-logout:hover{background:color-mix(in srgb,var(--wuselo-white) 24%,var(--wuselo-plum));color:var(--wuselo-white)}
+.employee-sidebar{background:var(--wuselo-plum);border-color:color-mix(in srgb,var(--wuselo-white) 18%,var(--wuselo-plum))}
+.employee-sidebar-brand strong,.employee-sidebar-brand small{color:var(--wuselo-white)}
+.employee-sidebar-toggle{background:color-mix(in srgb,var(--wuselo-white) 14%,var(--wuselo-plum));border-color:color-mix(in srgb,var(--wuselo-white) 24%,var(--wuselo-plum));color:var(--wuselo-white)}
+.employee-sidebar-toggle:hover{background:color-mix(in srgb,var(--wuselo-white) 24%,var(--wuselo-plum));color:var(--wuselo-white)}
+.employee-nav-item{color:color-mix(in srgb,var(--wuselo-white) 88%,var(--wuselo-lavender))}
+.employee-nav-item:hover,.employee-nav-item[aria-current="page"]{background:color-mix(in srgb,var(--wuselo-white) 17%,var(--wuselo-plum));color:var(--wuselo-white)}
+.employee-nav-icon{color:var(--wuselo-white)}
+.employee-sidebar-footer{border-top-color:color-mix(in srgb,var(--wuselo-white) 20%,var(--wuselo-plum))}
 .btn.primary,.auth-submit{background:var(--wuselo-plum);color:var(--wuselo-white);border-color:var(--wuselo-plum)}
 .btn.primary:hover,.auth-submit:hover{background:var(--wuselo-aubergine);border-color:var(--wuselo-aubergine)}
 .status-success,.plan-status,.employee-plan-status:not(.is-empty){background:color-mix(in srgb,var(--wuselo-turquoise) 14%,var(--wuselo-white));color:var(--wuselo-aubergine)}
@@ -1224,7 +1232,7 @@ h1,h2,h3,h4,.brand-copy,.employee-sidebar-brand,.page-title,.modal-title{font-fa
 .stat.metric-events .stat-value{color:var(--wuselo-aubergine)}
 .stat.metric-absences .stat-value{color:var(--wuselo-aubergine)}
 .dashboard-quick-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}
-.dashboard-quick-actions .btn{display:flex;align-items:center;justify-content:center;min-width:0;min-height:48px;white-space:normal;text-align:center}
+.dashboard-quick-actions .btn{display:flex;align-items:center;justify-content:center;min-width:0;min-height:48px;gap:8px;white-space:normal;text-align:center}.dashboard-quick-actions svg{flex:0 0 18px;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .mobile-brand{display:none}
 .mobile-bottom-nav{display:none}
 @media(max-width:560px){.auth-card{padding:24px}.auth-brand-logo{width:min(100%,265px)}}
