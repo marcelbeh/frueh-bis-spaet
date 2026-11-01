@@ -3,16 +3,22 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#F5F8F6">
-  <title>TAKT – Der Kita-Alltag im guten Takt</title>
-  <link rel="stylesheet" href="./styles.css?v=takt-scandi-3">
+  <meta name="theme-color" content="#F6F3F0">
+  <meta name="application-name" content="WUSEL">
+  <meta name="description" content="WUSEL – Ordnung im Kita-Trubel. Übersichtliche Dienst- und Personalplanung für Kindertagesstätten.">
+  <meta name="apple-mobile-web-app-title" content="WUSEL">
+  <link rel="icon" type="image/svg+xml" href="./assets/wusel-icon.svg">
+  <link rel="apple-touch-icon" href="./assets/wusel-icon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <title>WUSEL – Ordnung im Kita-Trubel.</title>
+  <link rel="stylesheet" href="./styles.css?v=wusel-brand-system-1">
 </head>
 <body>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
-      <div class="brand-row"><button class="sidebar-collapse" id="sidebarCollapse" type="button" aria-label="Menü einklappen" title="Menü einklappen">‹</button><a class="brand" href="#" data-page="dashboard" aria-label="TAKT Startseite">
-        <span class="brand-mark" aria-label="TAKT Regenbogen"><svg viewBox="0 0 48 40" aria-hidden="true" focusable="false"><path d="M4 34a20 20 0 0 1 40 0" fill="none" stroke="#C78C3D" stroke-width="4" stroke-linecap="round"/><path d="M10 34a14 14 0 0 1 28 0" fill="none" stroke="#6F9693" stroke-width="4" stroke-linecap="round"/><path d="M16 34a8 8 0 0 1 16 0" fill="none" stroke="#386650" stroke-width="4" stroke-linecap="round"/></svg></span><span class="brand-copy"><strong>TAKT</strong><small>Dienstplanung, die mitdenkt.</small></span>
-      </a></div>
+      <div class="brand-row"><button class="sidebar-collapse" id="sidebarCollapse" type="button" aria-label="Menü einklappen" title="Menü einklappen">‹</button><a class="brand" href="#" data-page="dashboard" aria-label="WUSEL Startseite"><img class="brand-logo" src="./assets/wusel-logo.svg" alt="wusel. – Ordnung im Kita-Trubel."></a></div>
       <nav class="nav" aria-label="Hauptnavigation">
         <button class="nav-item active" data-page="dashboard"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M9 20v-6h6v6"/></svg></span><span class="nav-label">Dashboard</span></button>
         <div class="nav-group" data-nav-group="planung">
@@ -62,7 +68,7 @@
         <div class="topbar-right"><button class="avatar profile-avatar-button" id="profileAvatar" type="button" aria-label="Leitungsprofil öffnen" title="Leitungsprofil öffnen">L</button><span class="profile-name">Leitung</span></div>
       </header>
       <section class="page-content" id="pageContent" aria-live="polite"></section>
-      <footer>TAKT · Geschützter Leitungszugang · Änderungen werden automatisch gespeichert.</footer>
+      <footer>WUSEL · Geschützter Leitungszugang · Änderungen werden automatisch gespeichert.</footer>
     </main>
   </div>
   <div class="modal-backdrop hidden" id="modalBackdrop">
@@ -72,6 +78,6 @@
     </section>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./app.js?v=takt-scandi-employee-auth-1"></script>
+  <script src="./app.js?v=wusel-brand-system-1"></script>
 </body>
 </html>
