@@ -914,6 +914,7 @@ document.addEventListener("click",e=>{
 });
 $("#closeModal").addEventListener("click",closeModal);$("#modalBackdrop").addEventListener("click",e=>{if(e.target.id==="modalBackdrop")closeModal()});
 $("#mobileMenu").addEventListener("click",()=>$("#sidebar").classList.contains("open")?closeMobileSidebar():openMobileSidebar());
+$("#sidebar").addEventListener("click",event=>{const item=event.target.closest(".nav-item[data-page]");if(!item)return;event.preventDefault();event.stopPropagation();navigate(item.dataset.page)});
 $("#sidebarBackdrop").addEventListener("click",closeMobileSidebar);
 document.addEventListener("keydown",event=>{if(event.key==="Escape"&&isMobileSidebar()&&$("#sidebar").classList.contains("open"))closeMobileSidebar()});
 window.addEventListener("resize",()=>{if(isMobileSidebar())document.querySelector(".app-shell")?.classList.remove("sidebar-collapsed");else closeMobileSidebar();syncSidebarControls()});
