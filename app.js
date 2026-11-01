@@ -342,6 +342,7 @@ async function startCloudApp(){
 
 const pageTitles = {dashboard:"Dashboard",dienstplan:"Dienstplan",kalender:"Kalender",mitarbeitende:"Mitarbeitende",abwesenheiten:"Urlaub & Abwesenheit",sondertermine:"Sondertermine",teammeetings:"Teammeetings",supervision:"Supervision",fortbildungen:"Fortbildungen",auswertungen:"Auswertungen",einstellungen:"Einstellungen",leitungsprofil:"Leitungsprofil"};
 let currentPage = "dashboard";
+let dashboardGreetingTimer = null;
 let weekOffset = 0;
 let calendarMonthOffset = 0;
 let selectedGroup = "Alle Gruppen";
@@ -565,12 +566,25 @@ function pageIcon(){return ({dashboard:"home",dienstplan:"calendar",kalender:"ca
 function heading(title,sub,action='<button class="btn primary" data-action="add-event">＋ Eintrag hinzufügen</button>'){return `<div class="page-heading"><div><div class="eyebrow">kitaplanio · Kita-Planung</div><div class="page-title-line"><span class="page-title-icon">${uiIcon(pageIcon())}</span><div><h1>${title}</h1><p>${sub}</p></div></div></div><div class="actions">${action}</div></div>`}
 function card(title,body,extra=""){const key=/Arbeitszeit|Büro|Wochenstunden/.test(title)?"clock":/Zugang|Passwort/.test(title)?"lock":/Personal|Mitarbeitende|Team/.test(title)?"users":/Auswertung|Kennzahl/.test(title)?"chart":/Einstellung|Verwaltung/.test(title)?"settings":/Termin|Kalender/.test(title)?"calendar":"briefcase";return `<section class="card ${extra}"><div class="card-header"><h2><span class="card-title-icon">${uiIcon(key)}</span>${title}</h2></div><div class="card-body">${body}</div></section>`}
 function personTable(compact=false){return `<div class="table-wrap"><table><thead><tr><th>Mitarbeitende</th><th>Stammgruppe</th><th>Wochenstunden</th><th>Arbeitstage</th><th>Resturlaub</th><th>Sonderdienste</th><th>Teammeetings</th><th>Supervision</th><th>Aktion</th></tr></thead><tbody>${names.length?names.map(p=>`<tr><td><div class="person-cell"><span class="person-avatar">${p.initials}</span><strong>${p.name}</strong></div></td><td>${p.group}</td><td>${p.hours} Std.</td><td>${personWorkingDays(p).map(i=>weekdays[i]).join(", ")}</td><td><span class="pill green">${remainingVacation(p)} Tage</span></td><td><span class="pill ${p.special>2?'yellow':'blue'}">${p.special}</span></td><td><span class="pill purple">${p.meetings}</span></td><td><span class="pill blue">${p.supervision}</span></td><td><div class="inline-actions"><button class="btn small" data-edit-person="${p.name}">Bearbeiten</button><button class="btn small danger" data-remove-person="${p.name}">Entfernen</button></div></td></tr>`).join(""):'<tr><td colspan="9"><div class="empty-state"><strong>Noch keine Mitarbeitenden angelegt</strong>Über „Mitarbeitende hinzufügen“ kannst du dein Team selbst einrichten.</div></td></tr>'}</tbody></table></div>`}
+function dashboardGreetingForHour(hour){
+ if(hour>=5&&hour<11)return "Guten Morgen";
+ if(hour>=11&&hour<18)return "Guten Tag";
+ if(hour>=18&&hour<22)return "Guten Abend";
+ return "Gute Nacht";
+}
+function scheduleDashboardGreetingRefresh(){
+ if(dashboardGreetingTimer)clearTimeout(dashboardGreetingTimer);
+ const now=new Date(),nextHour=[5,11,18,22].find(hour=>hour>now.getHours()),boundary=new Date(now);
+ if(nextHour===undefined){boundary.setDate(boundary.getDate()+1);boundary.setHours(5,0,0,0)}
+ else boundary.setHours(nextHour,0,0,0);
+ dashboardGreetingTimer=setTimeout(()=>{if(currentPage==="dashboard")render();scheduleDashboardGreetingRefresh()},Math.max(0,boundary.getTime()-now.getTime()+20));
+}
 function dashboard(){
  const currentShifts=weekShifts(),upcomingEvents=events.filter(e=>e.date>=iso(dateForDay(0))).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);
  const shiftSummary=currentShifts.length?`<div class="table-wrap"><table><thead><tr><th>Tag</th><th>Mitarbeitende</th><th>Zeit</th><th>Gruppe</th></tr></thead><tbody>${currentShifts.slice().sort((a,b)=>a.day-b.day||minutes(a.start)-minutes(b.start)).slice(0,8).map(s=>`<tr><td>${weekdays[s.day]} · ${fmt(dateForDay(s.day))}</td><td>${s.person}</td><td>${s.start}–${s.end}</td><td>${s.group}</td></tr>`).join("")}</tbody></table></div>`:'<div class="empty-state"><strong>Noch keine Dienste geplant</strong>Erstelle deinen Wochenplan oder trage einzelne Dienste ein.</div>';
  const eventSummary=upcomingEvents.length?`<div class="list-stack">${upcomingEvents.map(e=>`<div class="setting-row"><div><strong>${e.title}</strong><small>${fmt(new Date(e.date+"T12:00:00"))} · ${e.type}</small></div><span>${e.time}</span></div>`).join("")}</div>`:'<div class="empty-state"><strong>Keine anstehenden Termine</strong>Termine kannst du gesammelt unter „Sondertermine“ verwalten.</div>';
- const greetingName=escapeHTML(leaderProfile.name||cloudUser?.user_metadata?.full_name||"Leitung");
- return `<section class="dashboard-welcome"><div class="dashboard-welcome-copy"><div class="eyebrow">kitaplanio · Kita-Planung</div><h1>Guten Morgen, ${greetingName}!</h1><p>Hier ist der aktuelle Überblick für eure Kita.</p></div><div class="dashboard-welcome-actions">${names.length?'<button class="btn primary" data-page="dienstplan">Wochenplan öffnen</button>':'<button class="btn primary" data-page="mitarbeitende">＋ Mitarbeitende anlegen</button>'}<span class="dashboard-welcome-avatar" aria-hidden="true">${leaderInitials()}</span></div></section>
+ const greetingName=escapeHTML(leaderProfile.name||cloudUser?.user_metadata?.full_name||"Leitung"),greeting=dashboardGreetingForHour(new Date().getHours());
+ return `<section class="dashboard-welcome"><div class="dashboard-welcome-copy"><div class="eyebrow">kitaplanio · Kita-Planung</div><h1>${greeting}, ${greetingName}!</h1><p>Hier ist der aktuelle Überblick für eure Kita.</p></div><div class="dashboard-welcome-actions">${names.length?'<button class="btn primary" data-page="dienstplan">Wochenplan öffnen</button>':'<button class="btn primary" data-page="mitarbeitende">＋ Mitarbeitende anlegen</button>'}<span class="dashboard-welcome-avatar" aria-hidden="true">${leaderInitials()}</span></div></section>
  <div class="stats"><div class="stat metric-team"><div class="stat-label">Mitarbeitende</div><div class="stat-value">${names.length}</div><div class="stat-note">Im Team angelegt</div></div><div class="stat metric-plan"><div class="stat-label">Dienste diese Woche</div><div class="stat-value">${currentShifts.length}</div><div class="stat-note">${weekLabel()}</div></div><div class="stat metric-events"><div class="stat-label">Anstehende Termine</div><div class="stat-value">${upcomingEvents.length}</div><div class="stat-note">In der Übersicht</div></div><div class="stat metric-absences"><div class="stat-label">Offene Abwesenheiten</div><div class="stat-value">${absences.filter(a=>a.status==="Offen").length}</div><div class="stat-note">Noch zu prüfen</div></div></div>
  <div class="grid dashboard-grid">
  <section class="card"><div class="card-header"><div><h2>Aktueller Dienstplan</h2><p>${weekLabel()}</p></div><button class="btn small" data-page="dienstplan">Zum Dienstplan →</button></div><div class="card-body">${shiftSummary}</div></section>
@@ -922,4 +936,5 @@ document.addEventListener("click",event=>{const button=event.target.closest("#si
 if(isMobileSidebar())document.querySelector(".app-shell")?.classList.remove("sidebar-collapsed");
 syncSidebarControls();
 $("#globalSearch").addEventListener("keydown",e=>{if(e.key==="Enter"){const q=e.target.value.trim().toLocaleLowerCase("de");if(!q){alert("Bitte einen Namen oder Termin eingeben.");return}if(names.some(p=>p.name.toLocaleLowerCase("de").includes(q)))navigate("mitarbeitende");else if(events.some(ev=>ev.title.toLocaleLowerCase("de").includes(q)))navigate("kalender");else alert("Keine passenden Beispieldaten gefunden.")}});
+scheduleDashboardGreetingRefresh();
 startCloudApp();
