@@ -593,3 +593,36 @@ test('dashboard greeting follows local time and updates at the next time band',a
  await expect(page.locator('.dashboard-welcome h1')).toHaveText('Guten Morgen, Marcel Beh!');
  await context.close();
 });
+
+test('kitaplanio logo and app icon match the final brand specification',async({page})=>{
+ await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};'}));
+ await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+ await page.evaluate(()=>{document.querySelector('#cloudLogin')?.remove();currentPage='dashboard';render()});
+ const logo=page.locator('.brand-logo');
+ await expect(logo).toHaveAttribute('alt','kitaplanio – Dienstplanung, die mitdenkt.');
+ const desktopLogo=await logo.evaluate(img=>({width:img.getBoundingClientRect().width,height:img.getBoundingClientRect().height,naturalWidth:img.naturalWidth}));
+ expect(desktopLogo.width).toBeGreaterThan(0);
+ expect(desktopLogo.height).toBeGreaterThan(0);
+ expect(desktopLogo.naturalWidth).toBeGreaterThan(0);
+ const logoResponse=await page.request.get('http://127.0.0.1:4173/assets/wuselo-logo-dark.svg');
+ expect(logoResponse.ok()).toBe(true);
+ const svg=await logoResponse.text();
+ expect(svg).toContain('M8 45 56 12 104 45');
+ expect(svg).toContain('M82 31V16H92V38');
+ expect(svg).toContain('<tspan x="130" textLength="203" lengthAdjust="spacingAndGlyphs">kitaplan</tspan><tspan x="333" textLength="13.2" lengthAdjust="spacingAndGlyphs">i</tspan><tspan x="346.2" textLength="34" lengthAdjust="spacingAndGlyphs">o</tspan>');
+ expect(svg).toContain('<circle cx="339.6" cy="20" r="5.5" fill="#FFC107"/>');
+ expect(svg).toContain('Dienstplanung, die mitdenkt.');
+ expect(svg).not.toContain('Ordnung im Kita-Trubel.');
+ const iconResponse=await page.request.get('http://127.0.0.1:4173/assets/wuselo-icon.svg');
+ expect(iconResponse.ok()).toBe(true);
+ const iconSvg=await iconResponse.text();
+ expect(iconSvg).not.toContain('<text');
+ expect(iconSvg).not.toContain('Dienstplanung, die mitdenkt.');
+ await page.setViewportSize({width:390,height:844});
+ await page.locator('#mobileMenu').click();
+ await expect(page.locator('#sidebar')).toHaveClass(/open/);
+ const mobileLogo=await logo.evaluate(img=>({width:img.getBoundingClientRect().width,height:img.getBoundingClientRect().height,naturalWidth:img.naturalWidth}));
+ expect(mobileLogo.width).toBeGreaterThan(0);
+ expect(mobileLogo.height).toBeGreaterThan(0);
+ expect(mobileLogo.naturalWidth).toBeGreaterThan(0);
+});
