@@ -143,7 +143,7 @@ function showEmployeePortal(payload){
    if(personal)personal.innerHTML='<p class="employee-empty">Deine Dienste erscheinen hier, sobald der Wochenplan angelegt ist.</p>';
    return;
   }
-  const groups=[...new Set(shifts.map(s=>String(s.group||"Team")))];
+  const groups=Array.isArray(payload?.groups)&&payload.groups.length?payload.groups.map(group=>String(group)):[...new Set(shifts.map(s=>String(s.group||"Team")))];
   if(content){
    const days=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
    const shortDays=["Mo","Di","Mi","Do","Fr","Sa","So"];
@@ -155,9 +155,10 @@ function showEmployeePortal(payload){
    const groupOrder=Array.isArray(payload?.groups)?payload.groups.map(group=>String(group)):[];
    const groupRank=group=>{const index=groupOrder.indexOf(group);return index<0?groupOrder.length:index;};
    people.sort((a,b)=>groupRank(a.group)-groupRank(b.group)||a.group.localeCompare(b.group,"de")||a.name.localeCompare(b.name,"de"));
-   const groupHeaders=[...new Set(people.map(person=>person.group))].map((group,index)=>{
+   const groupHeaders=[...new Set(people.map(person=>person.group))].map(group=>{
+    const rank=groups.indexOf(group),paletteIndex=rank>=0?rank:groups.length;
     const count=people.filter(person=>person.group===group).length;
-    return '<div class="employee-group-head pdf-group-'+(index%6)+'" style="grid-column:span '+count+'"><strong>'+escapeHTML(group)+'</strong><small>'+count+' '+(count===1?'Mitarbeiter':'Mitarbeitende')+'</small></div>';
+    return '<div class="employee-group-head pdf-group-'+(paletteIndex%6)+'" style="grid-column:span '+count+'"><strong>'+escapeHTML(group)+'</strong><small>'+count+' '+(count===1?'Mitarbeiter':'Mitarbeitende')+'</small></div>';
    }).join("");
    const dayIndex=Math.max(0,Math.min(days.length-1,selectedDay)),day=days[dayIndex],date=weekDates[dayIndex],dateText=new Intl.DateTimeFormat("de-DE",{day:"2-digit",month:"2-digit"}).format(date),dayKey=isoDate(date);
    const dayShifts=shifts.filter(s=>s.date===dayKey),dayGroups=[...new Set(dayShifts.map(s=>String(s.group||"Team")))];
@@ -168,8 +169,8 @@ function showEmployeePortal(payload){
      const start=Math.max(360,Math.min(1320,Number(s.start.slice(0,2))*60+Number(s.start.slice(3))));
      const end=Math.max(start+30,Math.min(1320,Number(s.end.slice(0,2))*60+Number(s.end.slice(3))));
      const top=Math.max(0,Math.min(100,(start-360)/960*100)),height=Math.max(4,(end-start)/960*100);
-     const groupIndex=Math.max(0,groups.indexOf(String(s.group||"Team")))%6;
-     return '<article class="employee-timeline-shift pdf-group-'+groupIndex+(own?' is-own':'')+'" style="top:'+top+'%;height:'+height+'%"'+(own?' aria-current="true"':'')+'><strong>'+escapeHTML(s.start)+'–'+escapeHTML(s.end)+'</strong><span class="employee-timeline-detail">'+escapeHTML(s.serviceType||s.group||"Dienst")+'</span></article>';
+     const groupRank=groups.indexOf(String(s.group||"Team")),groupIndex=(groupRank>=0?groupRank:groups.length)%6;
+     return '<article class="employee-timeline-shift '+shiftClass(s)+' pdf-group-'+groupIndex+(own?' is-own':'')+'" style="top:'+top+'%;height:'+height+'%"'+(own?' aria-current="true"':'')+'><strong>'+escapeHTML(s.start)+'–'+escapeHTML(s.end)+'</strong><span class="employee-timeline-detail">'+escapeHTML(s.serviceType||s.group||"Dienst")+'</span></article>';
     }).join("");
     return '<div class="employee-person-lane'+(own?' is-own-lane':'')+'"><div class="employee-person-track">'+(blocks||'<span class="employee-person-free">Frei</span>')+'</div></div>';
    }).join("");
@@ -191,10 +192,10 @@ function showEmployeePortal(payload){
      const start=Math.max(360,Math.min(1320,Number(s.start.slice(0,2))*60+Number(s.start.slice(3))));
      const end=Math.max(start+30,Math.min(1320,Number(s.end.slice(0,2))*60+Number(s.end.slice(3))));
      const top=Math.max(0,Math.min(100,(start-360)/960*100)),height=Math.max(4,(end-start)/960*100);
-     const groupIndex=Math.max(0,groups.indexOf(String(s.group||"Team")))%6;
-     return '<article class="employee-personal-shift pdf-group-'+groupIndex+'" style="top:'+top+'%;height:'+height+'%"><strong>'+escapeHTML(s.start)+'–'+escapeHTML(s.end)+'</strong><span>'+escapeHTML(s.serviceType||"Dienst")+'</span><small>'+escapeHTML(s.group||"Team")+'</small></article>';
+     const groupRank=groups.indexOf(String(s.group||"Team")),groupIndex=(groupRank>=0?groupRank:groups.length)%6;
+     return '<article class="employee-personal-shift '+shiftClass(s)+' pdf-group-'+groupIndex+'" style="top:'+top+'%;height:'+height+'%"><strong>'+escapeHTML(s.start)+'–'+escapeHTML(s.end)+'</strong><span>'+escapeHTML(s.serviceType||"Dienst")+'</span><small>'+escapeHTML(s.group||"Team")+'</small></article>';
     }).join("");
-    const eventBlocks=dayEvents.map(ev=>{const start=Math.max(360,Math.min(1320,Number(ev.start.slice(0,2))*60+Number(ev.start.slice(3)))),end=Math.max(start+30,Math.min(1320,Number(ev.end.slice(0,2))*60+Number(ev.end.slice(3))));const top=Math.max(0,Math.min(100,(start-360)/960*100)),height=Math.max(4,(end-start)/960*100);return '<article class="employee-personal-event" style="top:'+top+'%;height:'+height+'%"><strong>'+escapeHTML(ev.start)+'–'+escapeHTML(ev.end)+'</strong><span>'+escapeHTML(ev.title||ev.type||"Termin")+'</span></article>';}).join("");
+    const eventBlocks=dayEvents.map(ev=>{const start=Math.max(360,Math.min(1320,Number(ev.start.slice(0,2))*60+Number(ev.start.slice(3)))),end=Math.max(start+30,Math.min(1320,Number(ev.end.slice(0,2))*60+Number(ev.end.slice(3))));const top=Math.max(0,Math.min(100,(start-360)/960*100)),height=Math.max(4,(end-start)/960*100);const eventClass=ev.type==="Supervision"?"event-supervision":ev.type==="Fortbildung"?"event-training":ev.type==="Meeting"?"event-meeting":"event-special";return '<article class="employee-personal-event '+eventClass+'" style="top:'+top+'%;height:'+height+'%"><strong>'+escapeHTML(ev.start)+'–'+escapeHTML(ev.end)+'</strong><span>'+escapeHTML(ev.title||ev.type||"Termin")+'</span></article>';}).join("");
     const noItems=!dayShifts.length&&!dayEvents.length;
     return '<div class="employee-personal-day-track'+(noItems?' is-free':'')+'">'+(blocks+eventBlocks||(noItems?'<span class="employee-personal-free">Frei</span>':''))+'</div>';
    }).join("");
@@ -470,7 +471,7 @@ function manageBlocksModal(personName){const person=planningPeople().find(p=>p.n
 function topPercent(t){return Math.max(0,Math.min(100,(minutes(t)-360)/960*100))}
 function heightPercent(a,b){return Math.max(4,(minutes(b)-minutes(a))/960*100)}
 function shiftPosition(s){return `top:${topPercent(s.start)}%;height:${heightPercent(s.start,s.end)}%;`}
-function groupColor(group){return group==="Nest"?"shift-green":group==="Sonnengruppe"?"shift-blue":group==="Sternengruppe"?"shift-purple":"shift-yellow"}
+function groupColor(group){const palette=["shift-green","shift-blue","shift-orange","shift-purple","shift-teal","shift-pink"];const index=groups.indexOf(group);return index>=0?palette[index%palette.length]:"shift-yellow"}
 function shiftClass(s){const type=s.serviceType||"Normaler Dienst";return type==="Meeting"?"service-meeting":type==="Kirchlicher Termin"?"service-church":type==="Supervision"?"service-supervision":type==="Fortbildung"?"service-fortbildung":type==="Sonstiger Termin"?"service-other":"service-normal"}
 function uiIcon(name){const icons={"home":"<path d=\"m3 10 9-7 9 7\"/><path d=\"M5 9v11h14V9\"/><path d=\"M9 20v-6h6v6\"/>","calendar":"<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M16 3v4M8 3v4M3 11h18\"/>","users":"<path d=\"M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2\"/><circle cx=\"10\" cy=\"7\" r=\"4\"/><path d=\"M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75\"/>","chart":"<path d=\"M3 3v18h18\"/><rect x=\"7\" y=\"11\" width=\"3\" height=\"6\" rx=\"1\"/><rect x=\"13\" y=\"7\" width=\"3\" height=\"10\" rx=\"1\"/><rect x=\"19\" y=\"4\" width=\"2\" height=\"13\" rx=\"1\"/>","settings":"<circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.6a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.6-1.4-2.4 1.4-1.1a7 7 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.6a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.6 1.4 2.4-1.4 1.1a7 7 0 0 1 0 2Z\"/>","lock":"<rect x=\"4\" y=\"10\" width=\"16\" height=\"11\" rx=\"2\"/><path d=\"M8 10V7a4 4 0 0 1 8 0v3\"/>","user":"<circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M5 21a7 7 0 0 1 14 0\"/>","clock":"<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/>","briefcase":"<rect x=\"3\" y=\"7\" width=\"18\" height=\"14\" rx=\"2\"/><path d=\"M8 7V4h8v3M3 12h18M10 12v2h4v-2\"/>"};return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+(icons[name]||icons.calendar)+'</svg>'}
 
@@ -535,7 +536,7 @@ function dutyPage(){
    const dayDate=iso(date),dayAbsences=absences.filter(a=>a.name===p.name&&dayDate>=a.from&&dayDate<=a.to);
    const absenceBlocks=dayAbsences.map(a=>'<div class="outlook-absence" title="'+escapeHTML(a.type)+' · '+escapeHTML(a.status||"Erfasst")+'"><strong>'+escapeHTML(a.type)+'</strong><span>Ganztägig'+(a.status==="Offen"?" · Offen":"")+'</span></div>').join("");
    const eventBlocks=events.filter(ev=>eventOccursOnDate(ev,dayDate)&&(ev.attendees||[]).includes(p.name)).map(ev=>{const [from,to]=ev.time.split("–");const cls=ev.type==="Meeting"?"event-meeting":ev.type==="Supervision"?"event-supervision":ev.type==="Fortbildung"?"event-training":"event-special";return '<div class="outlook-event '+cls+'" style="top:'+topPercent(from)+'%;height:'+heightPercent(from,to)+'%" title="'+escapeHTML(ev.title)+' · '+ev.time+'"><strong>'+ev.time+'</strong><span>'+escapeHTML(ev.title)+'</span></div>';}).join("");
-   const blocks=personShifts.map(s=>{const pause=shiftPause(s),span=minutes(s.end)-minutes(s.start);const pauseDuration=pause?pause.end-pause.start:0,pauseMarkup=pause?'<span class="pause-marker" style="top:'+((pause.start-minutes(s.start))/span*100)+'%;height:'+(pauseDuration/span*100)+'%">Pause · '+pauseDuration+' Min.</span>':'';return '<button class="outlook-shift '+shiftClass(s)+'" style="'+shiftPosition(s)+'" data-edit-shift="'+s.id+'" title="'+s.person+': '+s.start+'–'+s.end+(pause?' · Pause '+pauseDuration+' Min.':'')+'"><i class="shift-resize-handle shift-resize-start" data-resize-shift="'+s.id+'" data-resize-edge="start" title="Ziehen, um den Dienstbeginn zu ändern" aria-label="Dienstbeginn ziehen"></i><strong>'+s.start+'–'+s.end+'</strong><span>'+(s.serviceType&&s.serviceType!=="Normaler Dienst"?s.serviceType:s.group)+'</span>'+pauseMarkup+'<i class="shift-resize-handle shift-resize-end" data-resize-shift="'+s.id+'" data-resize-edge="end" title="Ziehen, um das Dienstende zu ändern" aria-label="Dienstende ziehen"></i></button>'}).join("");
+   const blocks=personShifts.map(s=>{const pause=shiftPause(s),span=minutes(s.end)-minutes(s.start);const pauseDuration=pause?pause.end-pause.start:0,pauseMarkup=pause?'<span class="pause-marker" style="top:'+((pause.start-minutes(s.start))/span*100)+'%;height:'+(pauseDuration/span*100)+'%">Pause · '+pauseDuration+' Min.</span>':'';return '<button class="outlook-shift '+shiftClass(s)+(shiftClass(s)==="service-normal"?" "+groupColor(s.group):"")+'" style="'+shiftPosition(s)+'" data-edit-shift="'+s.id+'" title="'+s.person+': '+s.start+'–'+s.end+(pause?' · Pause '+pauseDuration+' Min.':'')+'"><i class="shift-resize-handle shift-resize-start" data-resize-shift="'+s.id+'" data-resize-edge="start" title="Ziehen, um den Dienstbeginn zu ändern" aria-label="Dienstbeginn ziehen"></i><strong>'+s.start+'–'+s.end+'</strong><span>'+(s.serviceType&&s.serviceType!=="Normaler Dienst"?s.serviceType:s.group)+'</span>'+pauseMarkup+'<i class="shift-resize-handle shift-resize-end" data-resize-shift="'+s.id+'" data-resize-edge="end" title="Ziehen, um das Dienstende zu ändern" aria-label="Dienstende ziehen"></i></button>'}).join("");
    return `<div class="outlook-staff-column"><div class="outlook-time-grid"></div>${absenceBlocks}${eventBlocks}${blocks}</div>`;
   }).join("");
   const coverageShifts=dayShifts.filter(s=>!s.serviceType||s.serviceType==="Normaler Dienst");const cover=renderCoverageStrip(coverageShifts);
@@ -603,9 +604,10 @@ function exportPlanPdf(){
     {background:"#e0f2f1",border:"#b8dcda",accent:"#398b87",text:"#216563"},
     {background:"#fbeaec",border:"#edc5cc",accent:"#bf6372",text:"#843c4a"}
   ];
-  const pdfGroupClass=group=>{const index=pdfGroups.indexOf(group);return index>=0?" pdf-group-"+(index%pdfGroupPalette.length):""};
-  const pdfGroupStyles=pdfGroups.map((group,index)=>{
-    const color=pdfGroupPalette[index%pdfGroupPalette.length],className=".pdf-group-"+(index%pdfGroupPalette.length);
+  const pdfGroupIndex=group=>{const index=groups.indexOf(group);return index>=0?index:Math.max(0,groups.length+pdfGroups.indexOf(group))%pdfGroupPalette.length};
+  const pdfGroupClass=group=>pdfGroups.includes(group)?" pdf-group-"+pdfGroupIndex(group):"";
+  const pdfGroupStyles=pdfGroups.map(group=>{
+    const index=pdfGroupIndex(group),color=pdfGroupPalette[index%pdfGroupPalette.length],className=".pdf-group-"+index;
     return "#pdfWeekView .pdf-time-staff-head"+className+"{background:"+color.background+"!important;color:"+color.text+"!important}#pdfWeekView .pdf-time-shift.service-normal"+className+"{background:"+color.background+"!important;border-color:"+color.border+"!important;border-left-color:"+color.accent+"!important;color:"+color.text+"!important}";
   }).join("");
   for(let offset=0;offset<Math.max(1,staff.length);offset+=pageSize){
