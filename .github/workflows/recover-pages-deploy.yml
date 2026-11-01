@@ -56,11 +56,13 @@ jobs:
         with:
           script: |
             const { owner, repo } = context.repo;
+            const staleSha = "3b99769e781f6f708d8b5424e81a3acb89492b3f";
             const deployments = await github.paginate(
               github.rest.repos.listDeployments,
-              { owner, repo, environment: "github-pages", per_page: 100 }
+              { owner, repo, per_page: 100 }
             );
 
+            core.info(`Found ${deployments.length} deployment records.`);
             let released = 0;
             for (const deployment of deployments) {
               const { data: statuses } = await github.rest.repos.listDeploymentStatuses({
@@ -69,22 +71,25 @@ jobs:
                 deployment_id: deployment.id,
                 per_page: 1
               });
+              const latestState = statuses[0]?.state || "no status";
+              core.info(`Deployment ${deployment.id}: sha=${deployment.sha}, environment=${deployment.environment}, status=${latestState}`);
 
-              if (statuses[0]?.state !== "in_progress") continue;
+              if (deployment.sha !== staleSha || latestState === "inactive") continue;
 
               await github.rest.repos.createDeploymentStatus({
                 owner,
                 repo,
                 deployment_id: deployment.id,
                 state: "inactive",
-                description: "Released stale GitHub Pages deployment before recovery"
+                auto_inactive: false,
+                description: "Released the stale GitHub Pages deployment before recovery"
               });
-              core.info(`Marked stale deployment ${deployment.id} (${deployment.sha}) inactive.`);
+              core.info(`Marked blocking deployment ${deployment.id} inactive.`);
               released += 1;
             }
 
             if (released === 0) {
-              core.info("No in-progress GitHub Pages deployment was found.");
+              core.warning(`No deployment record for blocking SHA ${staleSha} was found.`);
             }
 
   deploy:
