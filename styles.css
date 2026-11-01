@@ -761,6 +761,55 @@ body.resizing-shift,body.resizing-shift *{cursor:ns-resize!important;user-select
 .employee-timeline-day-title{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:10px 9px;border-bottom:1px solid #dce5ed;background:#f4f7fb}
 .employee-timeline-day-title h3{margin:0;font-size:13px;color:#152b46}
 .employee-timeline-day-title time{color:#68788a;font-size:11px}
+
+/* Stammgruppen verwenden in Leitung, Mitarbeiterbereich und PDF dieselbe Palette */
+.outlook-staff-head.shift-green{background:#e5f3eb;border-bottom-color:#b8d9c5;color:#205c3b}
+.outlook-staff-head.shift-blue{background:#e6effb;border-bottom-color:#bfd2ed;color:#28527d}
+.outlook-staff-head.shift-orange{background:#fff1dd;border-bottom-color:#eed5a8;color:#805315}
+.outlook-shift.service-normal.shift-green{background:#e5f3eb;border-color:#b8d9c5;color:#205c3b}
+.outlook-shift.service-normal.shift-blue{background:#e6effb;border-color:#bfd2ed;color:#28527d}
+.outlook-shift.service-normal.shift-orange{background:#fff1dd;border-color:#eed5a8;color:#805315}
+.employee-group-head.pdf-group-0{border-top-color:#438b60;background:#e5f3eb;color:#205c3b}
+.employee-group-head.pdf-group-1{border-top-color:#4b79b5;background:#e6effb;color:#28527d}
+.employee-group-head.pdf-group-2{border-top-color:#c58a31;background:#fff1dd;color:#805315}
+.employee-timeline-shift.service-normal.pdf-group-0,.employee-personal-shift.service-normal.pdf-group-0{background:#e5f3eb;border-color:#b8d9c5;border-left-color:#438b60;color:#205c3b}
+.employee-timeline-shift.service-normal.pdf-group-1,.employee-personal-shift.service-normal.pdf-group-1{background:#e6effb;border-color:#bfd2ed;border-left-color:#4b79b5;color:#28527d}
+.employee-timeline-shift.service-normal.pdf-group-2,.employee-personal-shift.service-normal.pdf-group-2{background:#fff1dd;border-color:#eed5a8;border-left-color:#c58a31;color:#805315}
+.employee-timeline-shift.service-normal.pdf-group-3,.employee-personal-shift.service-normal.pdf-group-3{background:#f0eafb;border-color:#d6c9ec;border-left-color:#8065b2;color:#59447f}
+.employee-timeline-shift.service-normal.pdf-group-4,.employee-personal-shift.service-normal.pdf-group-4{background:#e0f2f1;border-color:#b8dcda;border-left-color:#398b87;color:#216563}
+.employee-timeline-shift.service-normal.pdf-group-5,.employee-personal-shift.service-normal.pdf-group-5{background:#fbeaec;border-color:#edc5cc;border-left-color:#bf6372;color:#843c4a}
+.employee-timeline-shift.service-meeting,.employee-personal-shift.service-meeting{background:#eee5ff;border-color:#cdb8ff;border-left-color:#8065b2;color:#6741a5}
+.employee-timeline-shift.service-supervision,.employee-personal-shift.service-supervision{background:#e0efff;border-color:#a8ccf7;border-left-color:#4b79b5;color:#205fa8}
+.employee-timeline-shift.service-church,.employee-personal-shift.service-church{background:#dff4e5;border-color:#a6d9b6;border-left-color:#438b60;color:#216b43}
+.employee-timeline-shift.service-other,.employee-personal-shift.service-other{background:#ffe1e2;border-color:#f2b3b8;border-left-color:#bf6372;color:#a82b35}
+.employee-timeline-shift.service-fortbildung,.employee-personal-shift.service-fortbildung{background:#ffedcf;border-color:#efc77e;border-left-color:#c58a31;color:#88520a}
+.employee-timeline-shift.is-own.pdf-group-0,.employee-timeline-shift.is-own.pdf-group-1,.employee-timeline-shift.is-own.pdf-group-2,.employee-timeline-shift.is-own.pdf-group-3,.employee-timeline-shift.is-own.pdf-group-4,.employee-timeline-shift.is-own.pdf-group-5{border-color:#123f35}
+
+.employee-timeline-shift.is-own.service-normal.pdf-group-0{background:#e5f3eb;color:#205c3b}
+.employee-timeline-shift.is-own.service-normal.pdf-group-1{background:#e6effb;color:#28527d}
+.employee-timeline-shift.is-own.service-normal.pdf-group-2{background:#fff1dd;color:#805315}
+.employee-timeline-shift.is-own.service-normal.pdf-group-3{background:#f0eafb;color:#59447f}
+.employee-timeline-shift.is-own.service-normal.pdf-group-4{background:#e0f2f1;color:#216563}
+.employee-timeline-shift.is-own.service-normal.pdf-group-5{background:#fbeaec;color:#843c4a}
+.employee-timeline-shift.is-own.service-meeting,.employee-personal-shift.service-meeting,.employee-personal-event.event-meeting{background:#eee8fb;border-color:#cdb8ff;border-left-color:#8061c8;color:#49347a}
+.employee-timeline-shift.is-own.service-supervision,.employee-personal-event.event-supervision{background:#e5efff;border-color:#b6cdf0;border-left-color:#3d79c6;color:#244e83}
+.employee-personal-event.event-training{background:#fff1d9;border-color:#efc77e;border-left-color:#d48b22;color:#805315}
+.employee-personal-event.event-special{background:#fce8eb;border-color:#edc5cc;border-left-color:#c65a6a;color:#803746}
+
+.outlook-staff-head.shift-purple{background:#f0eafb;border-bottom-color:#d6c9ec;color:#59447f}
+.outlook-staff-head.shift-teal{background:#e0f2f1;border-bottom-color:#b8dcda;color:#216563}
+.outlook-staff-head.shift-pink{background:#fbeaec;border-bottom-color:#edc5cc;color:#843c4a}
+.outlook-shift.service-normal.shift-purple{background:#f0eafb;border-color:#d6c9ec;color:#59447f}
+.outlook-shift.service-normal.shift-teal{background:#e0f2f1;border-color:#b8dcda;color:#216563}
+.outlook-shift.service-normal.shift-pink{background:#fbeaec;border-color:#edc5cc;color:#843c4a}
+
+.outlook-shift.service-normal.shift-green{border-left:4px solid #438b60}
+.outlook-shift.service-normal.shift-blue{border-left:4px solid #4b79b5}
+.outlook-shift.service-normal.shift-orange{border-left:4px solid #c58a31}
+.outlook-shift.service-normal.shift-purple{border-left:4px solid #8065b2}
+.outlook-shift.service-normal.shift-teal{border-left:4px solid #398b87}
+.outlook-shift.service-normal.shift-pink{border-left:4px solid #bf6372}
+.employee-timeline-shift.service-church,.employee-personal-shift.service-church{background:#d9f4f3;border-color:#9dd7d4;border-left-color:#398b87;color:#1e6867}
 .employee-group-heads{display:grid;grid-template-columns:42px repeat(var(--employee-lane-count),minmax(0,1fr));border-bottom:1px solid #dce5ed}
 .employee-group-head{display:flex;min-width:0;min-height:42px;flex-direction:column;justify-content:center;gap:2px;padding:5px 7px;border-right:1px solid #dce5ed;border-top:3px solid #438b60;background:#e5f3eb;color:#205c3b}
 .employee-group-head strong{overflow:hidden;font-size:11px;text-overflow:ellipsis;white-space:nowrap}
@@ -794,7 +843,7 @@ body.resizing-shift,body.resizing-shift *{cursor:ns-resize!important;user-select
 .employee-timeline-shift strong{display:block;overflow-wrap:anywhere;font-size:9px;line-height:1.15}
 .employee-timeline-detail{display:block;margin-top:2px;font-size:9px;overflow-wrap:anywhere}
 .employee-timeline-shift.is-own{z-index:3;border:2px solid #123f35;border-left-width:4px;box-shadow:0 0 0 1px #fff,0 2px 7px rgba(19,63,53,.25);font-weight:700}
-.employee-timeline-shift.is-own.pdf-group-0,.employee-timeline-shift.is-own.pdf-group-1,.employee-timeline-shift.is-own.pdf-group-2,.employee-timeline-shift.is-own.pdf-group-3,.employee-timeline-shift.is-own.pdf-group-4,.employee-timeline-shift.is-own.pdf-group-5{background:#e5f3eb;border-color:#123f35;color:#123f35}
+.employee-timeline-shift.is-own.pdf-group-0,.employee-timeline-shift.is-own.pdf-group-1,.employee-timeline-shift.is-own.pdf-group-2,.employee-timeline-shift.is-own.pdf-group-3,.employee-timeline-shift.is-own.pdf-group-4,.employee-timeline-shift.is-own.pdf-group-5{border-color:#123f35}
 .employee-own-tag{display:inline-block;margin-left:3px;padding:1px 3px;border-radius:999px;background:#123f35;color:#fff;font-size:8px;vertical-align:1px}
 .employee-own-legend{display:inline-flex;align-items:center;gap:6px;color:#205c3b!important}
 .employee-own-legend i{width:12px;height:12px;border:2px solid #123f35;border-radius:3px;background:#e5f3eb}
