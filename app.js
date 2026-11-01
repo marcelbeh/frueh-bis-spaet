@@ -96,7 +96,7 @@ async function loadCloudData(user){
  if(owner.error){showCloudError("Die Berechtigungen konnten nicht geprüft werden. "+owner.error.message);return;}
  if(!owner.data){
   const employee=await cloud.from("employee_access").select("person_name,enabled").eq("user_id",user.id).maybeSingle();
-  if(employee.error||!employee.data||!employee.data.enabled){showCloudLogin("Dieser Zugang ist nicht als Leitung oder Mitarbeitende freigeschaltet.");await cloud.auth.signOut();return;}
+  if(employee.error||!employee.data||!employee.data.enabled){removeEmployeePortal();const shell=document.querySelector(".app-shell");if(shell)shell.hidden=true;showCloudLogin("Dieser Zugang ist nicht als Leitung oder Mitarbeitende freigeschaltet.");await cloud.auth.signOut();return;}
   const {data:portal,error:portalError}=await cloud.functions.invoke("employee-schedule",{body:{weekOffset:0}});
   if(portalError||!portal){showCloudLogin("Deine Dienste konnten nicht geladen werden. Bitte wende dich an die Leitung.");await cloud.auth.signOut();return;}
   document.getElementById("cloudLogin")?.remove();
