@@ -28,7 +28,7 @@ Secrets niemals ausgeben, auslesen, kopieren, protokollieren oder ändern. Keine
 
 - Nutze für jede Arbeit einen separaten Branch und prüfe vor Änderungen Branch und Arbeitsbaum. Ändere `main` nicht direkt.
 - Erstelle keinen Pull Request, merge nicht und veröffentliche nicht, solange der Nutzer dies nicht ausdrücklich für den konkreten Stand freigegeben hat.
-- Automatische Veröffentlichung ist nur für klar abgegrenzte, unkritische Änderungen zulässig, wenn die vollständige passende Testsuite erfolgreich war und der Ablauf sie sicher von geschützten Bereichen trennt. Eine Änderung an irgendeinem geschützten Bereich, gemischte Änderungen oder unklare Zuordnung sperrt automatische Veröffentlichung.
+- Automatische Veröffentlichung ist ausschließlich innerhalb eines bereits ausdrücklich autorisierten und technisch abgesicherten Veröffentlichungsablaufs zulässig. Sie gilt nur für klar abgegrenzte, unkritische Änderungen, wenn die vollständige passende Testsuite erfolgreich war und der Ablauf sie sicher von geschützten Bereichen trennt. Eine Änderung an irgendeinem geschützten Bereich, gemischte Änderungen, fehlende Absicherung oder unklare Zuordnung sperrt automatische Veröffentlichung.
 - Größere Änderungen, Änderungen an geschützten Bereichen, Sicherheits- oder Datenbankänderungen sowie Veröffentlichungen benötigen ausdrückliche Freigabe nach vollständiger Prüfung. Fehlgeschlagene oder nicht ausgeführte Tests sperren Veröffentlichung.
 - Vorhandene GitHub-Workflow- oder Branch-Regeln prüfen, bevor sie ergänzt werden. Fehlende GitHub-Einstellungen als manuelle Aufgabe dokumentieren; nicht behaupten, eine Einstellung sei aktiv, wenn sie nicht überprüfbar ist.
 
