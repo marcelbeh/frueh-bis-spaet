@@ -528,6 +528,49 @@ test('dual-role employee switches areas without a new sign-in',async({page})=>{
  expect(await page.evaluate(()=>window.__employeeScheduleCalls)).toBe(2);
 });
 
+test('weekly staffing ampels reflect under, exact, over and live-updated coverage',async({page})=>{
+ await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};'}));
+ await page.setViewportSize({width:1280,height:900});
+ await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+ await page.evaluate(()=>{
+  document.querySelector('#cloudLogin')?.remove();
+  groups=['Nest','Sonnengruppe','Sternengruppe'];
+  names=[
+   {name:'Nest Person',initials:'NP',group:'Nest',hours:30,color:'plum'},
+   {name:'Sonne Person',initials:'SP',group:'Sonnengruppe',hours:30,color:'plum'},
+   {name:'Stern Person',initials:'ST',group:'Sternengruppe',hours:30,color:'plum'},
+   {name:'Stern Extra',initials:'SE',group:'Sternengruppe',hours:30,color:'plum'}
+  ];
+  plannerSettings.minimumEarlyByGroup={Nest:1,Sonnengruppe:1,Sternengruppe:1};
+  plannerSettings.minimumByGroup={Nest:1,Sonnengruppe:1,Sternengruppe:1};
+  plannerSettings.minimumLateByGroup={Nest:1,Sonnengruppe:1,Sternengruppe:1};
+  plannerSettings.mergeEarlyGroups=false;plannerSettings.mergeLateGroups=false;
+  shifts=[
+   {id:'nest-all',person:'Nest Person',group:'Nest',serviceType:'Normaler Dienst',day:0,start:'07:00',end:'16:30',weekOffset:0},
+   {id:'sun-all',person:'Sonne Person',group:'Sonnengruppe',serviceType:'Normaler Dienst',day:0,start:'07:00',end:'16:30',weekOffset:0},
+   {id:'stern-core-late',person:'Stern Person',group:'Sternengruppe',serviceType:'Normaler Dienst',day:0,start:'08:00',end:'16:30',weekOffset:0},
+   {id:'stern-extra-late',person:'Stern Extra',group:'Sternengruppe',serviceType:'Normaler Dienst',day:0,start:'15:00',end:'16:30',weekOffset:0}
+  ];
+  currentPage='dienstplan';selectedGroup='Alle Gruppen';render();
+ });
+ const cards=page.locator('.day-calendar').first().locator('.day-coverage');
+ await expect(cards).toHaveCount(3);
+ await expect(page.locator('.day-coverage[data-period="early"]')).toHaveAttribute('data-status','understaffed');
+ await expect(page.locator('.day-coverage[data-period="early"] .day-coverage-status-label')).toHaveText('Unterbesetzt');
+ await expect(page.locator('.day-coverage[data-period="early"] .day-coverage-entry.is-understaffed')).toContainText('Sternengruppe');
+ await expect(page.locator('.day-coverage[data-period="core"]')).toHaveAttribute('data-status','fulfilled');
+ await expect(page.locator('.day-coverage[data-period="core"] .day-coverage-status-label')).toHaveText('Soll erfüllt');
+ await expect(page.locator('.day-coverage[data-period="late"]')).toHaveAttribute('data-status','good');
+ await expect(page.locator('.day-coverage[data-period="late"] .day-coverage-status-label')).toHaveText('Gut besetzt');
+ const colors=await page.locator('.day-coverage').evaluateAll(nodes=>nodes.map(node=>getComputedStyle(node).backgroundColor));
+ expect(new Set(colors).size).toBe(1);
+ await page.evaluate(()=>{
+  shifts.push({id:'stern-extra-early',person:'Stern Extra',group:'Sternengruppe',serviceType:'Normaler Dienst',day:0,start:'07:00',end:'08:00',weekOffset:0});
+  render();
+ });
+ await expect(page.locator('.day-coverage[data-period="early"]')).toHaveAttribute('data-status','fulfilled');
+ await expect(page.locator('.day-coverage[data-period="early"] .day-coverage-status-label')).toHaveText('Soll erfüllt');
+});
 test('weekly plan uses three aligned WUSELO staffing cards and grouped staff columns',async({page})=>{
  await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};'}));
  await page.setViewportSize({width:1440,height:1000});
