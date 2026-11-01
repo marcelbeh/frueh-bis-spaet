@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#F6F3F0">
+  <meta name="theme-color" content="#F6F7FB">
   <meta name="application-name" content="kitaplanio">
   <meta name="description" content="kitaplanio – Ordnung im Kita-Trubel. Übersichtliche Dienst- und Personalplanung für Kindertagesstätten.">
   <meta name="apple-mobile-web-app-title" content="kitaplanio">
@@ -13,12 +13,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   <title>kitaplanio – Ordnung im Kita-Trubel.</title>
-  <link rel="stylesheet" href="./styles.css?v=wuselo-submenu-icons-1">
+  <link rel="stylesheet" href="./styles.css?v=kitaplanio-rebrand-1">
 </head>
 <body>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
-      <div class="brand-row"><button class="sidebar-collapse" id="sidebarCollapse" type="button" aria-label="Menü einklappen" title="Menü einklappen">‹</button><a class="brand" href="#" data-page="dashboard" aria-label="kitaplanio Startseite"><img class="brand-logo" src="./assets/wuselo-logo.svg" alt="kitaplanio – Ordnung im Kita-Trubel."></a></div>
+      <div class="brand-row"><button class="sidebar-collapse" id="sidebarCollapse" type="button" aria-label="Menü einklappen" title="Menü einklappen">‹</button><a class="brand" href="#" data-page="dashboard" aria-label="kitaplanio Startseite"><img class="brand-logo" src="./assets/wuselo-logo-dark.svg" alt="kitaplanio – Ordnung im Kita-Trubel."></a></div>
       <nav class="nav" aria-label="Hauptnavigation">
         <button class="nav-item active" data-page="dashboard"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M9 20v-6h6v6"/></svg></span><span class="nav-label">Dashboard</span></button>
         <div class="nav-group" data-nav-group="planung">
@@ -65,11 +65,13 @@
     <main class="main-area">
       <header class="topbar">
         <button class="mobile-menu" id="mobileMenu" aria-label="Menü öffnen" aria-controls="sidebar" aria-expanded="false">☰</button>
+        <a class="mobile-brand" href="#" data-page="dashboard" aria-label="kitaplanio Startseite"><img src="./assets/wuselo-logo.svg" alt="kitaplanio – Ordnung im Kita-Trubel."></a>
         <label class="searchbox"><span>⌕</span><input id="globalSearch" placeholder="Mitarbeitende, Termine suchen …" aria-label="Suche"></label>
         <div class="topbar-right"><button class="avatar profile-avatar-button" id="profileAvatar" type="button" aria-label="Leitungsprofil öffnen" title="Leitungsprofil öffnen">L</button><span class="profile-name">Leitung</span></div>
       </header>
       <section class="page-content" id="pageContent" aria-live="polite"></section>
       <footer>kitaplanio · Geschützter Leitungszugang · Änderungen werden automatisch gespeichert.</footer>
+      <nav class="mobile-bottom-nav" aria-label="Schnellnavigation"><button type="button" data-page="dashboard" aria-label="Start"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9M9 20v-6h6v6"/></svg><span>Start</span></button><button type="button" data-page="dienstplan" aria-label="Dienstplan"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>Plan</span></button><button type="button" data-page="mitarbeitende" aria-label="Team"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Team</span></button><button type="button" data-action="mobile-more" aria-label="Weitere Bereiche öffnen"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg><span>Mehr</span></button></nav>
     </main>
   </div>
   <div class="modal-backdrop hidden" id="modalBackdrop">
@@ -79,6 +81,6 @@
     </section>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./app.js?v=wuselo-delete-week-plan-1"></script>
+  <script src="./app.js?v=kitaplanio-rebrand-1"></script>
 </body>
 </html>
