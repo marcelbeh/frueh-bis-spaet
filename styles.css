@@ -1306,3 +1306,5 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 /* Keep green only for functional positive states and availability. */
 .status-dot,.status-success,.plan-status,.employee-plan-status:not(.is-empty),.coverage-ok,.day-coverage.coverage-ok,.coverage-ok-key:before,.pill.green{background:var(--wuselo-sage)!important;color:var(--wuselo-success)!important}
 .employee-plan-status:not(.is-empty),.status-dot{background:var(--wuselo-success)!important;color:var(--wuselo-cream)!important}
+
+@media print{:root{--wuselo-white:#FFFFFF!important}}
