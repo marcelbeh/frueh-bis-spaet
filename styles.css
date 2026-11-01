@@ -1,6 +1,6 @@
 :root{
  --wuselo-plum:#975C80;--wuselo-aubergine:#493C49;--wuselo-lavender:#E8D7E2;--wuselo-sage:#DDECE3;--wuselo-sand:#F4E5D2;--wuselo-cream:#F6F3F0;
- --wuselo-success:#477B5C;--wuselo-warning:#B98235;--wuselo-error:#B85D60;--wuselo-error-soft:var(--wuselo-lavender);--wuselo-white:var(--wuselo-cream);--wuselo-muted:var(--wuselo-aubergine);--wuselo-line:var(--wuselo-lavender);
+ --wuselo-success:#477B5C;--wuselo-warning:#B98235;--wuselo-error:#B85D60;--wuselo-error-soft:var(--wuselo-lavender);--wuselo-white:#FFFFFF;--wuselo-muted:var(--wuselo-aubergine);--wuselo-line:var(--wuselo-lavender);
  --font-head:"Nunito Sans",Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--font-body:Inter,"Avenir Next",Avenir,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
  --ink:var(--wuselo-aubergine);--muted:var(--wuselo-muted);--line:var(--wuselo-line);--surface:var(--wuselo-white);--canvas:var(--wuselo-cream);
  --blue:var(--wuselo-plum);--blue-soft:var(--wuselo-lavender);--green:var(--wuselo-sage);--green-ink:var(--wuselo-success);--yellow:var(--wuselo-sand);--yellow-ink:var(--wuselo-warning);--purple:var(--wuselo-lavender);--purple-ink:var(--wuselo-aubergine);--red:var(--wuselo-error-soft);--red-ink:var(--wuselo-error);--teal:var(--wuselo-sage);
@@ -1306,5 +1306,3 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 /* Keep green only for functional positive states and availability. */
 .status-dot,.status-success,.plan-status,.employee-plan-status:not(.is-empty),.coverage-ok,.day-coverage.coverage-ok,.coverage-ok-key:before,.pill.green{background:var(--wuselo-sage)!important;color:var(--wuselo-success)!important}
 .employee-plan-status:not(.is-empty),.status-dot{background:var(--wuselo-success)!important;color:var(--wuselo-cream)!important}
-
-@media print{:root{--wuselo-white:#FFFFFF!important}}
