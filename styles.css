@@ -1225,6 +1225,7 @@ h1,h2,h3,h4,.brand-copy,.employee-sidebar-brand,.page-title,.modal-title{font-fa
 .stat.metric-absences .stat-value{color:var(--wuselo-aubergine)}
 .dashboard-quick-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}
 .dashboard-quick-actions .btn{display:flex;align-items:center;justify-content:center;min-width:0;min-height:48px;white-space:normal;text-align:center}
+.mobile-brand{display:none}
 .mobile-bottom-nav{display:none}
 @media(max-width:560px){.auth-card{padding:24px}.auth-brand-logo{width:min(100%,265px)}}
 .btn.primary,.auth-submit{background:var(--wuselo-plum);color:var(--wuselo-white);border-color:var(--wuselo-plum)}
