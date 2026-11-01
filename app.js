@@ -64,7 +64,32 @@ function initials(value){const parts=String(value||"").trim().split(/\s+/).filte
 function leaderInitials(){const full=(leaderProfile.name||cloudUser?.user_metadata?.full_name||"").trim();if(full){const parts=full.split(/\s+/).filter(Boolean);return (parts.length>1?parts[0][0]+parts[parts.length-1][0]:parts[0].slice(0,2)).toUpperCase()}const local=(cloudUser?.email||"").split("@")[0]||"L";return local.slice(0,2).toUpperCase()}
 function updateProfileHeader(){const avatar=document.getElementById("profileAvatar"),label=document.querySelector(".profile-name"),sideAvatar=document.getElementById("sidebarAvatar"),sideName=document.getElementById("sidebarUserName"),full=leaderProfile.name||cloudUser?.user_metadata?.full_name||"Leitung";if(avatar)avatar.textContent=leaderInitials();if(label)label.textContent=full;if(sideAvatar)sideAvatar.textContent=leaderInitials();if(sideName)sideName.textContent=full}
 function addCloudLogout(){const right=document.querySelector(".topbar-right");if(!right)return;updateProfileHeader();const avatar=document.getElementById("profileAvatar"),sideProfile=document.getElementById("sidebarProfile"),sideLogout=document.getElementById("sidebarLogout");if(sideProfile&&!sideProfile.dataset.bound){sideProfile.dataset.bound="true";sideProfile.addEventListener("click",()=>navigate("leitungsprofil"))}if(sideLogout&&!sideLogout.dataset.bound){sideLogout.dataset.bound="true";sideLogout.addEventListener("click",async()=>{await cloud.auth.signOut();cloudReady=false;cloudUser=null;showCloudLogin("Du wurdest abgemeldet.")})}if(avatar&&!avatar.dataset.bound){avatar.dataset.bound="true";avatar.addEventListener("click",()=>navigate("leitungsprofil"));avatar.title="Leitungsprofil öffnen";avatar.setAttribute("aria-label","Leitungsprofil öffnen");}if(document.getElementById("cloudLogout"))return;const b=document.createElement("button");b.id="cloudLogout";b.type="button";b.textContent="Abmelden";b.className="btn small";b.style.marginLeft="10px";b.addEventListener("click",async()=>{await cloud.auth.signOut();cloudReady=false;cloudUser=null;showCloudLogin("Du wurdest abgemeldet.")});right.appendChild(b);addEmployeeAreaSwitch(right);}
-function addEmployeeAreaSwitch(container){let button=document.getElementById("employeeAreaSwitch");if(!button){button=document.createElement("button");button.id="employeeAreaSwitch";button.type="button";button.textContent="Mein Mitarbeiterbereich";button.className="btn small";button.style.marginLeft="10px";button.hidden=true;button.addEventListener("click",async()=>{button.disabled=true;const {data,error}=await cloud.functions.invoke("employee-schedule",{body:{weekOffset:0}});button.disabled=false;if(error||!data){showCloudError("Der Mitarbeiterbereich konnte nicht geöffnet werden. "+(error?.message||""));return}showEmployeePortal(data)});container.appendChild(button)}cloud.from("employee_access").select("user_id,enabled").eq("user_id",cloudUser?.id).maybeSingle().then(({data,error})=>{button.hidden=Boolean(error||!data?.enabled)})}
+function addEmployeeAreaSwitch(container){let button=document.getElementById("employeeAreaSwitch");if(!button){button=document.createElement("button");button.id="employeeAreaSwitch";button.type="button";button.textContent="Mein Mitarbeiterbereich";button.className="btn small";button.style.marginLeft="10px";button.hidden=true;button.addEventListener("click",async()=>{button.disabled=true;const {data,error}=await cloud.functions.invoke("employee-schedule",{body:{weekOffset:0}});button.disabled=false;if(error||!data){showCloudError("Der Mitarbeiterbereich konnte nicht geöffnet werden. "+(error?.message||""));return}showEmployeePortal(data);startAccessMonitor(cloudUser)});container.appendChild(button)}cloud.from("employee_access").select("user_id,enabled").eq("user_id",cloudUser?.id).maybeSingle().then(({data,error})=>{button.hidden=Boolean(error||!data?.enabled)})}
+let accessMonitorTimer=null,accessMonitorCheck=null,accessMonitorBusy=false,activeCloudMode=null;
+function startAccessMonitor(user){
+ if(accessMonitorTimer)clearInterval(accessMonitorTimer);
+ if(accessMonitorCheck)window.removeEventListener("focus",accessMonitorCheck);
+ const check=async()=>{
+  if(accessMonitorBusy||!cloudUser||cloudUser.id!==user.id)return;
+  accessMonitorBusy=true;
+  try{
+   const [ownerResult,employeeResult]=await Promise.all([
+    cloud.from("app_owner").select("user_id").eq("user_id",user.id).maybeSingle(),
+    cloud.from("employee_access").select("enabled").eq("user_id",user.id).maybeSingle()
+   ]);
+   if(ownerResult.error||employeeResult.error)return;
+   const hasLeader=Boolean(ownerResult.data),hasEmployee=Boolean(employeeResult.data?.enabled);
+   if(activeCloudMode==="leader"&&!hasLeader||activeCloudMode==="employee"&&!hasLeader&&!hasEmployee){await loadCloudData(user);return}
+   if(activeCloudMode==="employee"){
+    const switchButton=document.querySelector("#employeePortal [data-employee-to-leader]");
+    if(switchButton)switchButton.hidden=!hasLeader;
+   }else if(activeCloudMode==="leader"){
+    const topbar=document.querySelector(".topbar-right");if(topbar)addEmployeeAreaSwitch(topbar);
+   }
+  }finally{accessMonitorBusy=false}
+ };
+ accessMonitorCheck=check;window.addEventListener("focus",check);accessMonitorTimer=setInterval(check,15000);
+}
 async function loadCloudData(user){
  cloudReady=false;cloudUser=user;
  const owner=await cloud.from("app_owner").select("user_id").eq("user_id",user.id).maybeSingle();
@@ -80,7 +105,7 @@ async function loadCloudData(user){
  const result=await cloud.from("app_state").select("state,updated_at").eq("id",1).maybeSingle();
  if(result.error){showCloudError("Die gespeicherten Daten konnten nicht geladen werden. "+result.error.message);return;}
  removeEmployeePortal();if(result.data?.state)applyCloudSnapshot(result.data.state);cloudUpdatedAt=result.data?.updated_at||null;
- cloudReady=true;document.getElementById("cloudLogin")?.remove();addCloudLogout();render();const status=document.getElementById("cloudSaveStatus");if(status)status.textContent="Gespeichert";
+ cloudReady=true;activeCloudMode="leader";document.getElementById("cloudLogin")?.remove();addCloudLogout();render();startAccessMonitor(user);const status=document.getElementById("cloudSaveStatus");if(status)status.textContent="Gespeichert";
  if(!result.data)await saveCloudState();
 }
 function removeEmployeePortal(){
@@ -88,7 +113,7 @@ function removeEmployeePortal(){
  const shell=document.querySelector(".app-shell");if(shell){shell.hidden=false;shell.style.removeProperty("display");}
 }
 function showEmployeePortal(payload){
- removeEmployeePortal();
+ activeCloudMode="employee";removeEmployeePortal();
  const shell=document.querySelector(".app-shell");if(shell){shell.hidden=true;shell.style.display="none";}
  let weekOffset=Number.isInteger(payload?.weekOffset)?payload.weekOffset:0;
  let loading=false,activeView="personal",activeEmployeePage="personal",selectedDay=0;
