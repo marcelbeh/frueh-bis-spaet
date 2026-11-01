@@ -124,24 +124,29 @@ function showEmployeePortal(payload){
   if(content){
    const days=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
    const monday=weekMonday(weekOffset);
+   const people=[...new Map(shifts.map(s=>[String(s.person||"Team"),{name:String(s.person||"Team"),group:String(s.group||"Team")}])).values()];
    const dayCols=days.map((day,index)=>{
     const date=new Date(monday);date.setDate(monday.getDate()+index);
     const dateText=new Intl.DateTimeFormat("de-DE",{day:"2-digit",month:"2-digit"}).format(date);
     const dayKey=isoDate(date);
-    const dayShifts=shifts.filter(s=>s.date===dayKey).sort((x,y)=>x.start.localeCompare(y.start)||String(x.person).localeCompare(String(y.person)));
-    const blocks=dayShifts.map(s=>{
-     const own=s.person===payload?.employeeName;
-     const start=Math.max(360,Math.min(1320,Number(s.start.slice(0,2))*60+Number(s.start.slice(3))));
-     const end=Math.max(start+30,Math.min(1320,Number(s.end.slice(0,2))*60+Number(s.end.slice(3))));
-     const top=Math.max(0,Math.min(100,(start-360)/960*100));
-     const height=Math.max(4,(end-start)/960*100);
-     const groupIndex=Math.max(0,groups.indexOf(String(s.group||"Team")))%6;
-     return '<article class="employee-timeline-shift pdf-group-'+groupIndex+(own?' is-own':'')+'" style="top:'+top+'%;height:'+height+'%"'+(own?' aria-current="true"':'')+'><strong>'+escapeHTML(s.person||"Team")+(own?'<span class="employee-own-tag">Du</span>':'')+'</strong><span class="employee-timeline-time">'+escapeHTML(s.start)+'–'+escapeHTML(s.end)+'</span><span class="employee-timeline-detail">'+escapeHTML(s.serviceType||s.group||"Dienst")+'</span></article>';
+    const dayShifts=shifts.filter(s=>s.date===dayKey);
+    const lanes=people.map(person=>{
+     const own=person.name===payload?.employeeName;
+     const personShifts=dayShifts.filter(s=>String(s.person||"Team")===person.name).sort((x,y)=>x.start.localeCompare(y.start));
+     const blocks=personShifts.map(s=>{
+      const start=Math.max(360,Math.min(1320,Number(s.start.slice(0,2))*60+Number(s.start.slice(3))));
+      const end=Math.max(start+30,Math.min(1320,Number(s.end.slice(0,2))*60+Number(s.end.slice(3))));
+      const top=Math.max(0,Math.min(100,(start-360)/960*100));
+      const height=Math.max(4,(end-start)/960*100);
+      const groupIndex=Math.max(0,groups.indexOf(String(s.group||"Team")))%6;
+      return '<article class="employee-timeline-shift pdf-group-'+groupIndex+(own?' is-own':'')+'" style="top:'+top+'%;height:'+height+'%"'+(own?' aria-current="true"':'')+'><strong>'+escapeHTML(s.start)+'–'+escapeHTML(s.end)+'</strong><span class="employee-timeline-detail">'+escapeHTML(s.serviceType||s.group||"Dienst")+'</span></article>';
+     }).join("");
+     return '<div class="employee-person-lane'+(own?' is-own-lane':'')+'"><div class="employee-person-track">'+(blocks||'<span class="employee-person-free">Frei</span>')+'</div></div>';
     }).join("");
     const ticks=[6,8,10,12,14,16,18,20,22].map(hour=>'<span class="employee-time-tick" style="top:'+((hour-6)/16*100)+'%">'+String(hour).padStart(2,"0")+':00</span>').join("");
-    return '<section class="employee-timeline-day"><header><h3>'+day+'</h3><time>'+dateText+'</time></header><div class="employee-timeline-track"><div class="employee-time-axis" aria-hidden="true">'+ticks+'</div><div class="employee-time-gridlines" aria-hidden="true"></div><div class="employee-time-events">'+blocks+'</div></div></section>';
+    return '<section class="employee-timeline-day" style="--employee-lane-count:'+people.length+';--employee-day-width:'+(42+people.length*84)+'px"><header class="employee-timeline-day-title"><h3>'+day+'</h3><time>'+dateText+'</time></header><div class="employee-timeline-staff-heads"><div class="employee-staff-axis"></div>'+people.map(person=>'<div class="employee-person-head'+(person.name===payload?.employeeName?' is-own':'')+'" title="'+escapeHTML(person.name)+'"><strong>'+escapeHTML(person.name)+(person.name===payload?.employeeName?'<span class="employee-own-tag">Du</span>':'')+'</strong><small>'+escapeHTML(person.group)+'</small></div>').join("")+'</div><div class="employee-timeline-row"><div class="employee-time-axis" aria-hidden="true">'+ticks+'</div><div class="employee-person-lanes">'+lanes+'</div></div></section>';
    }).join("");
-   content.innerHTML='<div class="employee-week-summary"><strong>'+shifts.length+' '+(shifts.length===1?'Dienst':'Dienste')+'</strong><span>'+groups.length+' '+(groups.length===1?'Gruppe':'Gruppen')+'</span><span class="employee-own-legend"><i aria-hidden="true"></i>Deine Dienste</span></div><div class="employee-timeline-scroll"><div class="employee-timeline-board">'+dayCols+'</div></div>';
+   content.innerHTML='<div class="employee-week-summary"><strong>'+shifts.length+' '+(shifts.length===1?'Dienst':'Dienste')+'</strong><span>'+groups.length+' '+(groups.length===1?'Gruppe':'Gruppen')+'</span><span>'+people.length+' '+(people.length===1?'Mitarbeitende':'Mitarbeitende')+'</span><span class="employee-own-legend"><i aria-hidden="true"></i>Deine Spalte</span></div><div class="employee-timeline-scroll"><div class="employee-timeline-board">'+dayCols+'</div></div>';
   }
   if(personal){
    const own=shifts.filter(s=>s.person===payload?.employeeName);
