@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "test": "node --test tests/core.test.cjs",
+    "test": "node --test tests/*.test.cjs",
     "test:browser": "playwright test tests/browser.spec.cjs",
     "test:webkit": "playwright test tests/mobile-webkit.spec.cjs --browser=webkit"
   },
