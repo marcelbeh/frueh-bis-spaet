@@ -747,19 +747,32 @@ body.resizing-shift,body.resizing-shift *{cursor:ns-resize!important;user-select
 .employee-week-button:disabled{opacity:.45;cursor:wait}
 .employee-week-summary{display:flex;gap:14px;margin:0 0 14px;color:#68788a;font-size:14px}
 .employee-week-summary strong{color:#19304b}
-.employee-week-board{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;align-items:start}
-.employee-day-card{min-width:0;overflow:hidden;border:1px solid #e2e9f0;border-radius:12px;background:#fff}
-.employee-day-card>header{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:11px 9px;background:#f4f7fb}
-.employee-day-card h3{margin:0;font-size:13px}
-.employee-day-card>header time{color:#68788a;font-size:12px}
-.employee-day-shifts{display:grid;gap:7px;padding:8px}
-.employee-overview-shift{min-width:0;padding:9px;border:1px solid #e7edf2;border-left:3px solid #a9bdcf;border-radius:9px;background:#fbfcfe}
-.employee-overview-shift.is-own{border-left-color:#1d6b54;background:#f0f8f3}
-.employee-overview-shift-top{display:flex;align-items:flex-start;justify-content:space-between;gap:5px}
-.employee-overview-shift-top strong{overflow-wrap:anywhere;font-size:12px;line-height:1.3}
-.employee-shift-group{flex:none;padding:2px 5px;border-radius:999px;background:#eaf1f8;color:#45617c;font-size:10px;font-weight:700}
-.employee-overview-shift time{display:block;margin-top:6px;color:#1d6b54;font-size:13px;font-weight:750}
-.employee-overview-shift small{display:block;margin-top:3px;color:#68788a;font-size:11px}
+.employee-timeline-scroll{overflow-x:auto;padding:2px 1px 10px;scrollbar-color:#bdcbd8 #f1f5f8}
+.employee-timeline-board{display:grid;grid-template-columns:repeat(7,minmax(180px,1fr));gap:8px;min-width:1320px}
+.employee-timeline-day{min-width:0;overflow:hidden;border:1px solid #dce5ed;border-radius:10px;background:#fff}
+.employee-timeline-day>header{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:10px 9px;border-bottom:1px solid #dce5ed;background:#f4f7fb}
+.employee-timeline-day h3{margin:0;font-size:13px;color:#152b46}
+.employee-timeline-day>header time{color:#68788a;font-size:11px}
+.employee-timeline-track{position:relative;height:640px;background:linear-gradient(to bottom,#fff,#fcfdff)}
+.employee-time-axis{position:absolute;inset:0 auto 0 0;width:38px;border-right:1px solid #e0e8ef;z-index:2;background:rgba(248,250,252,.92)}
+.employee-time-tick{position:absolute;right:4px;transform:translateY(-50%);font-size:9px;color:#75869a}
+.employee-time-tick:first-child{transform:none}
+.employee-time-gridlines{position:absolute;inset:0 0 0 38px;background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(12.5% - 1px),#e5ebf1 calc(12.5% - 1px),#e5ebf1 12.5%)}
+.employee-time-events{position:absolute;inset:0 4px 0 43px}
+.employee-timeline-shift{position:absolute;left:0;right:0;z-index:1;overflow:hidden;padding:5px 5px 4px;border:1px solid #b8d9c5;border-left:4px solid #438b60;border-radius:5px;background:#e5f3eb;color:#205c3b;line-height:1.2}
+.employee-timeline-shift.pdf-group-0{background:#e5f3eb;border-color:#b8d9c5;border-left-color:#438b60;color:#205c3b}
+.employee-timeline-shift.pdf-group-1{background:#e6effb;border-color:#bfd2ed;border-left-color:#4b79b5;color:#28527d}
+.employee-timeline-shift.pdf-group-2{background:#fff1dd;border-color:#eed5a8;border-left-color:#c58a31;color:#805315}
+.employee-timeline-shift.pdf-group-3{background:#f0eafb;border-color:#d6c9ec;border-left-color:#8065b2;color:#59447f}
+.employee-timeline-shift.pdf-group-4{background:#e0f2f1;border-color:#b8dcda;border-left-color:#398b87;color:#216563}
+.employee-timeline-shift.pdf-group-5{background:#fbeaec;border-color:#edc5cc;border-left-color:#bf6372;color:#843c4a}
+.employee-timeline-shift strong{display:block;overflow-wrap:anywhere;font-size:11px}
+.employee-timeline-time{display:block;margin-top:3px;font-size:10px;font-weight:750}
+.employee-timeline-detail{display:block;margin-top:2px;font-size:9px;opacity:.88}
+.employee-timeline-shift.is-own{z-index:3;border:2px solid #123f35;border-left-width:6px;box-shadow:0 0 0 2px #fff,0 2px 8px rgba(19,63,53,.28);font-weight:700}
+.employee-own-tag{display:inline-block;margin-left:4px;padding:1px 4px;border-radius:999px;background:#123f35;color:#fff;font-size:8px;vertical-align:1px}
+.employee-own-legend{display:inline-flex;align-items:center;gap:6px;color:#205c3b!important}
+.employee-own-legend i{width:12px;height:12px;border:2px solid #123f35;border-radius:3px;background:#e5f3eb}
 .employee-day-empty{margin:0;padding:10px 2px;color:#9aa7b4;font-size:12px;text-align:center}
 .employee-plan-empty{display:grid;justify-items:center;gap:9px;padding:clamp(28px,5vw,52px) 18px;border:1px dashed #d5e0e9;border-radius:14px;background:#fbfcfe;text-align:center}
 .employee-plan-empty strong{font-size:17px}
@@ -768,6 +781,6 @@ body.resizing-shift,body.resizing-shift *{cursor:ns-resize!important;user-select
 .employee-week-loading{padding:30px 12px;color:#68788a;text-align:center}
 .employee-load-error .btn{margin-top:6px}
 .employee-personal-card h2{margin-top:0}
-@media(max-width:1180px){.employee-week-board{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@media(max-width:760px){.employee-week-board{grid-template-columns:repeat(2,minmax(0,1fr))}.employee-overview-heading{align-items:flex-start}.employee-overview-heading p{font-size:14px}}
-@media(max-width:460px){.employee-portal{padding:18px 12px}.employee-portal-header{gap:10px}.employee-portal-header .btn{white-space:nowrap}.employee-overview-heading{display:block}.employee-plan-status{display:inline-flex;margin-top:12px}.employee-week-nav{grid-template-columns:38px 1fr 38px;padding:8px;gap:6px}.employee-week-button{width:38px}.employee-week-nav strong{font-size:14px}.employee-week-board{grid-template-columns:1fr}.employee-day-card>header{padding:12px}.employee-day-card h3{font-size:15px}.employee-day-shifts{padding:10px}.employee-overview-shift{padding:11px}.employee-overview-shift-top strong{font-size:14px}.employee-overview-shift time{font-size:14px}}
+
+@media(max-width:760px){.employee-overview-heading{align-items:flex-start}.employee-overview-heading p{font-size:14px}}
+@media(max-width:460px){.employee-portal{padding:18px 12px}.employee-portal-header{gap:10px}.employee-portal-header .btn{white-space:nowrap}.employee-overview-heading{display:block}.employee-plan-status{display:inline-flex;margin-top:12px}.employee-week-nav{grid-template-columns:38px 1fr 38px;padding:8px;gap:6px}.employee-week-button{width:38px}.employee-week-nav strong{font-size:14px}}
