@@ -469,10 +469,17 @@ test('every management submenu has a white icon on desktop and mobile',async({pa
  await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};'}));
  await page.setViewportSize({width:1440,height:1000});
  await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
- await page.evaluate(()=>{document.querySelector('#cloudLogin')?.remove();currentPage='dashboard';render()});
+ await page.evaluate(()=>{document.querySelector('#cloudLogin')?.remove();currentPage='dashboard';render();navigate('mitarbeitende')});
+ const navColors=async()=>page.locator('#sidebar .nav-parent,#sidebar .nav-item').evaluateAll(items=>items.flatMap(item=>[item,...item.querySelectorAll('*')].map(node=>getComputedStyle(node).color)));
  for(const parent of await page.locator('.nav-parent').all()){
   if(await parent.getAttribute('aria-expanded')!=='true')await parent.click();
  }
+ expect((await navColors()).every(color=>color==='rgb(255, 255, 255)')).toBe(true);
+ await page.locator('#sidebar [data-menu-toggle="verwaltung"]').click();
+ expect((await navColors()).every(color=>color==='rgb(255, 255, 255)')).toBe(true);
+ await page.locator('#sidebarCollapse').click();
+ expect((await navColors()).every(color=>color==='rgb(255, 255, 255)')).toBe(true);
+ await page.locator('#sidebarCollapse').click();
  const items=page.locator('.nav-child');
  await expect(items).toHaveCount(11);
  await expect(page.locator('.nav-child-icon svg')).toHaveCount(11);
@@ -487,6 +494,7 @@ test('every management submenu has a white icon on desktop and mobile',async({pa
  await page.locator('#mobileMenu').click();
  await expect(page.locator('.sidebar')).toHaveClass(/open/);
  await expect(page.locator('.nav-child-icon svg')).toHaveCount(11);
+ expect((await navColors()).every(color=>color==='rgb(255, 255, 255)')).toBe(true);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
 
@@ -568,4 +576,18 @@ test('weekly plan uses three aligned WUSELO staffing cards and grouped staff col
  });
  expect(mobile.page).toBeLessThanOrEqual(mobile.viewport);
  expect(Math.max(...mobile.cardWidths)-Math.min(...mobile.cardWidths)).toBeLessThan(1);
+});
+
+test('dashboard greeting follows local time and updates at the next time band',async({browser})=>{
+ const context=await browser.newContext({timezoneId:'Europe/Berlin'});
+ const page=await context.newPage();
+ await page.clock.install({time:new Date('2026-11-01T03:59:59.000Z')});
+ await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};'}));
+ await page.goto('http://127.0.0.1:4173',{waitUntil:'load'});
+ await page.evaluate(()=>{document.querySelector('#cloudLogin')?.remove();leaderProfile.name='Marcel Beh';currentPage='dashboard';render()});
+ await expect(page.locator('.dashboard-welcome h1')).toHaveText('Gute Nacht, Marcel Beh!');
+ expect(await page.evaluate(()=>[4,5,10,11,17,18,21,22,23].map(dashboardGreetingForHour))).toEqual(['Gute Nacht','Guten Morgen','Guten Morgen','Guten Tag','Guten Tag','Guten Abend','Guten Abend','Gute Nacht','Gute Nacht']);
+ await page.clock.fastForward(1100);
+ await expect(page.locator('.dashboard-welcome h1')).toHaveText('Guten Morgen, Marcel Beh!');
+ await context.close();
 });
