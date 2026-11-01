@@ -1,6 +1,6 @@
-# WUSEL – Ordnung im Kita-Trubel.
+# WUSELO – Ordnung im Kita-Trubel.
 
-Browserbasierte Kita-Dienst- und Personalplanung unter der Marke WUSEL mit Supabase-Anmeldung und Speicherung eines gemeinsamen App-Zustands.
+Browserbasierte Kita-Dienst- und Personalplanung unter der Marke WUSELO mit Supabase-Anmeldung und Speicherung eines gemeinsamen App-Zustands.
 
 ## Dateien
 
