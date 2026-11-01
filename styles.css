@@ -129,7 +129,7 @@
 .nav-group{display:grid;gap:3px}
 .nav-parent{display:flex;align-items:center;gap:13px;width:100%;border:0;background:transparent;border-radius:9px;padding:11px 13px;text-align:left;color:var(--wuselo-white);font:inherit;cursor:pointer}
 .nav-parent:hover,.nav-parent[aria-expanded="true"]{background:var(--wuselo-lavender);color:var(--wuselo-white)}
-.nav-icon{width:18px;flex:0 0 18px;color:var(--wuselo-white);font-size:17px;text-align:center}
+.nav-icon{width:18px;flex:0 0 18px;color:var(--wuselo-plum);font-size:17px;text-align:center}
 .nav-label{flex:1}
 .nav-chevron{color:var(--wuselo-white);font-size:16px;transition:transform .16s}
 .nav-parent[aria-expanded="true"] .nav-chevron{transform:rotate(180deg)}
