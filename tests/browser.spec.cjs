@@ -436,3 +436,34 @@ test('every management submenu has a Plum icon on desktop and mobile',async({pag
  await expect(page.locator('.nav-child-icon svg')).toHaveCount(11);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
+
+
+test('leader can delete only the selected week after confirmation',async({page})=>{
+ const stub=`
+ const today=new Date();today.setHours(12,0,0,0);today.setDate(today.getDate()-((today.getDay()+6)%7));
+ const baseMonday=today.getFullYear()+"-"+String(today.getMonth()+1).padStart(2,"0")+"-"+String(today.getDate()).padStart(2,"0");
+ window.__state={baseMonday,weekOffset:0,names:[],groups:[],plannerSettings:{},leaderProfile:{name:"Leitung Test",group:"Nest",weeklyHours:39,officeHours:30,groupHours:9,blocks:[]},events:[],absences:[],closures:[],selectedGroup:"Alle Gruppen",shifts:[{id:"current-week",person:"Test",group:"Nest",day:0,start:"08:00",end:"12:00",weekOffset:0},{id:"other-week",person:"Test",group:"Nest",day:0,start:"08:00",end:"12:00",weekOffset:-1}]};
+ window.__stateTimestamp="2026-11-01T10:00:00.000Z";window.__deleteCalls=[];
+ window.supabase={createClient:()=>({
+  auth:{getSession:async()=>({data:{session:{user:{id:"owner-1",email:"owner@example.test"}}},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),signOut:async()=>({error:null})},
+  functions:{invoke:async(name,{body})=>{window.__deleteCalls.push({name,body});return {data:{deletedCount:1,updatedAt:"2026-11-01T10:00:02.000Z"},error:null}}},
+  from:table=>({select(){return this},eq(){return this},maybeSingle:async()=>table==="app_owner"?{data:{user_id:"owner-1"},error:null}:table==="app_state"?{data:{state:window.__state,updated_at:window.__stateTimestamp},error:null}:{data:null,error:null},update(payload){window.__state=payload.state;window.__stateTimestamp=payload.updated_at;return this},insert(){return this}})
+ })};
+ `;
+ await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:stub}));
+ await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+ await page.locator('[data-page="leitungsprofil"]').click();
+ await expect(page.getByRole('heading',{name:'Wochenplan löschen'})).toBeVisible();
+ await page.locator('[data-action="delete-week-plan"]').click();
+ await expect(page.getByRole('dialog')).toContainText('aktuell ausgewählten Kalenderwoche');
+ await page.locator('[data-close]').click();
+ expect(await page.evaluate(()=>window.__deleteCalls.length)).toBe(0);
+ expect(await page.evaluate(()=>window.__state.shifts)).toHaveLength(2);
+ await page.locator('[data-action="delete-week-plan"]').click();
+ await page.locator('[data-action="confirm-delete-week-plan"]').click();
+ await expect(page.getByRole('dialog')).toBeHidden();
+ await expect.poll(()=>page.evaluate(()=>window.__deleteCalls.length)).toBe(1);
+ expect(await page.evaluate(()=>window.__deleteCalls[0].name)).toBe('delete-week-plan');
+ expect(await page.evaluate(()=>window.__deleteCalls[0].body.weekMonday)).toBe(await page.evaluate(()=>window.__state.baseMonday));
+ expect(await page.evaluate(()=>shifts.map(shift=>shift.id))).toEqual(['other-week']);
+});
