@@ -319,6 +319,8 @@ function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"
 function weekLabel(){return "KW "+isoCalendarWeek(dateForDay(0))+" · Mo. "+fmt(dateForDay(0))+" – So. "+fmt(dateForDay(6))+" "+dateForDay(6).getFullYear()}
 function initShifts(){ /* Neue Dienstpläne starten leer. */ }
 function weekShifts(offset=weekOffset){return shifts.filter(s=>(s.weekOffset??0)===offset)}
+function shiftsOutsideWeek(shiftList,offset){return shiftList.filter(shift=>(Number.isInteger(shift.weekOffset)?shift.weekOffset:0)!==offset)}
+
 function weekLabelForOffset(offset){return "KW "+isoCalendarWeek(dateForDay(0,offset))+" · Mo. "+fmt(dateForDay(0,offset))+" – So. "+fmt(dateForDay(6,offset))+" "+dateForDay(6,offset).getFullYear()}
 function coverageRequirement(day,time,group){
  const early=time>=435&&time<480,late=time>=900&&time<975,core=time>=480&&time<900;
@@ -835,7 +837,7 @@ document.addEventListener("click",e=>{
    return;
   }
   if(!data||typeof data.updatedAt!=="string"){alert("Die Löschung wurde nicht bestätigt. Bitte lade die Seite neu und prüfe den Wochenplan.");return;}
-  shifts=shifts.filter(shift=>(Number.isInteger(shift.weekOffset)?shift.weekOffset:0)!==selectedWeekOffset);
+  shifts=shiftsOutsideWeek(shifts,selectedWeekOffset);
   cloudUpdatedAt=data.updatedAt;
   closeModal();render();alert("Wochenplan wurde gelöscht.");
  })();return;}
