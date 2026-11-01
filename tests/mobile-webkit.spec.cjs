@@ -15,6 +15,7 @@ test('WebKit mobile and tablet layouts stay within the viewport',async({browser}
  const mainBefore=await page.locator(".main-area").boundingBox();
  await page.locator("#mobileMenu").click();
  await expect(page.locator("#sidebar")).toHaveClass(/open/);
+ await expect.poll(async()=>Math.round((await page.locator("#sidebar").boundingBox()).x)).toBe(0);
  const drawer=await page.locator("#sidebar").boundingBox(),mainOpen=await page.locator(".main-area").boundingBox();
  expect(drawer.x).toBe(0);expect(drawer.width).toBeGreaterThan(200);expect(drawer.width).toBeLessThan(390);
  expect(mainOpen.x).toBe(mainBefore.x);
