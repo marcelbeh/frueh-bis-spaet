@@ -464,3 +464,55 @@ test('dual-role employee switches areas without a new sign-in',async({page})=>{
  expect(await page.evaluate(()=>window.__signedOut)).toBe(0);
  expect(await page.evaluate(()=>window.__employeeScheduleCalls)).toBe(2);
 });
+
+test('weekly plan uses three aligned WUSELO staffing cards and grouped staff columns',async({page})=>{
+ await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};'}));
+ await page.setViewportSize({width:1440,height:1000});
+ await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+ await page.evaluate(()=>{
+  document.querySelector('#cloudLogin')?.remove();
+  names=[
+   {name:'Tina Gruppe',initials:'TG',group:'Sternengruppe',hours:30,color:'plum'},
+   {name:'Zora Nest',initials:'ZN',group:'Nest',hours:30,color:'plum'},
+   {name:'Anna Nest',initials:'AN',group:'Nest',hours:30,color:'plum'},
+   {name:'Sarah Sonne',initials:'SS',group:'Sonnengruppe',hours:30,color:'plum'}
+  ];
+  shifts=[
+   {id:'visual-early',person:'Anna Nest',group:'Nest',serviceType:'Normaler Dienst',day:0,start:'07:30',end:'12:00',weekOffset:0},
+   {id:'visual-core',person:'Sarah Sonne',group:'Sonnengruppe',serviceType:'Normaler Dienst',day:0,start:'10:00',end:'14:00',weekOffset:0},
+   {id:'visual-late',person:'Tina Gruppe',group:'Sternengruppe',serviceType:'Normaler Dienst',day:0,start:'14:30',end:'16:00',weekOffset:0}
+  ];
+  currentPage='dienstplan';selectedGroup='Alle Gruppen';render();
+ });
+ const day=page.locator('.day-calendar').first();
+ await expect(day.locator('.day-coverage')).toHaveCount(3);
+ await expect(day.locator('.day-coverage[data-period="early"]')).toContainText('Früh');
+ await expect(day.locator('.day-coverage[data-period="core"]')).toContainText('Kern');
+ await expect(day.locator('.day-coverage[data-period="late"]')).toContainText('Spät');
+ await expect(day.locator('[data-edit-shift="visual-early"]')).toHaveClass(/duty-period-early/);
+ await expect(day.locator('[data-edit-shift="visual-core"]')).toHaveClass(/duty-period-core/);
+ await expect(day.locator('[data-edit-shift="visual-late"]')).toHaveClass(/duty-period-late/);
+ const desktop=await page.evaluate(()=>{
+  const day=document.querySelector('.day-calendar'),cards=[...day.querySelectorAll('.day-coverage')];
+  const heads=[...day.querySelectorAll('.outlook-staff-head')],columns=[...day.querySelectorAll('.outlook-staff-column')];
+  return {cardWidths:cards.map(x=>x.getBoundingClientRect().width),cardHeights:cards.map(x=>x.getBoundingClientRect().height),names:heads.map(x=>x.querySelector('strong').textContent),headLeft:heads.map(x=>x.getBoundingClientRect().left),columnLeft:columns.map(x=>x.getBoundingClientRect().left)};
+ });
+ expect(Math.max(...desktop.cardWidths)-Math.min(...desktop.cardWidths)).toBeLessThan(1);
+ expect(Math.max(...desktop.cardHeights)-Math.min(...desktop.cardHeights)).toBeLessThan(1);
+ expect(desktop.names).toEqual(['Anna Nest','Zora Nest','Sarah Sonne','Tina Gruppe']);
+ expect(desktop.headLeft).toEqual(desktop.columnLeft);
+ await page.setViewportSize({width:820,height:1000});
+ const tablet=await page.evaluate(()=>{
+  const day=document.querySelector('.day-calendar'),cards=[...day.querySelectorAll('.day-coverage')];
+  return {viewport:document.documentElement.clientWidth,page:document.documentElement.scrollWidth,cardWidths:cards.map(x=>x.getBoundingClientRect().width)};
+ });
+ expect(tablet.page).toBeLessThanOrEqual(tablet.viewport);
+ expect(Math.max(...tablet.cardWidths)-Math.min(...tablet.cardWidths)).toBeLessThan(1);
+ await page.setViewportSize({width:390,height:844});
+ const mobile=await page.evaluate(()=>{
+  const day=document.querySelector('.day-calendar'),cards=[...day.querySelectorAll('.day-coverage')];
+  return {viewport:document.documentElement.clientWidth,page:document.documentElement.scrollWidth,cardWidths:cards.map(x=>x.getBoundingClientRect().width)};
+ });
+ expect(mobile.page).toBeLessThanOrEqual(mobile.viewport);
+ expect(Math.max(...mobile.cardWidths)-Math.min(...mobile.cardWidths)).toBeLessThan(1);
+});
