@@ -870,7 +870,7 @@ body.resizing-shift,body.resizing-shift *{cursor:ns-resize!important;user-select
 .employee-sidebar{display:flex;flex:0 0 252px;width:252px;flex-direction:column;gap:22px;padding:18px 12px;border-right:1px solid var(--wuselo-lavender);background:var(--wuselo-white);transition:width .18s ease,flex-basis .18s ease}
 .employee-sidebar.is-collapsed{flex-basis:72px;width:72px}
 .employee-sidebar-header{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 6px}
-.employee-sidebar-mark{display:grid;flex:none;place-items:center;width:40px;height:40px;border-radius:13px;background:var(--wuselo-lavender)}.employee-sidebar-mark svg{width:29px;height:25px;display:block}
+.employee-sidebar-mark{display:grid;flex:none;place-items:center;width:40px;height:40px;border-radius:13px;background:var(--wuselo-plum)}.employee-sidebar-mark svg{width:29px;height:25px;display:block}
 .employee-sidebar-brand{display:grid;min-width:0;flex:1;gap:2px;overflow:hidden;white-space:nowrap}
 .employee-sidebar-brand strong{font-size:15px;letter-spacing:.02em;color:var(--wuselo-aubergine)}
 .employee-sidebar-brand small{font-size:10px;color:var(--wuselo-muted)}
@@ -1050,7 +1050,7 @@ label{color:var(--wuselo-muted)}
 footer{color:var(--wuselo-muted);border-top-color:var(--wuselo-line);font-size:11px}
 .employee-portal.employee-layout{background:var(--canvas)}
 .employee-sidebar{background:var(--wuselo-cream);border-right-color:var(--wuselo-line)}
-.employee-sidebar-mark{border:1px solid var(--wuselo-line);background:var(--wuselo-lavender);border-radius:15px}
+.employee-sidebar-mark{border:1px solid var(--wuselo-line);background:var(--wuselo-plum);border-radius:15px}
 .employee-sidebar-brand strong{color:var(--wuselo-plum)}
 .employee-sidebar-brand small{color:var(--wuselo-muted)}
 .employee-nav-item{border-radius:12px;color:var(--wuselo-white)}
@@ -1202,7 +1202,7 @@ h1,h2,h3,h4,.brand-copy,.employee-sidebar-brand,.page-title,.modal-title{font-fa
 .shift-orange,.shift-yellow,.service-fortbildung{background:color-mix(in srgb,var(--wuselo-yellow) 22%,var(--wuselo-white))!important;border-color:color-mix(in srgb,var(--wuselo-yellow) 48%,var(--wuselo-white))!important;color:var(--wuselo-aubergine)!important}
 .shift-pink,.shift-red,.service-other{background:var(--wuselo-error-soft)!important;border-color:color-mix(in srgb,var(--wuselo-coral) 42%,var(--wuselo-white))!important;color:var(--wuselo-aubergine)!important}
 .service-meeting{background:var(--wuselo-plum)!important;border-color:var(--wuselo-aubergine)!important;color:var(--wuselo-white)!important}
-.page-title-icon,.employee-sidebar-mark{background:var(--wuselo-lavender);color:var(--wuselo-plum)}
+.page-title-icon{background:var(--wuselo-lavender);color:var(--wuselo-plum)}.employee-sidebar-mark{background:var(--wuselo-plum);color:var(--wuselo-white)}
 .nav-icon svg,.employee-nav-icon svg,.page-title-icon svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .brand-mark{object-fit:contain;background:transparent;border:0}
 .auth-overlay{position:fixed;inset:0;z-index:99999;background:var(--wuselo-cream);display:grid;place-items:center;padding:22px;font-family:var(--font-body)}
@@ -1247,7 +1247,7 @@ h1,h2,h3,h4,.brand-copy,.employee-sidebar-brand,.page-title,.modal-title{font-fa
 .shift-teal{background:var(--wuselo-lavender)!important;border-color:var(--wuselo-plum)!important;color:var(--wuselo-plum)!important}
 .shift-pink,.service-other{background:var(--wuselo-lavender)!important;border-color:var(--wuselo-plum)!important;color:var(--wuselo-plum)!important}
 .service-meeting{background:var(--wuselo-plum)!important;border-color:var(--wuselo-aubergine)!important;color:var(--wuselo-white)!important}
-.page-title-icon,.employee-sidebar-mark{background:var(--wuselo-lavender);color:var(--wuselo-plum)}
+.page-title-icon{background:var(--wuselo-lavender);color:var(--wuselo-plum)}.employee-sidebar-mark{background:var(--wuselo-plum);color:var(--wuselo-white)}
 .nav-icon svg,.employee-nav-icon svg,.page-title-icon svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .brand-mark{object-fit:contain;background:transparent;border:0}
 .auth-overlay{position:fixed;inset:0;z-index:99999;background:var(--wuselo-cream);display:grid;place-items:center;padding:22px;font-family:var(--font-body)}
