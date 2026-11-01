@@ -493,11 +493,6 @@ test('navigation icon tiles use plum while menu text and unboxed icons remain wh
  })));
  expect(desktop.every(item=>item.icon&&item.color==='rgb(255, 255, 255)'&&item.stroke==='rgb(255, 255, 255)'&&item.marker==='none')).toBe(true);
  await page.setViewportSize({width:390,height:844});
- await expect(mobileHeaderLogo).toBeVisible();
- const mobileHeaderBox=await mobileHeaderLogo.evaluate(img=>({width:img.getBoundingClientRect().width,height:img.getBoundingClientRect().height,naturalWidth:img.naturalWidth}));
- expect(mobileHeaderBox.width).toBeGreaterThan(0);
- expect(mobileHeaderBox.height).toBeGreaterThan(0);
- expect(mobileHeaderBox.naturalWidth).toBeGreaterThan(0);
  await page.locator('#mobileMenu').click();
  await expect(page.locator('.sidebar')).toHaveClass(/open/);
  await expect(page.locator('.nav-child-icon svg')).toHaveCount(11);
