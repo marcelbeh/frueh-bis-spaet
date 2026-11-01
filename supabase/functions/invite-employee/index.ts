@@ -23,7 +23,7 @@ Deno.serve(async (request: Request) => {
   if (request.method !== "POST") return response({ error: "Method not allowed" }, 405, origin);
 
   const authorization = request.headers.get("Authorization");
-  const token = authorization?.match(/^Bearer\\s+(.+)$/i)?.[1];
+  const token = authorization?.match(/^Bearer\s+(.+)$/i)?.[1];
   if (!token) return response({ error: "Authentication required" }, 401, origin);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -47,7 +47,7 @@ Deno.serve(async (request: Request) => {
   }
   const email = typeof input.email === "string" ? input.email.trim().toLowerCase() : "";
   const name = typeof input.name === "string" ? input.name.trim() : "";
-  if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) || email.length > 254 || !name || name.length > 120) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254 || !name || name.length > 120) {
     return response({ error: "Bitte gib einen gültigen Namen und eine gültige E-Mail-Adresse ein." }, 400, origin);
   }
 
