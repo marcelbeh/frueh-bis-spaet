@@ -554,21 +554,22 @@ test('weekly staffing ampels reflect under, exact, over and live-updated coverag
  });
  const cards=page.locator('.day-calendar').first().locator('.day-coverage');
  await expect(cards).toHaveCount(3);
- await expect(page.locator('.day-coverage[data-period="early"]')).toHaveAttribute('data-status','understaffed');
- await expect(page.locator('.day-coverage[data-period="early"] .day-coverage-status-label')).toHaveText('Unterbesetzt');
- await expect(page.locator('.day-coverage[data-period="early"] .day-coverage-entry.is-understaffed')).toContainText('Sternengruppe');
- await expect(page.locator('.day-coverage[data-period="core"]')).toHaveAttribute('data-status','fulfilled');
- await expect(page.locator('.day-coverage[data-period="core"] .day-coverage-status-label')).toHaveText('Soll erfüllt');
- await expect(page.locator('.day-coverage[data-period="late"]')).toHaveAttribute('data-status','good');
- await expect(page.locator('.day-coverage[data-period="late"] .day-coverage-status-label')).toHaveText('Gut besetzt');
- const colors=await page.locator('.day-coverage').evaluateAll(nodes=>nodes.map(node=>getComputedStyle(node).backgroundColor));
+ const early=cards.nth(0),core=cards.nth(1),late=cards.nth(2);
+ await expect(early).toHaveAttribute('data-status','understaffed');
+ await expect(early.locator('.day-coverage-status-label')).toHaveText('Unterbesetzt');
+ await expect(early.locator('.day-coverage-entry.is-understaffed')).toContainText('Sternengruppe');
+ await expect(core).toHaveAttribute('data-status','fulfilled');
+ await expect(core.locator('.day-coverage-status-label')).toHaveText('Soll erfüllt');
+ await expect(late).toHaveAttribute('data-status','good');
+ await expect(late.locator('.day-coverage-status-label')).toHaveText('Gut besetzt');
+ const colors=await cards.evaluateAll(nodes=>nodes.map(node=>getComputedStyle(node).backgroundColor));
  expect(new Set(colors).size).toBe(1);
  await page.evaluate(()=>{
   shifts.push({id:'stern-extra-early',person:'Stern Extra',group:'Sternengruppe',serviceType:'Normaler Dienst',day:0,start:'07:00',end:'08:00',weekOffset:0});
   render();
  });
- await expect(page.locator('.day-coverage[data-period="early"]')).toHaveAttribute('data-status','fulfilled');
- await expect(page.locator('.day-coverage[data-period="early"] .day-coverage-status-label')).toHaveText('Soll erfüllt');
+ await expect(early).toHaveAttribute('data-status','fulfilled');
+ await expect(early.locator('.day-coverage-status-label')).toHaveText('Soll erfüllt');
 });
 test('weekly plan uses three aligned WUSELO staffing cards and grouped staff columns',async({page})=>{
  await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};'}));
