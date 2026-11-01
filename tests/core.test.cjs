@@ -6,7 +6,17 @@ const source = fs.readFileSync('app.js', 'utf8');
 const context = {Date, Math, Set, Number, String, Array, Object, console, weekOffset:0, shifts:[], events:[], closures:[], iso:d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"), minutes:t=>{const [h,m]=t.split(':').map(Number);return h*60+m;}, dateForDay:(day,offset=0)=>{const d=new Date(2026,0,5+offset*7+day,12);return d;}};
 function loadFunction(name){const start=source.indexOf('function '+name+'(');assert.notEqual(start,-1,'function '+name+' exists');const end=source.indexOf(String.fromCharCode(10)+'function ',start+10);assert.notEqual(end,-1,'next function after '+name+' exists');vm.runInContext(source.slice(start,end),ctx);}
 const ctx=vm.createContext(context);
-for(const name of ['escapeHTML','isoCalendarWeek','easterSunday','nrwPublicHolidays','isWorkingDay','isClosureDate','isClosureDay','calendarDaysBetween','personWorkingDays','personWorksOnDay','vacationDaysForPerson','vacationDaysForPersonInYear','absenceDays','usedVacation','remainingVacation','shiftPause','shiftWorkMinutes','weeklyManualShiftMinutes','regularHoursNeeded','dailyPlanningTarget','shiftCoversTime','countCoverage','eventOccursOnDate','eventDurationMinutes','eventMinutesForPersonWeek','shiftRuleConflicts'])loadFunction(name);
+for(const name of ['shiftsOutsideWeek','escapeHTML','isoCalendarWeek','easterSunday','nrwPublicHolidays','isWorkingDay','isClosureDate','isClosureDay','calendarDaysBetween','personWorkingDays','personWorksOnDay','vacationDaysForPerson','vacationDaysForPersonInYear','absenceDays','usedVacation','remainingVacation','shiftPause','shiftWorkMinutes','weeklyManualShiftMinutes','regularHoursNeeded','dailyPlanningTarget','shiftCoversTime','countCoverage','eventOccursOnDate','eventDurationMinutes','eventMinutesForPersonWeek','shiftRuleConflicts'])loadFunction(name);
+test('week deletion removes only shifts from the selected week',()=>{
+ const shifts=[
+  {id:'selected',weekOffset:4},
+  {id:'previous',weekOffset:3},
+  {id:'unassigned-offset',weekOffset:0},
+  {id:'missing-offset'}
+ ];
+ assert.deepEqual(ctx.shiftsOutsideWeek(shifts,4),shifts.slice(1));
+ assert.deepEqual(ctx.shiftsOutsideWeek(shifts,0),[shifts[0],shifts[1]]);
+});
 test('app.js parses as JavaScript',()=>assert.doesNotThrow(()=>new Function(source)));
 test('HTML user input is escaped',()=>assert.equal(ctx.escapeHTML('<img src=x onerror="x"> &'), '&lt;img src=x onerror=&quot;x&quot;&gt; &amp;'));
 test('NRW 2026 public holidays are excluded from leave days',()=>{for(const d of ['2026-01-01','2026-04-03','2026-04-06','2026-05-01','2026-05-14','2026-05-25','2026-06-04','2026-10-03','2026-11-01','2026-12-25','2026-12-26'])assert.equal(ctx.isWorkingDay(d),false,d);assert.equal(ctx.isWorkingDay('2026-04-07'),true);});
