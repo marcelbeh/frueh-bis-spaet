@@ -23,7 +23,17 @@ test('WebKit mobile and tablet layouts stay within the viewport',async({browser}
  await expect(page.locator("#sidebar")).not.toHaveClass(/open/);
  expect((await page.locator(".main-area").boundingBox()).x).toBe(mainBefore.x);
  await page.locator("#mobileMenu").click();
- await page.locator('#sidebar [data-menu-toggle="personal"]').click();
+ for(const group of ['planung','personal','termine','auswertung','verwaltung']){
+  const toggle=page.locator(`#sidebar [data-menu-toggle="${group}"]`);
+  if(await toggle.getAttribute('aria-expanded')!=='true')await toggle.click();
+ }
+ const submenuPositions=await page.locator('#sidebar .nav-child').evaluateAll(items=>items.map(item=>({
+  icon:Math.round(item.querySelector('.nav-child-icon').getBoundingClientRect().x),
+  label:Math.round(item.querySelector('.nav-child-label').getBoundingClientRect().x)
+ })));
+ expect(submenuPositions.length).toBeGreaterThan(0);
+ expect(new Set(submenuPositions.map(item=>item.icon)).size).toBe(1);
+ expect(new Set(submenuPositions.map(item=>item.label)).size).toBe(1);
  await page.locator('#sidebar [data-page="mitarbeitende"]').click();
  await expect(page.locator(".page-heading h1")).toHaveText("Mitarbeitende");
  await expect(page.locator("#sidebar")).not.toHaveClass(/open/);
