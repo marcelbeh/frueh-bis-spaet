@@ -1,6 +1,6 @@
 :root{
  --wusel-plum:#975C80;--wusel-aubergine:#493C49;--wusel-lavender:#E8D7E2;--wusel-sage:#DDECE3;--wusel-sand:#F4E5D2;--wusel-cream:#F6F3F0;
- --wusel-success:#477B5C;--wusel-warning:#B98235;--wusel-error:#B85D60;--wusel-error-soft:#F4E1E2;--wusel-white:#FFFEFD;--wusel-muted:#746A74;--wusel-line:#E4DDE3;
+ --wusel-success:#477B5C;--wusel-warning:#B98235;--wusel-error:#B85D60;--wusel-error-soft:#F4E1E2;--wusel-white:#FFFFFF;--wusel-muted:#746A74;--wusel-line:#E4DDE3;
  --font-head:"Nunito Sans",Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--font-body:Inter,"Avenir Next",Avenir,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
  --ink:var(--wusel-aubergine);--muted:var(--wusel-muted);--line:var(--wusel-line);--surface:var(--wusel-white);--canvas:var(--wusel-cream);
  --blue:var(--wusel-plum);--blue-soft:var(--wusel-lavender);--green:var(--wusel-sage);--green-ink:var(--wusel-success);--yellow:var(--wusel-sand);--yellow-ink:var(--wusel-warning);--purple:var(--wusel-lavender);--purple-ink:var(--wusel-aubergine);--red:var(--wusel-error-soft);--red-ink:var(--wusel-error);--teal:var(--wusel-sage);
