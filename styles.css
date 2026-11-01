@@ -1175,3 +1175,13 @@ footer{color:#7d887f;border-top-color:#e5eae2;font-size:11px}
  .outlook-calendar-scroll{overflow-x:auto}
  .outlook-calendar{width:max-content;min-width:max-content;grid-template-columns:44px repeat(var(--staff-count),minmax(90px,1fr))}
 }
+
+
+/* TAKT follow-up: remove remaining blue accents from page and collapse icons */
+.page-heading .page-title-icon,
+.main-area .card .card-title-icon{background:#e8efe8;color:#386650;box-shadow:inset 0 0 0 1px #dce7dc}
+.page-heading .page-title-icon svg,
+.main-area .card .card-title-icon svg{color:#386650}
+.brand-row .sidebar-collapse{border:1px solid #dce7dc;border-radius:12px;background:#e8efe8;color:#386650}
+.brand-row .sidebar-collapse:hover{border-color:#cbd9ca;background:#dfeade;color:#315b43}
+.brand-row .sidebar-collapse:focus-visible{outline:3px solid rgba(91,133,104,.25);outline-offset:2px}
