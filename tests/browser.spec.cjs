@@ -29,7 +29,7 @@ test('employee login shows only the signed-in employee schedule',async({page})=>
  await page.locator('input[name="email"]').fill('employee@example.test');
  await page.locator('input[name="password"]').fill('test-password');
  await page.locator('#cloudLoginForm button[type="submit"]').click();
- await expect(page.locator('#employeePortal h1')).toHaveText('Meine Dienste');
+ await expect(page.locator('#employeePortal h1')).toHaveText('Mein Dienstplan');
  await expect(page.locator('#employeePortal')).toContainText('Mitarbeiter 01');
  await expect(page.locator('#employeePortal')).toContainText('08:00–14:00');
  await expect(page.locator('#employeePortal')).toContainText('Samstag, 31. Oktober 2026');
