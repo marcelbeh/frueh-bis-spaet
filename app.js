@@ -83,8 +83,9 @@ function showEmployeePortal(payload){
  const shell=document.querySelector(".app-shell");if(shell){shell.hidden=true;shell.style.display="none";}
  let weekOffset=Number.isInteger(payload?.weekOffset)?payload.weekOffset:0;
  let loading=false,activeView="personal",selectedDay=0;
+ const initialProfileName=String(cloudUser?.user_metadata?.full_name||payload?.employeeName||"Mitarbeitende");
  const portal=document.createElement("main");portal.id="employeePortal";portal.className="employee-portal";
- portal.innerHTML='<header class="employee-portal-header"><div><span class="employee-portal-brand">🌈 Früh bis spät</span><h1>Meine Dienste</h1><p>Angemeldet als '+escapeHTML(payload?.employeeName||"Mitarbeitende")+' · Nur Ansicht</p></div><button class="btn small" type="button" data-employee-logout>Abmelden</button></header><section class="employee-schedule-card employee-overview-card"><div class="employee-overview-heading"><div><h2 id="employeeViewTitle">Mein Dienstplan</h2><p id="employeeViewDescription">Deine eingetragenen Dienstzeiten für die ausgewählte Kalenderwoche</p></div><span id="employeePlanStatus" class="employee-plan-status" aria-live="polite"></span></div><nav class="employee-week-nav" aria-label="Kalenderwoche"><button class="employee-week-button" type="button" data-employee-week-step="-1" aria-label="Vorherige Kalenderwoche">‹</button><strong id="employeeWeekLabel"></strong><button class="employee-week-button" type="button" data-employee-week-step="1" aria-label="Nächste Kalenderwoche">›</button></nav><nav class="employee-view-switch" aria-label="Dienstplanansicht"><button type="button" data-employee-view="personal" aria-pressed="true">Mein Dienstplan</button><button type="button" data-employee-view="team" aria-pressed="false">Gesamtübersicht</button></nav><div id="employeePersonalPanel"><div id="employeePersonalContent"></div></div><div id="employeeTeamPanel" hidden><div id="employeeDayPicker" class="employee-day-picker" aria-label="Tag auswählen"></div><div id="employeeWeekContent" aria-live="polite"></div></div></section>';
+ portal.innerHTML='<header class="employee-portal-header"><div><span class="employee-portal-brand">🌈 Früh bis spät</span><h1>Meine Dienste</h1><p>Angemeldet als <strong id="employeePortalName">'+escapeHTML(initialProfileName)+'</strong> · Nur Ansicht</p></div><div class="employee-portal-actions"><button class="btn small" type="button" data-employee-profile-toggle>Profil bearbeiten</button><button class="btn small" type="button" data-employee-logout>Abmelden</button></div></header><section class="employee-schedule-card employee-profile-card" id="employeeProfilePanel" hidden><div class="employee-profile-heading"><div><h2>Mein Profil</h2><p>Ändere hier deine persönlichen Zugangsdaten.</p></div><button class="btn small" type="button" data-employee-profile-close>Schließen</button></div><form id="employeeProfileForm"><div class="employee-profile-fields"><label class="employee-profile-field"><span>Name</span><input id="employeeProfileName" type="text" autocomplete="name" maxlength="100" required value="'+escapeHTML(initialProfileName)+'"></label><label class="employee-profile-field"><span>E-Mail-Adresse</span><input id="employeeProfileEmail" type="email" autocomplete="email" required value="'+escapeHTML(cloudUser?.email||"")+'"></label></div><p class="employee-profile-note">Der Name im Dienstplan wird weiterhin von der Leitung im Personalstamm verwaltet. Bei einer geänderten E-Mail-Adresse kann eine Bestätigung erforderlich sein.</p><div class="employee-profile-fields"><label class="employee-profile-field"><span>Neues Passwort</span><input id="employeeProfilePassword" type="password" autocomplete="new-password" minlength="8" placeholder="Mindestens 8 Zeichen"></label><label class="employee-profile-field"><span>Passwort wiederholen</span><input id="employeeProfilePasswordConfirm" type="password" autocomplete="new-password" minlength="8"></label></div><p class="employee-profile-note">Passwortfelder leer lassen, wenn du dein Passwort nicht ändern möchtest.</p><div class="employee-profile-footer"><p id="employeeProfileStatus" role="status" aria-live="polite"></p><button class="btn primary" type="submit" data-employee-profile-save>Änderungen speichern</button></div></form></section><section class="employee-schedule-card employee-overview-card"><div class="employee-overview-heading"><div><h2 id="employeeViewTitle">Mein Dienstplan</h2><p id="employeeViewDescription">Deine eingetragenen Dienstzeiten für die ausgewählte Kalenderwoche</p></div><span id="employeePlanStatus" class="employee-plan-status" aria-live="polite"></span></div><nav class="employee-week-nav" aria-label="Kalenderwoche"><button class="employee-week-button" type="button" data-employee-week-step="-1" aria-label="Vorherige Kalenderwoche">‹</button><strong id="employeeWeekLabel"></strong><button class="employee-week-button" type="button" data-employee-week-step="1" aria-label="Nächste Kalenderwoche">›</button></nav><nav class="employee-view-switch" aria-label="Dienstplanansicht"><button type="button" data-employee-view="personal" aria-pressed="true">Mein Dienstplan</button><button type="button" data-employee-view="team" aria-pressed="false">Gesamtübersicht</button></nav><div id="employeePersonalPanel"><div id="employeePersonalContent"></div></div><div id="employeeTeamPanel" hidden><div id="employeeDayPicker" class="employee-day-picker" aria-label="Tag auswählen"></div><div id="employeeWeekContent" aria-live="polite"></div></div></section>';
  document.body.appendChild(portal);
  function weekMonday(offset){
   const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Berlin",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
@@ -179,6 +180,8 @@ function showEmployeePortal(payload){
   renderWeek();
  }
  portal.addEventListener("click",event=>{
+  if(event.target.closest("[data-employee-profile-toggle]")){portal.querySelector("#employeeProfilePanel").hidden=false;portal.querySelector("#employeeProfileName")?.focus();return;}
+  if(event.target.closest("[data-employee-profile-close]")){portal.querySelector("#employeeProfilePanel").hidden=true;return;}
   const view=event.target.closest("[data-employee-view]");
   if(view){activeView=view.dataset.employeeView;renderWeek();return;}
   const day=event.target.closest("[data-employee-day]");
@@ -186,6 +189,30 @@ function showEmployeePortal(payload){
   const step=event.target.closest("[data-employee-week-step]");
   if(step){selectedDay=0;loadWeek(weekOffset+Number(step.dataset.employeeWeekStep));return;}
   if(event.target.closest("[data-employee-week-retry]"))loadWeek(weekOffset);
+ });
+ portal.querySelector("#employeeProfileForm")?.addEventListener("submit",async event=>{
+  event.preventDefault();
+  const form=event.currentTarget,name=portal.querySelector("#employeeProfileName").value.trim(),email=portal.querySelector("#employeeProfileEmail").value.trim(),password=portal.querySelector("#employeeProfilePassword").value,confirmPassword=portal.querySelector("#employeeProfilePasswordConfirm").value,status=portal.querySelector("#employeeProfileStatus"),button=portal.querySelector("[data-employee-profile-save]");
+  if(!name||!email){status.textContent="Bitte Name und E-Mail-Adresse eingeben.";status.classList.add("is-error");return;}
+  if(password&&(password.length<8||password!==confirmPassword)){status.textContent="Das neue Passwort muss mindestens 8 Zeichen haben und beide Eingaben müssen übereinstimmen.";status.classList.add("is-error");return;}
+  const currentName=String(cloudUser?.user_metadata?.full_name||payload?.employeeName||"");
+  const emailChanged=email.toLowerCase()!==String(cloudUser?.email||"").toLowerCase();
+  const updates={};
+  if(name!==currentName)updates.data={full_name:name};
+  if(emailChanged)updates.email=email;
+  if(password)updates.password=password;
+  if(!Object.keys(updates).length){status.textContent="Es gibt keine Änderungen zu speichern.";status.classList.remove("is-error");return;}
+  button.disabled=true;button.textContent="Speichert …";status.textContent="";status.classList.remove("is-error");
+  const {data,error}=await cloud.auth.updateUser(updates);
+  button.disabled=false;button.textContent="Änderungen speichern";
+  if(error){status.textContent="Profil konnte nicht aktualisiert werden: "+error.message;status.classList.add("is-error");return;}
+  cloudUser=data.user||{...cloudUser,user_metadata:{...(cloudUser?.user_metadata||{}),full_name:name}};
+  portal.querySelector("#employeePortalName").textContent=String(cloudUser?.user_metadata?.full_name||name);
+  portal.querySelector("#employeeProfileName").value=String(cloudUser?.user_metadata?.full_name||name);
+  portal.querySelector("#employeeProfilePassword").value="";
+  portal.querySelector("#employeeProfilePasswordConfirm").value="";
+  status.textContent=emailChanged?"Profil gespeichert. Bitte die Bestätigungsmail für die neue E-Mail-Adresse beachten.":"Profil gespeichert.";
+  status.classList.remove("is-error");
  });
  portal.querySelector("[data-employee-logout]")?.addEventListener("click",async event=>{const button=event.currentTarget;button.disabled=true;await cloud.auth.signOut();cloudReady=false;cloudUser=null;removeEmployeePortal();showCloudLogin("Du wurdest abgemeldet.")});
  renderWeek();
