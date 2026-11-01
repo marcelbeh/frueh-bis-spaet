@@ -609,7 +609,7 @@ function exportPlanPdf(){
   const pdfGroupPalette=[
     {background:paletteColor("lavender"),border:paletteColor("lavender"),accent:paletteColor("plum"),text:paletteColor("aubergine")},
     {background:paletteColor("cream"),border:paletteColor("lavender"),accent:paletteColor("plum"),text:paletteColor("aubergine")},
-    {background:paletteColor("lavender"),border:paletteColor("plum"),accent:paletteColor("aubergine"),text:paletteColor("aubergine")},
+    {background:paletteColor("white"),border:paletteColor("plum"),accent:paletteColor("aubergine"),text:paletteColor("aubergine")},
     {background:paletteColor("white"),border:paletteColor("lavender"),accent:paletteColor("plum"),text:paletteColor("aubergine")},
     {background:paletteColor("cream"),border:paletteColor("plum"),accent:paletteColor("aubergine"),text:paletteColor("aubergine")},
     {background:paletteColor("lavender"),border:paletteColor("plum"),accent:paletteColor("plum"),text:paletteColor("aubergine")}
