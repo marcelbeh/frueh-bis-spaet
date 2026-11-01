@@ -1,6 +1,6 @@
-# Früh bis spät – Der Kita-Dienstplaner
+# WUSEL – Ordnung im Kita-Trubel.
 
-Browserbasierte Kita-Dienstplanung mit Supabase-Anmeldung und Speicherung eines gemeinsamen App-Zustands.
+Browserbasierte Kita-Dienst- und Personalplanung unter der Marke WUSEL mit Supabase-Anmeldung und Speicherung eines gemeinsamen App-Zustands.
 
 ## Dateien
 
