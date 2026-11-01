@@ -1,0 +1,115 @@
+name: Recover GitHub Pages deployment
+
+on:
+  workflow_run:
+    workflows:
+      - pages build and deployment
+    types:
+      - completed
+    branches:
+      - main
+
+permissions:
+  actions: read
+  contents: read
+  deployments: write
+  id-token: write
+  pages: write
+
+jobs:
+  prepare:
+    if: >-
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.event == 'dynamic'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      should_deploy: ${{ steps.guard.outputs.should_deploy }}
+    steps:
+      - name: Confirm this failed build is still the latest main
+        id: guard
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const failedRun = context.payload.workflow_run;
+            const { data: main } = await github.rest.repos.getBranch({
+              owner,
+              repo,
+              branch: "main"
+            });
+
+            if (main.commit.sha !== failedRun.head_sha) {
+              core.info("A newer main commit exists; its own Pages run should be published instead.");
+              core.setOutput("should_deploy", "false");
+              return;
+            }
+
+            core.setOutput("should_deploy", "true");
+
+      - name: Download the successfully built site
+        if: steps.guard.outputs.should_deploy == 'true'
+        uses: actions/download-artifact@v5
+        with:
+          name: github-pages
+          path: ./_site
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Prepare Pages artifact for this run
+        if: steps.guard.outputs.should_deploy == 'true'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: ./_site
+
+      - name: Release stale Pages deployments
+        if: steps.guard.outputs.should_deploy == 'true'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const deployments = await github.paginate(
+              github.rest.repos.listDeployments,
+              { owner, repo, environment: "github-pages", per_page: 100 }
+            );
+
+            let released = 0;
+            for (const deployment of deployments) {
+              const { data: statuses } = await github.rest.repos.listDeploymentStatuses({
+                owner,
+                repo,
+                deployment_id: deployment.id,
+                per_page: 1
+              });
+
+              if (statuses[0]?.state !== "in_progress") continue;
+
+              await github.rest.repos.createDeploymentStatus({
+                owner,
+                repo,
+                deployment_id: deployment.id,
+                state: "inactive",
+                description: "Released stale GitHub Pages deployment before recovery"
+              });
+              core.info(`Marked stale deployment ${deployment.id} (${deployment.sha}) inactive.`);
+              released += 1;
+            }
+
+            if (released === 0) {
+              core.info("No in-progress GitHub Pages deployment was found.");
+            }
+
+  deploy:
+    needs: prepare
+    if: needs.prepare.outputs.should_deploy == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish the current main build
+        id: deployment
+        uses: actions/deploy-pages@v5
