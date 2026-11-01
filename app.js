@@ -29,7 +29,7 @@ const SUPABASE_URL = "https://pcwcghbzksopfyrgzyht.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_OznU91iPtKK2nsjTJA2q6Q_LuxXyzUB";
 const cloud = window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY) : null;
 let cloudReady = false, cloudUser = null, saveTimer = null, cloudUpdatedAt = null, cloudSaveInFlight = false;
-async function saveLeaderProfileRecord(){if(!cloudReady||!cloudUser)return false;const profile=normalizeLeaderProfile(leaderProfile);const result=await cloud.from("leader_profiles").upsert({user_id:cloudUser.id,profile,updated_at:new Date().toISOString()},{onConflict:"user_id"}).select("user_id,profile").single();if(result.error){alert("Das Leitungsprofil konnte nicht gespeichert werden: "+result.error.message);return false}const row={user_id:result.data.user_id,profile:normalizeLeaderProfile(result.data.profile)};const index=leaderProfiles.findIndex(item=>item.user_id===row.user_id);if(index>=0)leaderProfiles[index]=row;else leaderProfiles.push(row);leaderProfile=row.profile;if(legacyLeaderProfile&&legacyLeaderProfile.name===leaderProfile.name)legacyLeaderProfile=null;return true;}
+async function saveLeaderProfileRecord(){if(!cloudReady||!cloudUser)return false;const profile=normalizeLeaderProfile(leaderProfile);const result=await cloud.from("leader_profiles").upsert({user_id:cloudUser.id,profile,source_legacy:!!leaderProfiles.find(item=>item.user_id===cloudUser.id)?.source_legacy,updated_at:new Date().toISOString()},{onConflict:"user_id"}).select("user_id,profile,source_legacy").single();if(result.error){alert("Das Leitungsprofil konnte nicht gespeichert werden: "+result.error.message);return false}const row={user_id:result.data.user_id,profile:normalizeLeaderProfile(result.data.profile)};const index=leaderProfiles.findIndex(item=>item.user_id===row.user_id);if(index>=0)leaderProfiles[index]=row;else leaderProfiles.push(row);leaderProfile=row.profile;if(leaderProfiles.some(item=>item.source_legacy))legacyLeaderProfile=null;return true;}
 function cloudSnapshot(){const snapshot={version:1,baseMonday:iso(baseMonday),names,groups,plannerSettings,events,absences,closures,shifts,weekOffset,selectedGroup};if(legacyLeaderProfile)snapshot.leaderProfile=legacyLeaderProfile;return snapshot;}
 function applyCloudSnapshot(s){
  if(!s||typeof s!=="object")return;
@@ -108,13 +108,13 @@ async function loadCloudData(user){
  const result=await cloud.from("app_state").select("state,updated_at").eq("id",1).maybeSingle();
  if(result.error){showCloudError("Die gespeicherten Daten konnten nicht geladen werden. "+result.error.message);return;}
  removeEmployeePortal();if(result.data?.state)applyCloudSnapshot(result.data.state);cloudUpdatedAt=result.data?.updated_at||null;
- const profilesResult=await cloud.from("leader_profiles").select("user_id,profile");
+ const profilesResult=await cloud.from("leader_profiles").select("user_id,profile,source_legacy");
  if(profilesResult.error){showCloudError("Die persönlichen Leitungsprofile konnten nicht geladen werden. "+profilesResult.error.message);return;}
- leaderProfiles=(profilesResult.data||[]).map(row=>({user_id:row.user_id,profile:normalizeLeaderProfile(row.profile)}));
+ leaderProfiles=(profilesResult.data||[]).map(row=>({user_id:row.user_id,profile:normalizeLeaderProfile(row.profile),source_legacy:!!row.source_legacy}));
  let ownProfile=leaderProfiles.find(row=>row.user_id===user.id);
- if(!ownProfile){const profile=normalizeLeaderProfile({},user.user_metadata?.full_name);const created=await cloud.from("leader_profiles").upsert({user_id:user.id,profile,updated_at:new Date().toISOString()},{onConflict:"user_id"}).select("user_id,profile").single();if(created.error){showCloudError("Das persönliche Leitungsprofil konnte nicht eingerichtet werden. "+created.error.message);return;}ownProfile={user_id:created.data.user_id,profile:normalizeLeaderProfile(created.data.profile,user.user_metadata?.full_name)};leaderProfiles.push(ownProfile);}
+ if(!ownProfile){const profile=normalizeLeaderProfile({},user.user_metadata?.full_name);const created=await cloud.from("leader_profiles").upsert({user_id:user.id,profile,updated_at:new Date().toISOString()},{onConflict:"user_id"}).select("user_id,profile,source_legacy").single();if(created.error){showCloudError("Das persönliche Leitungsprofil konnte nicht eingerichtet werden. "+created.error.message);return;}ownProfile={user_id:created.data.user_id,profile:normalizeLeaderProfile(created.data.profile,user.user_metadata?.full_name),source_legacy:!!created.data.source_legacy};leaderProfiles.push(ownProfile);}
  leaderProfile=normalizeLeaderProfile(ownProfile.profile,user.user_metadata?.full_name);
- if(legacyLeaderProfile&&leaderProfiles.some(row=>row.profile.name&&row.profile.name===legacyLeaderProfile.name))legacyLeaderProfile=null;
+ if(leaderProfiles.some(row=>row.source_legacy))legacyLeaderProfile=null;
  cloudReady=true;activeCloudMode="leader";document.getElementById("cloudLogin")?.remove();addCloudLogout();render();startAccessMonitor(user);const status=document.getElementById("cloudSaveStatus");if(status)status.textContent="Gespeichert";
  if(!result.data)await saveCloudState();
 }
