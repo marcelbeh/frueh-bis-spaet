@@ -114,20 +114,12 @@ Deno.serve(async (request: Request) => {
     return jsonResponse({ error: "Authentication required" }, 401, origin);
   }
 
-  const { data: owner, error: ownerError } = await admin
-    .from("app_owner")
-    .select("user_id")
-    .eq("user_id", authData.user.id)
-    .maybeSingle();
-  if (ownerError) return jsonResponse({ error: "Employee schedule is unavailable" }, 503, origin);
-  if (owner) return jsonResponse({ error: "Employee access required" }, 403, origin);
-
   const { data: access, error: accessError } = await admin
     .from("employee_access")
-    .select("person_name")
+    .select("person_name,enabled")
     .eq("user_id", authData.user.id)
     .maybeSingle();
-  if (accessError || !access?.person_name) {
+  if (accessError || !access?.person_name || !access.enabled) {
     return jsonResponse({ error: "Employee access required" }, 403, origin);
   }
 

@@ -77,5 +77,16 @@ Deno.serve(async (request: Request) => {
     return response({ error: "Der Zugang konnte nicht mit dem Mitarbeiterprofil verknüpft werden." }, 500, origin);
   }
 
+  const { error: auditError } = await admin.rpc("record_employee_access_invitation", {
+    p_actor_user_id: authData.user.id,
+    p_target_user_id: invited.user.id,
+    p_person_name: name,
+  });
+  if (auditError) {
+    await admin.from("employee_access").delete().eq("user_id", invited.user.id);
+    await admin.auth.admin.deleteUser(invited.user.id);
+    return response({ error: "Die Einladung konnte nicht sicher protokolliert werden." }, 500, origin);
+  }
+
   return response({ invited: true, email }, 200, origin);
 });

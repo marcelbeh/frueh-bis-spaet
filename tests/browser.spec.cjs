@@ -21,7 +21,7 @@ test('employee login shows only the signed-in employee schedule',async({page})=>
    signOut:async()=>({error:null})
   },
   functions:{invoke:async name=>{window.__employeeFunction=name;return {data:{employeeName:'Mitarbeiter 01',shifts:[{date:'2026-10-31',start:'08:00',end:'14:00',serviceType:'Normaler Dienst'}]},error:null}}},
-  from:table=>{window.__employeeQueries.push(table);return {select(){return this},eq(){return this},maybeSingle:async()=>table==='app_owner'?{data:null,error:null}:table==='employee_access'?{data:{person_name:'Mitarbeiter 01'},error:null}:{data:null,error:{message:'Unexpected table query'}}}}
+  from:table=>{window.__employeeQueries.push(table);return {select(){return this},eq(){return this},maybeSingle:async()=>table==='app_owner'?{data:null,error:null}:table==='employee_access'?{data:{person_name:'Mitarbeiter 01',enabled:true},error:null}:{data:null,error:{message:'Unexpected table query'}}}}
  })};
  `;
  await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:stub}));
@@ -35,7 +35,7 @@ test('employee login shows only the signed-in employee schedule',async({page})=>
  await expect(page.locator('#employeePortal')).toContainText('31.10.');
  await expect(page.locator('.app-shell')).toBeHidden();
  expect(await page.evaluate(()=>window.__employeeFunction)).toBe('employee-schedule');
- expect(await page.evaluate(()=>window.__employeeQueries)).toEqual(['app_owner','employee_access']);
+ expect(await page.evaluate(()=>window.__employeeQueries)).toEqual(['app_owner','employee_access','app_owner']);
  await expect(page.locator('#employeePortal')).not.toContainText('Mitarbeiter 02');
 });
 
@@ -435,4 +435,32 @@ test('every management submenu has a Plum icon on desktop and mobile',async({pag
  await expect(page.locator('.sidebar')).toHaveClass(/open/);
  await expect(page.locator('.nav-child-icon svg')).toHaveCount(11);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
+
+test('dual-role employee switches areas without a new sign-in',async({page})=>{
+ const stub=`
+ window.__ownerEnabled=false;window.__signedOut=0;window.__employeeScheduleCalls=0;
+ const state={names:[{name:'Mitarbeiter 01',initials:'M1',group:'Nest',hours:20,vacation:0,special:0,meetings:0,supervision:0,color:'plum'}],groups:['Nest'],shifts:[],absences:[],events:[],weekOffset:0};
+ window.supabase={createClient:()=>({
+  auth:{getSession:async()=>({data:{session:null},error:null}),signInWithPassword:async()=>({data:{user:{id:'employee-1',email:'employee@example.test'}},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),signOut:async()=>{window.__signedOut++;return {error:null}}},
+  functions:{invoke:async name=>{if(name==='employee-schedule')window.__employeeScheduleCalls++;return {data:{employeeName:'Mitarbeiter 01',shifts:[]},error:null}}},
+  from:table=>({select(){return this},eq(){return this},maybeSingle:async()=>table==='app_owner'?(window.__ownerEnabled?{data:{user_id:'employee-1'},error:null}:{data:null,error:null}):table==='employee_access'?{data:{user_id:'employee-1',person_name:'Mitarbeiter 01',enabled:true},error:null}:table==='app_state'?{data:{state,updated_at:'2026-10-30T10:00:00.000Z'},error:null}:{data:null,error:{message:'Unexpected query'}}})
+ })};
+ `;
+ await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:stub}));
+ await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+ await page.locator('input[name="email"]').fill('employee@example.test');
+ await page.locator('input[name="password"]').fill('test-password');
+ await page.locator('#cloudLoginForm button[type="submit"]').click();
+ await expect(page.locator('#employeePortal h1')).toHaveText('Mein Dienstplan');
+ await page.evaluate(()=>{window.__ownerEnabled=true;window.dispatchEvent(new Event('focus'))});
+ const leaderButton=page.locator('[data-employee-to-leader]');
+ await expect(leaderButton).toBeVisible();
+ await leaderButton.click();
+ await expect(page.locator('#pageContent')).toBeVisible();
+ await expect(page.locator('#employeePortal')).toHaveCount(0);
+ await page.locator('#employeeAreaSwitch').click();
+ await expect(page.locator('#employeePortal h1')).toHaveText('Mein Dienstplan');
+ expect(await page.evaluate(()=>window.__signedOut)).toBe(0);
+ expect(await page.evaluate(()=>window.__employeeScheduleCalls)).toBe(2);
 });
