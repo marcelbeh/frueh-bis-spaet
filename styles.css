@@ -1266,3 +1266,51 @@ body.sidebar-drawer-open{overflow:hidden}
 .person-access-controls{display:grid;gap:9px;width:100%}.access-role-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;background:var(--wuselo-white);border:1px solid var(--wuselo-line);border-radius:var(--radius-control)}
 .access-role-row>div{display:grid;gap:3px}.access-role-row small{color:var(--muted)}.person-access-controls>.muted{margin:0;font-size:.86rem}.access-role-row .btn{flex:0 0 auto}
 @media(max-width:600px){.access-role-row{align-items:flex-start;flex-wrap:wrap}.access-role-row .btn{margin-left:auto}}
+
+/* Wochenplan · klare WUSELO-Gruppen und ruhige Besetzungsübersicht */
+.day-calendar-head{display:grid;grid-template-columns:minmax(175px,.85fr) minmax(0,2.15fr);align-items:stretch;gap:14px}
+.day-coverage-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;gap:8px;width:100%;max-width:720px;min-width:0}
+.day-coverage{display:grid;grid-template-columns:minmax(0,1fr);align-content:start;gap:5px;min-width:0;min-height:88px;height:100%;padding:10px 11px;border:1px solid var(--wuselo-line);border-left-width:3px;border-radius:12px;box-shadow:none;text-align:left}
+.day-coverage[data-period="early"]{background:var(--wuselo-lavender)}
+.day-coverage[data-period="core"]{background:color-mix(in srgb,var(--wuselo-plum) 10%,var(--wuselo-white))}
+.day-coverage[data-period="late"]{background:var(--wuselo-cream)}
+.day-coverage.coverage-low{border-left-color:var(--wuselo-sand);color:var(--wuselo-aubergine)}
+.day-coverage.coverage-watch{border-left-color:var(--wuselo-plum);color:var(--wuselo-plum)}
+.day-coverage.coverage-ok{border-left-color:color-mix(in srgb,var(--wuselo-aubergine) 50%,var(--wuselo-white));color:var(--wuselo-aubergine)}
+.day-coverage-title{display:flex;align-items:baseline;justify-content:space-between;gap:6px;min-width:0}
+.day-coverage-title strong{font-size:13px;line-height:1.2}
+.day-coverage-title small,.day-coverage-caption{font-size:9px;line-height:1.2;color:var(--wuselo-aubergine);text-align:left}
+.day-coverage-caption{opacity:.78}
+.day-coverage-entries{display:grid;gap:3px;align-content:start;min-width:0}
+.day-coverage-entry{display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0;font-size:9px;line-height:1.2}
+.day-coverage-group{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.day-coverage-entry strong{flex:0 0 auto;font-size:11px;line-height:1.1;font-weight:750}
+.outlook-staff-head{position:relative;min-width:0;border-top:3px solid transparent;background:var(--wuselo-white);color:var(--wuselo-aubergine)}
+.outlook-staff-head.staff-group-tone-0{background:var(--wuselo-lavender);border-top-color:var(--wuselo-plum)}
+.outlook-staff-head.staff-group-tone-1{background:color-mix(in srgb,var(--wuselo-plum) 11%,var(--wuselo-white));border-top-color:var(--wuselo-plum)}
+.outlook-staff-head.staff-group-tone-2{background:var(--wuselo-cream);border-top-color:var(--wuselo-plum)}
+.outlook-staff-head.staff-group-tone-other{background:var(--wuselo-white);border-top-color:var(--wuselo-aubergine)}
+.outlook-staff-head.group-start,.outlook-staff-column.group-start{border-left:2px solid var(--wuselo-plum)}
+.outlook-staff-column.staff-group-tone-0{background:color-mix(in srgb,var(--wuselo-lavender) 16%,var(--wuselo-white))}
+.outlook-staff-column.staff-group-tone-1{background:color-mix(in srgb,var(--wuselo-plum) 3%,var(--wuselo-white))}
+.outlook-staff-column.staff-group-tone-2{background:color-mix(in srgb,var(--wuselo-cream) 70%,var(--wuselo-white))}
+.outlook-shift.service-normal.duty-period-early{background:var(--wuselo-lavender);border-color:color-mix(in srgb,var(--wuselo-plum) 28%,var(--wuselo-white));color:var(--wuselo-plum)}
+.outlook-shift.service-normal.duty-period-core{background:color-mix(in srgb,var(--wuselo-plum) 12%,var(--wuselo-white));border-color:color-mix(in srgb,var(--wuselo-plum) 30%,var(--wuselo-white));color:var(--wuselo-aubergine)}
+.outlook-shift.service-normal.duty-period-late{background:var(--wuselo-cream);border-color:color-mix(in srgb,var(--wuselo-plum) 35%,var(--wuselo-white));color:var(--wuselo-aubergine)}
+.outlook-shift.service-normal.duty-period-early strong,.outlook-shift.service-normal.duty-period-core strong,.outlook-shift.service-normal.duty-period-late strong{font-weight:750}
+.outlook-shift.service-normal{border-radius:10px;padding:7px 7px;line-height:1.3}
+.outlook-shift.service-normal span{margin-top:3px;font-size:9px;opacity:.84}
+@media(max-width:1023px){
+ .day-calendar-head{grid-template-columns:minmax(0,1fr);gap:10px}
+ .day-coverage-strip{max-width:none}
+}
+@media(max-width:560px){
+ .day-calendar-head{padding:10px}
+ .day-coverage-strip{gap:5px}
+ .day-coverage{min-height:82px;padding:8px 7px;border-radius:10px}
+ .day-coverage-title{align-items:flex-start;flex-direction:column;gap:2px}
+ .day-coverage-title strong{font-size:12px}
+ .day-coverage-title small,.day-coverage-caption{font-size:8px}
+ .day-coverage-entry{gap:3px;font-size:8px}
+ .day-coverage-entry strong{font-size:10px}
+}
