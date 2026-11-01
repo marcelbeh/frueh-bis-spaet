@@ -63,7 +63,7 @@ async function loadCloudData(user){
  if(!owner.data){
   const employee=await cloud.from("employee_access").select("person_name").eq("user_id",user.id).maybeSingle();
   if(employee.error||!employee.data){showCloudLogin("Dieser Zugang ist nicht als Leitung oder Mitarbeitende freigeschaltet.");await cloud.auth.signOut();return;}
-  const {data:portal,error:portalError}=await cloud.functions.invoke("employee-schedule");
+  const {data:portal,error:portalError}=await cloud.functions.invoke("employee-schedule",{body:{weekOffset:0}});
   if(portalError||!portal){showCloudLogin("Deine Dienste konnten nicht geladen werden. Bitte wende dich an die Leitung.");await cloud.auth.signOut();return;}
   document.getElementById("cloudLogin")?.remove();
   showEmployeePortal(portal);return;
@@ -87,7 +87,10 @@ function showEmployeePortal(payload){
  portal.innerHTML='<header class="employee-portal-header"><div><span class="employee-portal-brand">🌈 Früh bis spät</span><h1>Gesamtdienstplan</h1><p>Angemeldet als '+escapeHTML(payload?.employeeName||"Mitarbeitende")+' · Nur Ansicht</p></div><button class="btn small" type="button" data-employee-logout>Abmelden</button></header><section class="employee-schedule-card employee-overview-card"><div class="employee-overview-heading"><div><h2>Wochenübersicht</h2><p>Alle Dienste im Team für die ausgewählte Kalenderwoche</p></div><span id="employeePlanStatus" class="employee-plan-status" aria-live="polite"></span></div><nav class="employee-week-nav" aria-label="Kalenderwoche"><button class="employee-week-button" type="button" data-employee-week-step="-1" aria-label="Vorherige Kalenderwoche">‹</button><strong id="employeeWeekLabel"></strong><button class="employee-week-button" type="button" data-employee-week-step="1" aria-label="Nächste Kalenderwoche">›</button></nav><div id="employeeWeekContent" aria-live="polite"></div></section><section class="employee-schedule-card employee-personal-card"><h2>Meine Dienste</h2><div id="employeePersonalContent"></div></section>';
  document.body.appendChild(portal);
  function weekMonday(offset){
-  const date=new Date();date.setHours(12,0,0,0);date.setDate(date.getDate()-((date.getDay()+6)%7)+offset*7);return date;
+  const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Berlin",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
+  const value=type=>parts.find(part=>part.type===type)?.value||"";
+  const date=new Date(Number(value("year")),Number(value("month"))-1,Number(value("day")),12,0,0,0);
+  date.setDate(date.getDate()-((date.getDay()+6)%7)+offset*7);return date;
  }
  function isoDate(date){return date.getFullYear()+"-"+String(date.getMonth()+1).padStart(2,"0")+"-"+String(date.getDate()).padStart(2,"0");}
  function weekLabel(offset){
