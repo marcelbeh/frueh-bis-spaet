@@ -45,7 +45,7 @@
 /* Outlook-artiger Wochenkalender: ein Zeitraster je Tag, Mitarbeitende als Lanes */
 .day-calendar-list{display:flex;flex-direction:column;gap:14px;padding:0 14px 12px}
 .day-calendar{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--wuselo-white)}
-.day-calendar-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;background:var(--wuselo-lavender);border-bottom:1px solid var(--line)}
+.day-calendar-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;background:color-mix(in srgb,var(--wuselo-lavender) 32%,var(--wuselo-cream));border-bottom:1px solid var(--line)}
 .day-calendar-head>div:first-child{display:flex;flex-direction:column;gap:4px;min-width:125px}
 .day-calendar-head>div:first-child strong{font-size:13px;color:var(--ink)}
 .day-calendar-head>div:first-child span{font-size:10px;color:var(--muted)}
@@ -75,7 +75,7 @@
 .outlook-calendar-scroll{overflow-x:auto}
 .outlook-calendar{display:grid;grid-template-columns:55px repeat(var(--staff-count),minmax(132px,1fr));min-width:max-content;border-top:1px solid var(--line);border-left:1px solid var(--line)}
 .outlook-corner{background:var(--wuselo-lavender);font-size:10px;font-weight:750;color:var(--muted);padding:12px 6px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:center}
-.outlook-staff-head{min-height:76px;padding:9px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;background:var(--wuselo-lavender);border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.outlook-staff-head{min-height:76px;padding:9px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;background:color-mix(in srgb,var(--wuselo-lavender) 32%,var(--wuselo-cream));border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
 .outlook-staff-head strong{font-size:10px;line-height:1.25}
 .outlook-staff-head small{font-size:9px;color:var(--muted)}
 .outlook-time-axis{height:480px;position:relative;background:var(--wuselo-lavender);border-right:1px solid var(--line)}
@@ -1034,7 +1034,7 @@ label{color:var(--wuselo-muted)}
 .schedule-toolbar,.coverage-legend{border-color:var(--wuselo-line);border-radius:15px;background:var(--wuselo-cream);box-shadow:none}
 .schedule-toolbar select{border-radius:11px}
 .calendar-grid,.calendar-day,.day-calendar,.day-calendar-head,.employee-personal-calendar-head,.employee-personal-calendar-body{border-color:var(--wuselo-line)}
-.calendar-weekday,.day-calendar-head,.employee-personal-day-head{background:var(--wuselo-lavender);color:var(--wuselo-muted)}
+.calendar-weekday,.employee-personal-day-head{background:var(--wuselo-lavender);color:var(--wuselo-muted)}.day-calendar-head{background:color-mix(in srgb,var(--wuselo-lavender) 32%,var(--wuselo-cream));color:var(--wuselo-muted)}
 .calendar-day,.day-lane,.employee-personal-day-track{background-color:var(--wuselo-cream)}
 .calendar-day>strong,.day-calendar-head>div:first-child strong{color:var(--wuselo-plum)}
 .calendar-day.blank{background:var(--wuselo-cream)}
@@ -1289,7 +1289,7 @@ body.sidebar-drawer-open{overflow:hidden}
 .day-coverage-group{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .day-coverage-entry strong{flex:0 0 auto;font-size:11px;line-height:1.1;font-weight:750}
 .outlook-staff-head{position:relative;min-width:0;border-top:3px solid transparent;background:var(--wuselo-white);color:var(--wuselo-aubergine)}
-.outlook-staff-head.staff-group-tone-0{background:var(--wuselo-lavender);border-top-color:var(--wuselo-plum)}
+.outlook-staff-head.staff-group-tone-0{background:color-mix(in srgb,var(--wuselo-lavender) 32%,var(--wuselo-cream));border-top-color:var(--wuselo-plum)}
 .outlook-staff-head.staff-group-tone-1{background:color-mix(in srgb,var(--wuselo-plum) 11%,var(--wuselo-white));border-top-color:var(--wuselo-plum)}
 .outlook-staff-head.staff-group-tone-2{background:var(--wuselo-cream);border-top-color:var(--wuselo-plum)}
 .outlook-staff-head.staff-group-tone-other{background:var(--wuselo-white);border-top-color:var(--wuselo-aubergine)}
