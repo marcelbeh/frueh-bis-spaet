@@ -465,7 +465,7 @@ test('closure periods are saved, visible, excluded from planning and not charged
  await expect(popup.locator('.pdf-time-closure').first()).toContainText('Herbstschließzeit');
 });
 
-test('every management submenu has a Plum icon on desktop and mobile',async({page})=>{
+test('every management submenu has a white icon on desktop and mobile',async({page})=>{
  await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};'}));
  await page.setViewportSize({width:1440,height:1000});
  await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
@@ -482,7 +482,7 @@ test('every management submenu has a Plum icon on desktop and mobile',async({pag
   stroke:getComputedStyle(item.querySelector('.nav-child-icon svg')).stroke,
   marker:getComputedStyle(item,'::before').content
  })));
- expect(desktop.every(item=>item.icon&&item.color==='rgb(151, 92, 128)'&&item.stroke==='rgb(151, 92, 128)'&&item.marker==='none')).toBe(true);
+ expect(desktop.every(item=>item.icon&&item.color==='rgb(255, 255, 255)'&&item.stroke==='rgb(255, 255, 255)'&&item.marker==='none')).toBe(true);
  await page.setViewportSize({width:390,height:844});
  await page.locator('#mobileMenu').click();
  await expect(page.locator('.sidebar')).toHaveClass(/open/);
