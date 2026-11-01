@@ -682,6 +682,29 @@ function syncNavigation(){
     else if(button.getAttribute("aria-expanded")!=="true"){button.setAttribute("aria-expanded","false");children.hidden=true;}
   });
 }
+function isMobileSidebar(){return window.matchMedia("(max-width: 760px)").matches}
+function syncSidebarControls(){
+ const sidebar=document.getElementById("sidebar"),shell=document.querySelector(".app-shell"),mobile=isMobileSidebar(),open=mobile&&!!sidebar?.classList.contains("open"),collapsed=!!shell?.classList.contains("sidebar-collapsed");
+ const menu=document.getElementById("mobileMenu"),collapse=document.getElementById("sidebarCollapse"),backdrop=document.getElementById("sidebarBackdrop");
+ if(menu)menu.setAttribute("aria-expanded",String(open));
+ if(collapse){const label=mobile?(open?"Menü schließen":"Menü öffnen"):(collapsed?"Menü ausklappen":"Menü einklappen");collapse.setAttribute("aria-label",label);collapse.setAttribute("aria-expanded",String(mobile?open:!collapsed));collapse.title=label;collapse.textContent=mobile?(open?"×":"‹"):(collapsed?"›":"‹")}
+ if(backdrop)backdrop.setAttribute("aria-hidden",String(!open));
+}
+function closeMobileSidebar(){
+ const sidebar=document.getElementById("sidebar"),shell=document.querySelector(".app-shell");
+ sidebar?.classList.remove("open");
+ document.body.classList.remove("sidebar-drawer-open");
+ if(isMobileSidebar())shell?.classList.remove("sidebar-collapsed");
+ syncSidebarControls();
+}
+function openMobileSidebar(){
+ if(!isMobileSidebar())return;
+ const shell=document.querySelector(".app-shell"),sidebar=document.getElementById("sidebar");
+ shell?.classList.remove("sidebar-collapsed");
+ sidebar?.classList.add("open");
+ document.body.classList.add("sidebar-drawer-open");
+ syncSidebarControls();
+}
 function navigate(page){
   if(!pageTitles[page])return;
   currentPage=page;
@@ -694,7 +717,7 @@ function navigate(page){
     });
   }
   syncNavigation();
-  $("#sidebar").classList.remove("open");
+  closeMobileSidebar();
   render();
   window.scrollTo({top:0,behavior:"smooth"});
 }
@@ -814,7 +837,12 @@ document.addEventListener("click",e=>{
  if(action==="save-settings"){const frameStart=$("#frame-start"),frameEnd=$("#frame-end");if(!frameStart||!frameEnd||!frameStart.value||!frameEnd.value||minutes(frameEnd.value)<=minutes(frameStart.value)){alert("Die Rahmenzeit muss ein gültiges Zeitfenster sein.");return}$$("[data-min-group]").forEach(el=>{plannerSettings.minimumByGroup[el.dataset.minGroup]=Number(el.value)||0});$$("[data-min-early]").forEach(el=>{plannerSettings.minimumEarlyByGroup[el.dataset.minEarly]=Number(el.value)||0});$$("[data-min-late]").forEach(el=>{plannerSettings.minimumLateByGroup[el.dataset.minLate]=Number(el.value)||0});plannerSettings.mergeEarlyGroups=$("#merge-early").checked;plannerSettings.mergeLateGroups=$("#merge-late").checked;plannerSettings.minimumEarlyCombined=Number($("#min-early-combined").value);plannerSettings.minimumLateCombined=Number($("#min-late-combined").value);plannerSettings.frame.start=frameStart.value;plannerSettings.frame.end=frameEnd.value;alert("Rahmenzeiten und Mindestbesetzung wurden übernommen und werden gespeichert.");render()} if(action==="print-plan"){exportPlanPdf()} if(action==="export-csv"){const csv=["Name;Gruppe;Wochenstunden;Resturlaub;Sonderdienste",...names.map(p=>[p.name,p.group,p.hours,p.vacation,p.special].join(";"))].join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}));a.download="frueh-bis-spaet-auswertung.csv";a.click();URL.revokeObjectURL(a.href)}
 });
 $("#closeModal").addEventListener("click",closeModal);$("#modalBackdrop").addEventListener("click",e=>{if(e.target.id==="modalBackdrop")closeModal()});
-$("#mobileMenu").addEventListener("click",()=>$("#sidebar").classList.toggle("open"));
-document.addEventListener("click",event=>{const button=event.target.closest("#sidebarCollapse");if(!button)return;event.preventDefault();event.stopPropagation();const shell=document.querySelector(".app-shell");if(!shell)return;const collapsed=shell.classList.toggle("sidebar-collapsed");button.setAttribute("aria-label",collapsed?"Menü ausklappen":"Menü einklappen");button.title=collapsed?"Menü ausklappen":"Menü einklappen";button.textContent=collapsed?"›":"‹";button.setAttribute("aria-expanded",String(!collapsed));});
+$("#mobileMenu").addEventListener("click",()=>$("#sidebar").classList.contains("open")?closeMobileSidebar():openMobileSidebar());
+$("#sidebarBackdrop").addEventListener("click",closeMobileSidebar);
+document.addEventListener("keydown",event=>{if(event.key==="Escape"&&isMobileSidebar()&&$("#sidebar").classList.contains("open"))closeMobileSidebar()});
+window.addEventListener("resize",()=>{if(isMobileSidebar())document.querySelector(".app-shell")?.classList.remove("sidebar-collapsed");else closeMobileSidebar();syncSidebarControls()});
+document.addEventListener("click",event=>{const button=event.target.closest("#sidebarCollapse");if(!button)return;event.preventDefault();event.stopPropagation();if(isMobileSidebar()){closeMobileSidebar();return}const shell=document.querySelector(".app-shell");if(!shell)return;const collapsed=shell.classList.toggle("sidebar-collapsed");button.setAttribute("aria-label",collapsed?"Menü ausklappen":"Menü einklappen");button.title=collapsed?"Menü ausklappen":"Menü einklappen";button.textContent=collapsed?"›":"‹";button.setAttribute("aria-expanded",String(!collapsed));});
+if(isMobileSidebar())document.querySelector(".app-shell")?.classList.remove("sidebar-collapsed");
+syncSidebarControls();
 $("#globalSearch").addEventListener("keydown",e=>{if(e.key==="Enter"){const q=e.target.value.trim().toLocaleLowerCase("de");if(!q){alert("Bitte einen Namen oder Termin eingeben.");return}if(names.some(p=>p.name.toLocaleLowerCase("de").includes(q)))navigate("mitarbeitende");else if(events.some(ev=>ev.title.toLocaleLowerCase("de").includes(q)))navigate("kalender");else alert("Keine passenden Beispieldaten gefunden.")}});
 startCloudApp();
