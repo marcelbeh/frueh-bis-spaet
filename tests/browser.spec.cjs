@@ -560,12 +560,15 @@ test('weekly staffing ampels reflect under, exact, over and live-updated coverag
  await expect(cards).toHaveCount(3);
  const early=cards.nth(0),core=cards.nth(1),late=cards.nth(2);
  await expect(early).toHaveAttribute('data-status','understaffed');
- await expect(early.locator('.day-coverage-status-label')).toHaveText('Unterbesetzt');
+ await expect(early).toHaveAttribute('aria-label',/Unterbesetzt/);
  await expect(early.locator('.day-coverage-entry.is-understaffed')).toContainText('Sternengruppe');
  await expect(core).toHaveAttribute('data-status','fulfilled');
- await expect(core.locator('.day-coverage-status-label')).toHaveText('Soll erfüllt');
+ await expect(core).toHaveAttribute('aria-label',/Soll erfüllt/);
  await expect(late).toHaveAttribute('data-status','good');
- await expect(late.locator('.day-coverage-status-label')).toHaveText('Gut besetzt');
+ await expect(late).toHaveAttribute('aria-label',/Gut besetzt/);
+ await expect(cards.locator('.day-coverage-status-label')).toHaveCount(0);
+ const lightColors=await cards.locator('.day-coverage-light').evaluateAll(nodes=>nodes.map(node=>getComputedStyle(node).backgroundColor));
+ expect(lightColors).toEqual(['rgb(255, 107, 107)','rgb(255, 193, 7)','rgb(47, 133, 90)']);
  const colors=await cards.evaluateAll(nodes=>nodes.map(node=>getComputedStyle(node).backgroundColor));
  expect(new Set(colors).size).toBe(1);
  await page.evaluate(()=>{
@@ -573,7 +576,7 @@ test('weekly staffing ampels reflect under, exact, over and live-updated coverag
   window.__renderCoverageFixture();
  });
  await expect(early).toHaveAttribute('data-status','fulfilled');
- await expect(early.locator('.day-coverage-status-label')).toHaveText('Soll erfüllt');
+ await expect(early).toHaveAttribute('aria-label',/Soll erfüllt/);
 });
 
 test('weekly plan uses three aligned WUSELO staffing cards and grouped staff columns',async({page})=>{
