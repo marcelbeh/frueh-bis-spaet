@@ -1145,3 +1145,33 @@ footer{color:#7d887f;border-top-color:#e5eae2;font-size:11px}
  .employee-week-button{width:38px;height:38px}
  .btn{padding:9px 11px}
 }
+
+
+/* TAKT follow-up: keep navigation and weekly columns within the Scandinavian system */
+.sidebar .nav-parent,
+.sidebar .nav-item:not(.nav-child){background:transparent;color:#56665d}
+.sidebar .nav-parent:hover{background:#f0f4ee;color:#315b43}
+.sidebar .nav-parent[aria-expanded="true"]{background:#e6efe7;color:#315b43}
+.sidebar .nav-group[data-nav-group] .nav-icon,
+.sidebar .nav-item:not(.nav-child) .nav-icon{background:#e8efe8;color:#386650;border:1px solid #e0e9df;border-radius:13px}
+.sidebar .nav-parent:hover .nav-icon,
+.sidebar .nav-parent[aria-expanded="true"] .nav-icon{background:#e1ece2;color:#315b43}
+.sidebar .nav-child.active{border:1px solid #d5e2d5;background:#e8f0e8;color:#315b43;box-shadow:none}
+.sidebar .nav-child.active:before{background:#386650}
+.sidebar .nav-chevron{color:#78877d}
+.sidebar .nav-parent:hover .nav-chevron,.sidebar .nav-parent[aria-expanded="true"] .nav-chevron{color:#386650}
+
+@media(min-width:1024px){
+ .outlook-calendar-scroll{width:100%;min-width:0;max-width:100%;overflow-x:hidden}
+ .outlook-calendar{width:100%;min-width:0;max-width:100%;grid-template-columns:48px repeat(var(--staff-count),minmax(0,1fr))}
+ .outlook-staff-head{min-width:0;padding:8px 3px}
+ .outlook-staff-head strong{min-width:0;font-size:9px;line-height:1.18;overflow-wrap:anywhere}
+ .outlook-staff-head small{font-size:8px;overflow-wrap:anywhere}
+ .outlook-staff-column{min-width:0}
+ .outlook-shift{left:2px;right:2px;padding:4px 3px}
+ .outlook-shift strong,.outlook-shift span{font-size:9px;overflow-wrap:anywhere;word-break:normal}
+}
+@media(max-width:1023px){
+ .outlook-calendar-scroll{overflow-x:auto}
+ .outlook-calendar{width:max-content;min-width:max-content;grid-template-columns:44px repeat(var(--staff-count),minmax(90px,1fr))}
+}
