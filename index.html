@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   <title>WUSELO – Ordnung im Kita-Trubel.</title>
-  <link rel="stylesheet" href="./styles.css?v=wuselo-purple-source-1">
+  <link rel="stylesheet" href="./styles.css?v=wuselo-submenu-icons-1">
 </head>
 <body>
   <div class="app-shell">
@@ -24,37 +24,37 @@
         <div class="nav-group" data-nav-group="planung">
           <button class="nav-parent" type="button" data-menu-toggle="planung" data-default-page="dienstplan" aria-expanded="true"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg></span><span class="nav-label">Dienstplanung</span><span class="nav-chevron">⌄</span></button>
           <div class="nav-children" data-nav-children="planung">
-            <button class="nav-item nav-child" data-page="dienstplan">Wochenplan</button>
-            <button class="nav-item nav-child" data-page="kalender">Kalender</button>
+            <button class="nav-item nav-child" data-page="dienstplan"><span class="nav-child-icon" data-icon="calendar-days" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/></svg></span><span class="nav-child-label">Wochenplan</span></button>
+            <button class="nav-item nav-child" data-page="kalender"><span class="nav-child-icon" data-icon="calendar" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span><span class="nav-child-label">Kalender</span></button>
           </div>
         </div>
         <div class="nav-group" data-nav-group="personal">
           <button class="nav-parent" type="button" data-menu-toggle="personal" data-default-page="mitarbeitende" aria-expanded="false"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span class="nav-label">Personal</span><span class="nav-chevron">⌄</span></button>
           <div class="nav-children" data-nav-children="personal" hidden>
-            <button class="nav-item nav-child" data-page="mitarbeitende">Mitarbeitende</button>
-            <button class="nav-item nav-child" data-page="abwesenheiten">Urlaub &amp; Abwesenheit</button>
+            <button class="nav-item nav-child" data-page="mitarbeitende"><span class="nav-child-icon" data-icon="users" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span class="nav-child-label">Mitarbeitende</span></button>
+            <button class="nav-item nav-child" data-page="abwesenheiten"><span class="nav-child-icon" data-icon="calendar-x" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18m5 8 4 4m0-4-4 4"/></svg></span><span class="nav-child-label">Urlaub &amp; Abwesenheit</span></button>
           </div>
         </div>
         <div class="nav-group" data-nav-group="termine">
           <button class="nav-parent" type="button" data-menu-toggle="termine" data-default-page="sondertermine" aria-expanded="false"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg></span><span class="nav-label">Termine</span><span class="nav-chevron">⌄</span></button>
           <div class="nav-children" data-nav-children="termine" hidden>
-            <button class="nav-item nav-child" data-page="sondertermine">Sondertermine</button>
-            <button class="nav-item nav-child" data-page="teammeetings">Teammeetings</button>
-            <button class="nav-item nav-child" data-page="supervision">Supervision</button>
-            <button class="nav-item nav-child" data-page="fortbildungen">Fortbildungen</button>
+            <button class="nav-item nav-child" data-page="sondertermine"><span class="nav-child-icon" data-icon="calendar-clock" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M8 2v4m8-4v4M3 10h13"/><rect x="3" y="4" width="18" height="18" rx="2"/><circle cx="17" cy="16" r="3"/><path d="M17 14.5V16l1 1"/></svg></span><span class="nav-child-label">Sondertermine</span></button>
+            <button class="nav-item nav-child" data-page="teammeetings"><span class="nav-child-icon" data-icon="users-round" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M20 8v6m3-3h-6"/></svg></span><span class="nav-child-label">Teammeetings</span></button>
+            <button class="nav-item nav-child" data-page="supervision"><span class="nav-child-icon" data-icon="messages-square" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M21 15a4 4 0 0 1-4 4H7l-4 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/><path d="M8 9h8M8 13h5"/></svg></span><span class="nav-child-label">Supervision</span></button>
+            <button class="nav-item nav-child" data-page="fortbildungen"><span class="nav-child-icon" data-icon="graduation-cap" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m22 10-10-5-10 5 10 5 10-5Z"/><path d="M6 12v5c3 3 9 3 12 0v-5m4-2v6"/></svg></span><span class="nav-child-label">Fortbildungen</span></button>
           </div>
         </div>
         <div class="nav-group" data-nav-group="auswertung">
           <button class="nav-parent" type="button" data-menu-toggle="auswertung" data-default-page="auswertungen" aria-expanded="false"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6" rx="1"/><rect x="13" y="7" width="3" height="10" rx="1"/><rect x="19" y="4" width="2" height="13" rx="1"/></svg></span><span class="nav-label">Auswertungen</span><span class="nav-chevron">⌄</span></button>
           <div class="nav-children" data-nav-children="auswertung" hidden>
-            <button class="nav-item nav-child" data-page="auswertungen">Kennzahlen &amp; Dienstverteilung</button>
+            <button class="nav-item nav-child" data-page="auswertungen"><span class="nav-child-icon" data-icon="chart-no-axes-combined" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M3 3v18h18"/><path d="m7 14 4-4 4 4 6-7"/><path d="M17 7h4v4"/></svg></span><span class="nav-child-label">Kennzahlen &amp; Dienstverteilung</span></button>
           </div>
         </div>
         <div class="nav-group" data-nav-group="verwaltung">
           <button class="nav-parent" type="button" data-menu-toggle="verwaltung" data-default-page="einstellungen" aria-expanded="false"><span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.6a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.6-1.4-2.4 1.4-1.1a7 7 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.6a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.6 1.4 2.4-1.4 1.1a7 7 0 0 1 0 2Z"/></svg></span><span class="nav-label">Verwaltung</span><span class="nav-chevron">⌄</span></button>
           <div class="nav-children" data-nav-children="verwaltung" hidden>
-            <button class="nav-item nav-child" data-page="einstellungen">Planungseinstellungen</button>
-            <button class="nav-item nav-child" data-page="leitungsprofil">Leitungsprofil</button>
+            <button class="nav-item nav-child" data-page="einstellungen"><span class="nav-child-icon" data-icon="settings-2" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M20 7h-9m-4 0H4m16 10h-5m-4 0H4"/><circle cx="14" cy="7" r="3"/><circle cx="8" cy="17" r="3"/></svg></span><span class="nav-child-label">Planungseinstellungen</span></button>
+            <button class="nav-item nav-child" data-page="leitungsprofil"><span class="nav-child-icon" data-icon="user-round" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg></span><span class="nav-child-label">Leitungsprofil</span></button>
           </div>
         </div>
       </nav>
