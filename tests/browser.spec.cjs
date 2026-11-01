@@ -411,3 +411,28 @@ test('closure periods are saved, visible, excluded from planning and not charged
  await expect(popup.locator('.pdf-time-closure')).toHaveCount(3);
  await expect(popup.locator('.pdf-time-closure').first()).toContainText('Herbstschließzeit');
 });
+
+test('every management submenu has a Plum icon on desktop and mobile',async({page})=>{
+ await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};'}));
+ await page.setViewportSize({width:1440,height:1000});
+ await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+ await page.evaluate(()=>{document.querySelector('#cloudLogin')?.remove();currentPage='dashboard';render()});
+ for(const parent of await page.locator('.nav-parent').all()){
+  if(await parent.getAttribute('aria-expanded')!=='true')await parent.click();
+ }
+ const items=page.locator('.nav-child');
+ await expect(items).toHaveCount(11);
+ await expect(page.locator('.nav-child-icon svg')).toHaveCount(11);
+ const desktop=await items.evaluateAll(elements=>elements.map(item=>({
+  icon:item.querySelector('.nav-child-icon')?.dataset.icon,
+  color:getComputedStyle(item.querySelector('.nav-child-icon')).color,
+  stroke:getComputedStyle(item.querySelector('.nav-child-icon svg')).stroke,
+  marker:getComputedStyle(item,'::before').content
+ })));
+ expect(desktop.every(item=>item.icon&&item.color==='rgb(151, 92, 128)'&&item.stroke==='rgb(151, 92, 128)'&&item.marker==='none')).toBe(true);
+ await page.setViewportSize({width:390,height:844});
+ await page.locator('#mobileMenu').click();
+ await expect(page.locator('.sidebar')).toHaveClass(/open/);
+ await expect(page.locator('.nav-child-icon svg')).toHaveCount(11);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
