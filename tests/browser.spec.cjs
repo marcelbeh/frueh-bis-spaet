@@ -191,6 +191,59 @@ test('factory reset clears saved operational data after explicit confirmation',a
 });
 
 
+test('special events are deleted only after confirmation and persisted to app state',async({page})=>{
+ const stub=`
+  window.__pendingState=null;window.__savedState=null;window.__saveCalls=0;window.__saveError=false;
+  window.supabase={createClient:()=>({
+   auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},
+   from:()=>({update(payload){window.__pendingState=payload.state;return this;},eq(){return this;},select(){return this;},maybeSingle:async()=>{window.__saveCalls++;if(window.__saveError)return {data:null,error:{message:'simulated write failure'}};window.__savedState=window.__pendingState;return {data:{updated_at:'2026-11-01T10:00:00.000Z'},error:null}}})
+  })};
+ `;
+ await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:stub}));
+ await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+ await page.evaluate(()=>{
+  document.querySelector('#cloudLogin')?.remove();
+  cloudUser={id:'leader-1'};activeCloudMode='leader';cloudUpdatedAt='2026-11-01T09:00:00.000Z';
+  events=[{id:'event-1',date:'2026-11-02',title:'Teamfest',type:'Meeting',time:'10:00–11:00',people:2,attendees:[]},{id:'event-2',date:'2026-11-03',title:'Fortbildung',type:'Fortbildung',time:'12:00–13:00',people:1,attendees:[]}];
+  currentPage='sondertermine';render();cloudReady=true;
+ });
+ await expect(page.locator('[data-delete-event]')).toHaveCount(2);
+ await page.locator('[data-delete-event="event-1"]').click();
+ await expect(page.getByText('Möchtest du diesen Sondertermin wirklich löschen?')).toBeVisible();
+ await page.getByRole('button',{name:'Abbrechen'}).click();
+ expect(await page.evaluate(()=>({events:events.length,saves:window.__saveCalls}))).toEqual({events:2,saves:0});
+ await page.locator('[data-delete-event="event-1"]').click();
+ await page.getByRole('button',{name:'Termin löschen'}).click();
+ await expect.poll(()=>page.evaluate(()=>window.__savedState?.events?.map(event=>event.id))).toEqual(['event-2']);
+ await expect(page.locator('[data-delete-event]')).toHaveCount(1);
+});
+
+test('special-event deletion restores the event and reports a database error',async({page})=>{
+ const stub=`
+  window.__pendingState=null;window.__savedState=null;window.__saveError=true;
+  window.supabase={createClient:()=>({
+   auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},
+   from:()=>({update(payload){window.__pendingState=payload.state;return this;},eq(){return this;},select(){return this;},maybeSingle:async()=>({data:null,error:{message:'simulated write failure'}})})
+  })};
+ `;
+ await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:stub}));
+ await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+ await page.evaluate(()=>{
+  document.querySelector('#cloudLogin')?.remove();
+  cloudUser={id:'leader-1'};activeCloudMode='leader';cloudUpdatedAt='2026-11-01T09:00:00.000Z';
+  events=[{id:'event-1',date:'2026-11-02',title:'Teamfest',type:'Meeting',time:'10:00–11:00',people:2,attendees:[]},{id:'event-2',date:'2026-11-03',title:'Fortbildung',type:'Fortbildung',time:'12:00–13:00',people:1,attendees:[]}];
+  currentPage='sondertermine';render();cloudReady=true;
+ });
+ let errorMessage='';
+ page.on('dialog',async dialog=>{errorMessage=dialog.message();await dialog.accept();});
+ await page.locator('[data-delete-event="event-1"]').click();
+ await page.getByRole('button',{name:'Termin löschen'}).click();
+ await expect.poll(()=>page.evaluate(()=>events.length)).toBe(2);
+ await expect(page.locator('[data-delete-event]')).toHaveCount(2);
+ expect(errorMessage).toContain('Die Änderungen konnten nicht gespeichert werden.');
+ expect(await page.evaluate(()=>window.__savedState)).toBeNull();
+});
+
 test('PDF export paginates large teams into readable A4 pages',async({page})=>{
  await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};'}));
  await page.setViewportSize({width:1440,height:1000});
