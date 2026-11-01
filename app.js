@@ -135,7 +135,8 @@ function showEmployeePortal(payload){
      const end=Math.max(start+30,Math.min(1320,Number(s.end.slice(0,2))*60+Number(s.end.slice(3))));
      const top=Math.max(0,Math.min(100,(start-360)/960*100));
      const height=Math.max(4,(end-start)/960*100);
-     const groupIndex=Math.max(0,groups.indexOf(String(s.group||"Team")))%6;\n     return '<article class="employee-timeline-shift pdf-group-'+groupIndex+(own?' is-own':'')+'" style="top:'+top+'%;height:'+height+'%"'+(own?' aria-current="true"':'')+'><strong>'+escapeHTML(s.person||"Team")+(own?'<span class="employee-own-tag">Du</span>':'')+'</strong><span class="employee-timeline-time">'+escapeHTML(s.start)+'–'+escapeHTML(s.end)+'</span><span class="employee-timeline-detail">'+escapeHTML(s.serviceType||s.group||"Dienst")+'</span></article>';
+     const groupIndex=Math.max(0,groups.indexOf(String(s.group||"Team")))%6;
+     return '<article class="employee-timeline-shift pdf-group-'+groupIndex+(own?' is-own':'')+'" style="top:'+top+'%;height:'+height+'%"'+(own?' aria-current="true"':'')+'><strong>'+escapeHTML(s.person||"Team")+(own?'<span class="employee-own-tag">Du</span>':'')+'</strong><span class="employee-timeline-time">'+escapeHTML(s.start)+'–'+escapeHTML(s.end)+'</span><span class="employee-timeline-detail">'+escapeHTML(s.serviceType||s.group||"Dienst")+'</span></article>';
     }).join("");
     const ticks=[6,8,10,12,14,16,18,20,22].map(hour=>'<span class="employee-time-tick" style="top:'+((hour-6)/16*100)+'%">'+String(hour).padStart(2,"0")+':00</span>').join("");
     return '<section class="employee-timeline-day"><header><h3>'+day+'</h3><time>'+dateText+'</time></header><div class="employee-timeline-track"><div class="employee-time-axis" aria-hidden="true">'+ticks+'</div><div class="employee-time-gridlines" aria-hidden="true"></div><div class="employee-time-events">'+blocks+'</div></div></section>';
