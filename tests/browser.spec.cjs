@@ -539,10 +539,18 @@ test('weekly staffing ampels reflect under, exact, over and live-updated coverag
   plannerSettings.minimumLateByGroup={Nest:1,Sonnengruppe:1,Sternengruppe:1};
   plannerSettings.mergeEarlyGroups=false;plannerSettings.mergeLateGroups=false;
   window.__coverageFixture=[
-   {id:'nest-all',person:'Nest Person',group:'Nest',serviceType:'Normaler Dienst',day:0,start:'07:00',end:'16:30',weekOffset:0},
-   {id:'sun-all',person:'Sonne Person',group:'Sonnengruppe',serviceType:'Normaler Dienst',day:0,start:'07:00',end:'16:30',weekOffset:0},
-   {id:'stern-core-late',person:'Stern Person',group:'Sternengruppe',serviceType:'Normaler Dienst',day:0,start:'08:00',end:'16:30',weekOffset:0},
-   {id:'stern-extra-late',person:'Stern Extra',group:'Sternengruppe',serviceType:'Normaler Dienst',day:0,start:'15:00',end:'16:30',weekOffset:0}
+   {id:'nest-early',person:'Nest Person',group:'Nest',serviceType:'Normaler Dienst',day:0,start:'07:00',end:'08:00',weekOffset:0},
+   {id:'sun-early',person:'Sonne Person',group:'Sonnengruppe',serviceType:'Normaler Dienst',day:0,start:'07:00',end:'08:00',weekOffset:0},
+   {id:'nest-core-a',person:'Nest Person',group:'Nest',serviceType:'Normaler Dienst',day:0,start:'08:00',end:'12:00',weekOffset:0},
+   {id:'nest-core-b',person:'Nest Person',group:'Nest',serviceType:'Normaler Dienst',day:0,start:'11:30',end:'15:00',weekOffset:0},
+   {id:'sun-core-a',person:'Sonne Person',group:'Sonnengruppe',serviceType:'Normaler Dienst',day:0,start:'08:00',end:'12:00',weekOffset:0},
+   {id:'sun-core-b',person:'Sonne Person',group:'Sonnengruppe',serviceType:'Normaler Dienst',day:0,start:'11:30',end:'15:00',weekOffset:0},
+   {id:'stern-core-a',person:'Stern Person',group:'Sternengruppe',serviceType:'Normaler Dienst',day:0,start:'08:00',end:'12:00',weekOffset:0},
+   {id:'stern-core-b',person:'Stern Person',group:'Sternengruppe',serviceType:'Normaler Dienst',day:0,start:'11:30',end:'15:00',weekOffset:0},
+   {id:'nest-late',person:'Nest Person',group:'Nest',serviceType:'Normaler Dienst',day:0,start:'15:00',end:'16:15',weekOffset:0},
+   {id:'sun-late',person:'Sonne Person',group:'Sonnengruppe',serviceType:'Normaler Dienst',day:0,start:'15:00',end:'16:15',weekOffset:0},
+   {id:'stern-late',person:'Stern Person',group:'Sternengruppe',serviceType:'Normaler Dienst',day:0,start:'15:00',end:'16:15',weekOffset:0},
+   {id:'stern-extra-late',person:'Stern Extra',group:'Sternengruppe',serviceType:'Normaler Dienst',day:0,start:'15:00',end:'16:15',weekOffset:0}
   ];
   const holder=document.createElement('section');holder.id='coverage-test';document.body.append(holder);
   window.__renderCoverageFixture=()=>{holder.innerHTML=renderCoverageStrip(window.__coverageFixture)};
