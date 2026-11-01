@@ -171,11 +171,23 @@ function showEmployeePortal(payload){
   }
   if(personal){
    const own=shifts.filter(s=>s.person===payload?.employeeName);
-   personal.innerHTML=own.length?'<ol class="employee-shift-list">'+own.map(s=>{
-    const date=new Date(s.date+"T12:00:00");
-    const label=new Intl.DateTimeFormat("de-DE",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(date);
-    return '<li class="employee-shift"><div><strong>'+escapeHTML(label)+'</strong><span>'+escapeHTML(s.group||"Team")+' · '+escapeHTML(s.serviceType||"Dienst")+'</span></div><time>'+escapeHTML(s.start)+'–'+escapeHTML(s.end)+'</time></li>';
-   }).join("")+'</ol>':'<p class="employee-empty">Für dich sind in dieser Kalenderwoche keine Dienste eingetragen.</p>';
+   const days=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+   const monday=weekMonday(weekOffset);
+   const dates=days.map((day,index)=>{const date=new Date(monday);date.setDate(monday.getDate()+index);return date;});
+   const ticks=[6,8,10,12,14,16,18,20,22].map(hour=>'<span class="employee-personal-time-tick" style="top:'+((hour-6)/16*100)+'%">'+String(hour).padStart(2,"0")+':00</span>').join("");
+   const columns=days.map((day,index)=>{
+    const date=dates[index],key=isoDate(date),dateText=new Intl.DateTimeFormat("de-DE",{day:"2-digit",month:"2-digit"}).format(date);
+    const dayShifts=own.filter(s=>s.date===key).sort((a,b)=>a.start.localeCompare(b.start));
+    const blocks=dayShifts.map(s=>{
+     const start=Math.max(360,Math.min(1320,Number(s.start.slice(0,2))*60+Number(s.start.slice(3))));
+     const end=Math.max(start+30,Math.min(1320,Number(s.end.slice(0,2))*60+Number(s.end.slice(3))));
+     const top=Math.max(0,Math.min(100,(start-360)/960*100)),height=Math.max(4,(end-start)/960*100);
+     const groupIndex=Math.max(0,groups.indexOf(String(s.group||"Team")))%6;
+     return '<article class="employee-personal-shift pdf-group-'+groupIndex+'" style="top:'+top+'%;height:'+height+'%"><strong>'+escapeHTML(s.start)+'–'+escapeHTML(s.end)+'</strong><span>'+escapeHTML(s.serviceType||"Dienst")+'</span><small>'+escapeHTML(s.group||"Team")+'</small></article>';
+    }).join("");
+    return '<div class="employee-personal-day-track'+(dayShifts.length?'':' is-free')+'">'+(blocks||'<span class="employee-personal-free">Frei</span>')+'</div>';
+   }).join("");
+   personal.innerHTML='<div class="employee-personal-calendar-summary"><strong>'+own.length+' '+(own.length===1?'Dienst':'Dienste')+'</strong><span>Wochenkalender · Montag bis Sonntag</span></div><div class="employee-personal-calendar-scroll"><div class="employee-personal-calendar"><div class="employee-personal-calendar-head"><div class="employee-personal-axis-head">Zeit</div>'+days.map((day,index)=>'<div class="employee-personal-day-head"><strong>'+day+'</strong><time>'+new Intl.DateTimeFormat("de-DE",{day:"2-digit",month:"2-digit"}).format(dates[index])+'</time></div>').join("")+'</div><div class="employee-personal-calendar-body"><div class="employee-personal-time-axis" aria-hidden="true">'+ticks+'</div><div class="employee-personal-day-columns">'+columns+'</div></div></div></div>';
   }
  }
  async function loadWeek(offset){
