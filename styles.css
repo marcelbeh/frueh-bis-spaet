@@ -1324,3 +1324,102 @@ body.sidebar-drawer-open{overflow:hidden}
 .event-delete:hover{background:var(--wuselo-error-soft);color:var(--wuselo-error)}
 .event-delete:focus-visible{outline:2px solid var(--wuselo-plum);outline-offset:2px}
 @media(max-width:760px){.event-delete{width:44px;height:44px}}
+
+
+/* Targeted WUSELO UI corrections */
+#personForm .check-list{
+  grid-template-columns:minmax(0,1fr);
+  gap:6px;
+}
+#personForm .check-option{
+  box-sizing:border-box;
+  width:100%;
+  min-height:38px;
+  justify-content:flex-start;
+  gap:10px;
+  padding:8px 10px;
+  white-space:normal;
+}
+#personForm .check-option input{
+  flex:0 0 16px;
+  margin:0;
+}
+
+#pageContent button.btn.danger[data-action="delete-week-plan"]{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  box-sizing:border-box;
+  width:max-content;
+  max-width:100%;
+  min-height:36px;
+  padding:7px 11px;
+  border-radius:9px;
+  background:var(--wuselo-error-soft)!important;
+  border-color:var(--wuselo-error-soft)!important;
+  color:var(--wuselo-error)!important;
+  font-size:12px;
+  line-height:1.25;
+  white-space:nowrap;
+  box-shadow:none;
+}
+#pageContent button.btn.danger[data-action="delete-week-plan"] svg{
+  display:block;
+  flex:0 0 16px;
+  width:16px;
+  height:16px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  background:transparent;
+}
+
+.app-shell.sidebar-collapsed .nav,
+.app-shell.sidebar-collapsed .nav-group{
+  gap:8px;
+}
+.app-shell.sidebar-collapsed .nav-parent,
+.app-shell.sidebar-collapsed .nav-item:not(.nav-child){
+  box-sizing:border-box;
+  display:flex;
+  align-items:center;
+  justify-content:center!important;
+  width:46px;
+  min-width:46px;
+  height:46px;
+  min-height:46px;
+  margin:0 auto;
+  padding:0!important;
+  border-radius:12px;
+  background:var(--wuselo-lavender)!important;
+  color:var(--wuselo-plum);
+}
+.app-shell.sidebar-collapsed .nav-icon{
+  display:grid;
+  place-items:center;
+  box-sizing:border-box;
+  width:22px;
+  height:22px;
+  flex:0 0 22px;
+  margin:0;
+  color:var(--wuselo-plum);
+  font-size:0;
+}
+.app-shell.sidebar-collapsed .nav-icon svg{
+  display:block;
+  width:22px;
+  height:22px;
+}
+.app-shell.sidebar-collapsed .brand-row .sidebar-collapse{
+  box-sizing:border-box;
+  width:46px!important;
+  height:46px!important;
+  flex:0 0 46px!important;
+  border-radius:12px!important;
+  background:var(--wuselo-lavender)!important;
+  color:var(--wuselo-plum)!important;
+  font-size:22px!important;
+}
