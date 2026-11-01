@@ -12,6 +12,21 @@ test('WebKit mobile and tablet layouts stay within the viewport',async({browser}
   names=Array.from({length:23},(_,i)=>({name:'Mitarbeiter '+String(i+1).padStart(2,'0'),initials:'M'+(i+1),group:groups[i%groups.length],hours:30,vacation:30,workdays:[0,1,2,3,4],color:'green'}));
   currentPage='dienstplan';render();
  });
+ const mainBefore=await page.locator(".main-area").boundingBox();
+ await page.locator("#mobileMenu").click();
+ await expect(page.locator("#sidebar")).toHaveClass(/open/);
+ const drawer=await page.locator("#sidebar").boundingBox(),mainOpen=await page.locator(".main-area").boundingBox();
+ expect(drawer.x).toBe(0);expect(drawer.width).toBeGreaterThan(200);expect(drawer.width).toBeLessThan(390);
+ expect(mainOpen.x).toBe(mainBefore.x);
+ await page.locator("#sidebarBackdrop").click();
+ await expect(page.locator("#sidebar")).not.toHaveClass(/open/);
+ expect((await page.locator(".main-area").boundingBox()).x).toBe(mainBefore.x);
+ await page.locator("#mobileMenu").click();
+ await page.locator('#sidebar [data-menu-toggle="personal"]').click();
+ await page.locator('#sidebar [data-page="mitarbeitende"]').click();
+ await expect(page.locator(".page-heading h1")).toHaveText("Mitarbeitende");
+ await expect(page.locator("#sidebar")).not.toHaveClass(/open/);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
  const viewports=[{width:390,height:844},{width:430,height:932},{width:768,height:1024}];
  for(const viewport of viewports){
   await page.setViewportSize(viewport);
