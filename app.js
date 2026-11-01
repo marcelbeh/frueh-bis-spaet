@@ -63,7 +63,7 @@ async function loadCloudData(user){
  if(!owner.data){
   const employee=await cloud.from("employee_access").select("person_name").eq("user_id",user.id).maybeSingle();
   if(employee.error||!employee.data){showCloudLogin("Dieser Zugang ist nicht als Leitung oder Mitarbeitende freigeschaltet.");await cloud.auth.signOut();return;}
-  const {data:portal,error:portalError}=await cloud.functions.invoke("employee-schedule");
+  const {data:portal,error:portalError}=await cloud.functions.invoke("employee-schedule",{body:{weekOffset:0}});
   if(portalError||!portal){showCloudLogin("Deine Dienste konnten nicht geladen werden. Bitte wende dich an die Leitung.");await cloud.auth.signOut();return;}
   document.getElementById("cloudLogin")?.remove();
   showEmployeePortal(portal);return;
@@ -81,12 +81,95 @@ function removeEmployeePortal(){
 function showEmployeePortal(payload){
  removeEmployeePortal();
  const shell=document.querySelector(".app-shell");if(shell){shell.hidden=true;shell.style.display="none";}
- const shifts=(Array.isArray(payload?.shifts)?payload.shifts:[]).filter(s=>s&&/^\d{4}-\d{2}-\d{2}$/.test(s.date||"")&&/^\d{2}:\d{2}$/.test(s.start||"")&&/^\d{2}:\d{2}$/.test(s.end||"")).sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start));
- const rows=shifts.map(s=>{const date=new Date(s.date+"T12:00:00");const label=new Intl.DateTimeFormat("de-DE",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(date);return '<li class="employee-shift"><div><strong>'+escapeHTML(label)+'</strong><span>'+escapeHTML(s.serviceType||"Dienst")+'</span></div><time>'+escapeHTML(s.start)+'–'+escapeHTML(s.end)+'</time></li>'}).join("");
+ let weekOffset=Number.isInteger(payload?.weekOffset)?payload.weekOffset:0;
+ let loading=false;
  const portal=document.createElement("main");portal.id="employeePortal";portal.className="employee-portal";
- portal.innerHTML='<header class="employee-portal-header"><div><span class="employee-portal-brand">🌈 Früh bis spät</span><h1>Meine Dienste</h1><p>Angemeldet als '+escapeHTML(payload?.employeeName||"Mitarbeitende")+'</p></div><button class="btn small" type="button" data-employee-logout>Abmelden</button></header><section class="employee-schedule-card"><h2>Dein Dienstplan</h2>'+(rows?'<ol class="employee-shift-list">'+rows+'</ol>':'<p class="employee-empty">Für dich sind derzeit keine Dienste eingetragen.</p>')+'</section>';
+ portal.innerHTML='<header class="employee-portal-header"><div><span class="employee-portal-brand">🌈 Früh bis spät</span><h1>Meine Dienste</h1><p>Angemeldet als '+escapeHTML(payload?.employeeName||"Mitarbeitende")+' · Nur Ansicht</p></div><button class="btn small" type="button" data-employee-logout>Abmelden</button></header><section class="employee-schedule-card employee-overview-card"><div class="employee-overview-heading"><div><h2>Gesamtdienstplan</h2><p>Alle Dienste im Team für die ausgewählte Kalenderwoche</p></div><span id="employeePlanStatus" class="employee-plan-status" aria-live="polite"></span></div><nav class="employee-week-nav" aria-label="Kalenderwoche"><button class="employee-week-button" type="button" data-employee-week-step="-1" aria-label="Vorherige Kalenderwoche">‹</button><strong id="employeeWeekLabel"></strong><button class="employee-week-button" type="button" data-employee-week-step="1" aria-label="Nächste Kalenderwoche">›</button></nav><div id="employeeWeekContent" aria-live="polite"></div></section><section class="employee-schedule-card employee-personal-card"><h2>Meine Dienste</h2><div id="employeePersonalContent"></div></section>';
  document.body.appendChild(portal);
+ function weekMonday(offset){
+  const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Berlin",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
+  const value=type=>parts.find(part=>part.type===type)?.value||"";
+  const date=new Date(Number(value("year")),Number(value("month"))-1,Number(value("day")),12,0,0,0);
+  date.setDate(date.getDate()-((date.getDay()+6)%7)+offset*7);return date;
+ }
+ function isoDate(date){return date.getFullYear()+"-"+String(date.getMonth()+1).padStart(2,"0")+"-"+String(date.getDate()).padStart(2,"0");}
+ function weekLabel(offset){
+  const monday=weekMonday(offset),thursday=new Date(monday);thursday.setDate(thursday.getDate()+3);
+  const sunday=new Date(monday);sunday.setDate(sunday.getDate()+6);
+  const range=new Intl.DateTimeFormat("de-DE",{day:"numeric",month:"short"}).format(monday)+" – "+new Intl.DateTimeFormat("de-DE",{day:"numeric",month:"short"}).format(sunday);
+  return "KW "+isoCalendarWeek(monday)+"/"+thursday.getFullYear()+" · "+range;
+ }
+ function validShifts(){
+  return (Array.isArray(payload?.shifts)?payload.shifts:[]).filter(s=>s&&/^\d{4}-\d{2}-\d{2}$/.test(s.date||"")&&/^\d{2}:\d{2}$/.test(s.start||"")&&/^\d{2}:\d{2}$/.test(s.end||"")).map(s=>({...s,person:typeof s.person==="string"?s.person:payload?.employeeName||"Team",group:typeof s.group==="string"?s.group:"Team"})).sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start));
+ }
+ function renderWeek(){
+  const label=portal.querySelector("#employeeWeekLabel"),content=portal.querySelector("#employeeWeekContent"),personal=portal.querySelector("#employeePersonalContent"),status=portal.querySelector("#employeePlanStatus");
+  if(label)label.textContent=weekLabel(weekOffset);
+  portal.querySelectorAll("[data-employee-week-step]").forEach(button=>button.disabled=loading);
+  if(loading){
+   if(status){status.textContent="Wird geladen …";status.classList.remove("is-empty");}
+   if(content)content.innerHTML='<p class="employee-week-loading">Kalenderwoche wird geladen …</p>';
+   if(personal)personal.innerHTML='<p class="employee-empty">Deine Dienste werden geladen …</p>';
+   return;
+  }
+  const shifts=validShifts();
+  const planExists=payload?.planExists===true||(payload?.planExists===undefined&&shifts.length>0);
+  if(status){status.textContent=planExists?"Dienstplan angelegt":"Noch kein Dienstplan angelegt";status.classList.toggle("is-empty",!planExists);}
+  if(!planExists){
+   if(content)content.innerHTML='<div class="employee-plan-empty"><span class="employee-plan-empty-icon" aria-hidden="true">▦</span><strong>Für diese Kalenderwoche ist noch kein Dienstplan angelegt.</strong><p>Sobald die Leitung den Plan erstellt, erscheint hier die Teamübersicht.</p></div>';
+   if(personal)personal.innerHTML='<p class="employee-empty">Deine Dienste erscheinen hier, sobald der Wochenplan angelegt ist.</p>';
+   return;
+  }
+  const groups=[...new Set(shifts.map(s=>String(s.group||"Team")))];
+  if(content){
+   const days=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+   const monday=weekMonday(weekOffset);
+   const cards=days.map((day,index)=>{
+    const date=new Date(monday);date.setDate(monday.getDate()+index);
+    const dateText=new Intl.DateTimeFormat("de-DE",{day:"2-digit",month:"2-digit"}).format(date);
+    const dayKey=isoDate(date);
+    const dayShifts=shifts.filter(s=>s.date===dayKey).sort((a,b)=>a.start.localeCompare(b.start)||String(a.group||"").localeCompare(String(b.group||"")));
+    const rows=dayShifts.length?dayShifts.map(s=>{
+     const own=s.person===payload?.employeeName;
+     return '<article class="employee-overview-shift'+(own?' is-own':'')+'"><div class="employee-overview-shift-top"><strong>'+escapeHTML(s.person||"Team")+'</strong><span class="employee-shift-group">'+escapeHTML(s.group||"Team")+'</span></div><time>'+escapeHTML(s.start)+'–'+escapeHTML(s.end)+'</time><small>'+escapeHTML(s.serviceType||"Dienst")+'</small></article>';
+    }).join(""):'<p class="employee-day-empty">Keine Dienste</p>';
+    return '<section class="employee-day-card"><header><h3>'+day+'</h3><time>'+dateText+'</time></header><div class="employee-day-shifts">'+rows+'</div></section>';
+   }).join("");
+   content.innerHTML='<div class="employee-week-summary"><strong>'+shifts.length+' '+(shifts.length===1?'Dienst':'Dienste')+'</strong><span>'+groups.length+' '+(groups.length===1?'Gruppe':'Gruppen')+'</span></div><div class="employee-week-board">'+cards+'</div>';
+  }
+  if(personal){
+   const own=shifts.filter(s=>s.person===payload?.employeeName);
+   personal.innerHTML=own.length?'<ol class="employee-shift-list">'+own.map(s=>{
+    const date=new Date(s.date+"T12:00:00");
+    const label=new Intl.DateTimeFormat("de-DE",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(date);
+    return '<li class="employee-shift"><div><strong>'+escapeHTML(label)+'</strong><span>'+escapeHTML(s.group||"Team")+' · '+escapeHTML(s.serviceType||"Dienst")+'</span></div><time>'+escapeHTML(s.start)+'–'+escapeHTML(s.end)+'</time></li>';
+   }).join("")+'</ol>':'<p class="employee-empty">Für dich sind in dieser Kalenderwoche keine Dienste eingetragen.</p>';
+  }
+ }
+ async function loadWeek(offset){
+  if(loading)return;
+  weekOffset=offset;loading=true;renderWeek();
+  const result=await cloud.functions.invoke("employee-schedule",{body:{weekOffset}});
+  loading=false;
+  if(result.error||!result.data){
+   const content=portal.querySelector("#employeeWeekContent"),personal=portal.querySelector("#employeePersonalContent"),status=portal.querySelector("#employeePlanStatus");
+   if(status){status.textContent="Laden fehlgeschlagen";status.classList.add("is-empty");}
+   if(content)content.innerHTML='<div class="employee-plan-empty employee-load-error"><strong>Diese Kalenderwoche konnte nicht geladen werden.</strong><p>Bitte versuche es erneut.</p><button class="btn small" type="button" data-employee-week-retry>Erneut laden</button></div>';
+   if(personal)personal.replaceChildren();
+   portal.querySelectorAll("[data-employee-week-step]").forEach(button=>button.disabled=false);
+   return;
+  }
+  payload=result.data;
+  weekOffset=Number.isInteger(payload.weekOffset)?payload.weekOffset:offset;
+  renderWeek();
+ }
+ portal.addEventListener("click",event=>{
+  const step=event.target.closest("[data-employee-week-step]");
+  if(step){loadWeek(weekOffset+Number(step.dataset.employeeWeekStep));return;}
+  if(event.target.closest("[data-employee-week-retry]"))loadWeek(weekOffset);
+ });
  portal.querySelector("[data-employee-logout]")?.addEventListener("click",async event=>{const button=event.currentTarget;button.disabled=true;await cloud.auth.signOut();cloudReady=false;cloudUser=null;removeEmployeePortal();showCloudLogin("Du wurdest abgemeldet.")});
+ renderWeek();
 }
 function showCloudError(message){console.error("Cloud-Fehler:",message);window.alert("Es ist ein Fehler aufgetreten:\n\n"+message);}
 async function saveCloudState(){

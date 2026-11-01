@@ -56,6 +56,21 @@ Deno.serve(async (request: Request) => {
     return jsonResponse({ error: "Method not allowed" }, 405, origin);
   }
 
+  let requestBody: Record<string, unknown> = {};
+  try {
+    const parsed = await request.json();
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      requestBody = parsed as Record<string, unknown>;
+    }
+  } catch {
+    // Calls without a body show the current calendar week.
+  }
+  const selectedWeekOffset = requestBody.weekOffset === undefined ? 0 : requestBody.weekOffset;
+  if (typeof selectedWeekOffset !== "number" || !Number.isInteger(selectedWeekOffset)
+    || Math.abs(selectedWeekOffset) > 260) {
+    return jsonResponse({ error: "Invalid calendar week" }, 400, origin);
+  }
+
   const authorization = request.headers.get("Authorization");
   const token = authorization?.match(/^Bearer\s+(.+)$/i)?.[1];
   if (!token) return jsonResponse({ error: "Authentication required" }, 401, origin);
@@ -113,21 +128,46 @@ Deno.serve(async (request: Request) => {
       / 604800000,
   );
   const shifts = Array.isArray(state.shifts) ? state.shifts : [];
+  const groupByPerson = new Map<string, string>();
+  if (Array.isArray(state.names)) {
+    for (const entry of state.names) {
+      if (entry && typeof entry === "object") {
+        const item = entry as Record<string, unknown>;
+        if (typeof item.name === "string" && typeof item.group === "string") {
+          groupByPerson.set(item.name, item.group.slice(0, 80));
+        }
+      }
+    }
+  }
   const ownShifts = shifts.flatMap((shift: unknown) => {
     if (!shift || typeof shift !== "object") return [];
     const item = shift as Record<string, unknown>;
     const day = Number(item.day);
     const offset = Number.isInteger(item.weekOffset) ? Number(item.weekOffset) : 0;
-    if (item.person !== personName || !Number.isInteger(day) || day < 0 || day > 6
+    const effectiveWeekOffset = offset - elapsedWeeks;
+    if (effectiveWeekOffset !== selectedWeekOffset || !Number.isInteger(day) || day < 0 || day > 6
+      || typeof item.person !== "string"
       || typeof item.start !== "string" || !/^\d{2}:\d{2}$/.test(item.start)
       || typeof item.end !== "string" || !/^\d{2}:\d{2}$/.test(item.end)) return [];
+    const group = typeof item.group === "string" ? item.group : groupByPerson.get(item.person) || "Team";
     return [{
-      date: addDays(currentMonday, (offset - elapsedWeeks) * 7 + day),
+      date: addDays(currentMonday, effectiveWeekOffset * 7 + day),
       start: item.start,
       end: item.end,
+      person: item.person.slice(0, 80),
+      group: group.slice(0, 80),
       serviceType: typeof item.serviceType === "string" ? item.serviceType.slice(0, 80) : "Dienst",
     }];
-  }).sort((a, b) => (a.date + a.start).localeCompare(b.date + b.start));
+  }).sort((a, b) => (a.date + a.start + a.person).localeCompare(b.date + b.start + b.person));
+  const scheduleGroups = Array.isArray(state.groups)
+    ? state.groups.filter((group: unknown): group is string => typeof group === "string").map((group: string) => group.slice(0, 80))
+    : [];
 
-  return jsonResponse({ employeeName: personName, shifts: ownShifts }, 200, origin);
+  return jsonResponse({
+    employeeName: personName,
+    weekOffset: selectedWeekOffset,
+    planExists: ownShifts.length > 0,
+    groups: scheduleGroups,
+    shifts: ownShifts,
+  }, 200, origin);
 });
