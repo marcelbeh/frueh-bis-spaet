@@ -1328,6 +1328,8 @@ body.sidebar-drawer-open{overflow:hidden}
 
 /* Targeted WUSELO UI corrections */
 #personForm .check-list{
+  width:min(112px,100%);
+  max-width:100%;
   grid-template-columns:minmax(0,1fr);
   gap:6px;
 }
@@ -1336,13 +1338,19 @@ body.sidebar-drawer-open{overflow:hidden}
   width:100%;
   min-height:38px;
   justify-content:flex-start;
-  gap:10px;
+  gap:8px;
   padding:8px 10px;
-  white-space:normal;
+  white-space:nowrap;
 }
-#personForm .check-option input{
+#personForm .check-option input[type="checkbox"]{
+  box-sizing:border-box;
+  width:16px;
+  min-width:16px;
+  max-width:16px;
+  height:16px;
   flex:0 0 16px;
   margin:0;
+  padding:0;
 }
 
 #pageContent button.btn.danger[data-action="delete-week-plan"]{
