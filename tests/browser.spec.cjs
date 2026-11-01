@@ -12,6 +12,7 @@ test('login screen loads and fits mobile viewport',async({page})=>{
 });
 test('employee login shows only the signed-in employee schedule',async({page})=>{
  const stub=`
+ // employee_access.enabled defaults to true in the role migration.
  window.__employeeQueries=[];
  window.supabase={createClient:()=>({
   auth:{
