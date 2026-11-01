@@ -597,6 +597,18 @@ test('dashboard greeting follows local time and updates at the next time band',a
 test('kitaplanio logo and app icon match the final brand specification',async({page})=>{
  await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};'}));
  await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+ const loginLogo=page.locator('#cloudLogin .auth-brand-logo');
+ await expect(loginLogo).toHaveAttribute('src','./assets/wuselo-logo.svg?v=kitaplanio-transparent-light-1');
+ const mobileHeaderLogo=page.locator('.mobile-brand img');
+ await expect(mobileHeaderLogo).toHaveAttribute('src','./assets/wuselo-logo.svg?v=kitaplanio-transparent-light-1');
+ const lightResponse=await page.request.get('http://127.0.0.1:4173/assets/wuselo-logo.svg?v=kitaplanio-transparent-light-1');
+ expect(lightResponse.ok()).toBe(true);
+ const lightSvg=await lightResponse.text();
+ expect(lightSvg).not.toContain('<rect');
+ expect(lightSvg).toContain('stroke="#5B2A86"');
+ expect(lightSvg).toContain('font-weight="900" letter-spacing="-1.8" fill="#5B2A86"');
+ expect(lightSvg).toContain('<circle cx="339.6" cy="20" r="5.5" fill="#FFC107"/>');
+ expect(lightSvg).toContain('fill="#75608E">Dienstplanung, die mitdenkt.</text>');
  await page.evaluate(()=>{document.querySelector('#cloudLogin')?.remove();currentPage='dashboard';render()});
  const logo=page.locator('.brand-logo');
  await expect(logo).toHaveAttribute('alt','kitaplanio – Dienstplanung, die mitdenkt.');
