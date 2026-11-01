@@ -534,7 +534,6 @@ test('weekly staffing ampels reflect under, exact, over and live-updated coverag
  await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
  await page.evaluate(()=>{
   document.querySelector('#cloudLogin')?.remove();
-  groups=['Nest','Sonnengruppe','Sternengruppe'];
   names=[
    {name:'Nest Person',initials:'NP',group:'Nest',hours:30,color:'plum'},
    {name:'Sonne Person',initials:'SP',group:'Sonnengruppe',hours:30,color:'plum'},
