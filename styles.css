@@ -975,7 +975,7 @@ body{background:var(--canvas);color:var(--ink);font-family:Inter,"Avenir Next",A
 .nav-item,.nav-parent{min-height:44px;border-radius:12px;color:var(--wuselo-white);transition:background .16s ease,color .16s ease,transform .16s ease}
 .nav-item:hover,.nav-parent:hover{background:var(--wuselo-lavender);color:var(--wuselo-white)}
 .nav-item.active,.nav-child.active,.nav-parent[aria-expanded="true"]{background:var(--wuselo-lavender);color:var(--wuselo-white)}
-.nav-item.active .nav-icon,.nav-parent[aria-expanded="true"] .nav-icon{color:var(--wuselo-white)}
+.nav-item.active .nav-icon,.nav-parent[aria-expanded="true"] .nav-icon{color:var(--wuselo-plum)}
 .nav-parent{padding:11px 12px}
 .nav-children{margin:3px 0 8px 16px;padding-left:11px;border-left:1px solid var(--wuselo-lavender)}
 .nav-child{padding:8px 12px;font-size:13px}
@@ -1176,9 +1176,9 @@ h1,h2,h3,h4,.brand-copy,.employee-sidebar-brand,.page-title,.modal-title{font-fa
 .sidebar .brand{color:var(--wuselo-white)}
 .sidebar .nav-item,.sidebar .nav-parent{color:var(--wuselo-white)}
 .sidebar .nav-item:hover,.sidebar .nav-parent:hover,.sidebar .nav-parent[aria-expanded="true"],.sidebar .nav-item.active{background:color-mix(in srgb,var(--wuselo-white) 17%,var(--wuselo-plum));color:var(--wuselo-white)}
-.sidebar .nav-item.active span,.sidebar .nav-parent.active .nav-icon,.sidebar .nav-icon,.sidebar .nav-child-icon{color:var(--wuselo-white)}
+.sidebar .nav-item.active span:not(.nav-icon):not(.nav-child-icon){color:var(--wuselo-white)}.sidebar .nav-parent.active .nav-icon,.sidebar .nav-icon{color:var(--wuselo-plum)}.sidebar .nav-child-icon{color:var(--wuselo-white)}
 .sidebar .nav-children{border-left-color:color-mix(in srgb,var(--wuselo-white) 24%,var(--wuselo-plum))}
-.sidebar .nav-group .nav-icon,.sidebar .nav-item:not(.nav-child) .nav-icon{background:transparent;border-color:transparent;color:var(--wuselo-white)}
+.sidebar .nav-group .nav-icon,.sidebar .nav-item:not(.nav-child) .nav-icon{background:var(--wuselo-lavender);border-color:var(--wuselo-lavender);color:var(--wuselo-plum)}
 .sidebar .sidebar-account{border-top-color:color-mix(in srgb,var(--wuselo-white) 20%,var(--wuselo-plum))}
 .sidebar .sidebar-user,.sidebar .sidebar-user-copy small,.sidebar .sidebar-logout{color:var(--wuselo-white)}
 .sidebar .sidebar-avatar{background:var(--wuselo-lavender);color:var(--wuselo-plum)}
@@ -1282,7 +1282,7 @@ body.sidebar-drawer-open{overflow:hidden}
 .btn:not(.primary):not(.danger):hover,.icon-button:hover,.week-button:hover,.calendar-nav button:hover{background:var(--wuselo-lavender);border-color:var(--wuselo-plum);color:var(--wuselo-aubergine)}
 .sidebar .nav-parent,.sidebar .nav-item:not(.nav-child){color:var(--wuselo-white)}
 .sidebar .nav-parent[aria-expanded="true"],.sidebar .nav-item.active{background:color-mix(in srgb,var(--wuselo-white) 17%,var(--wuselo-plum));color:var(--wuselo-white)}
-.sidebar .nav-group .nav-icon,.sidebar .nav-item:not(.nav-child) .nav-icon{background:transparent;color:var(--wuselo-white);border-color:transparent}
+.sidebar .nav-group .nav-icon,.sidebar .nav-item:not(.nav-child) .nav-icon{background:var(--wuselo-lavender);color:var(--wuselo-plum);border-color:var(--wuselo-lavender)}
 @media(max-width:760px){
  .dashboard-welcome{align-items:flex-start;gap:12px;margin-bottom:18px}
  .dashboard-welcome h1{font-size:25px}
@@ -1493,7 +1493,7 @@ body.sidebar-drawer-open{overflow:hidden}
   height:22px;
   flex:0 0 22px;
   margin:0;
-  color:var(--wuselo-white);
+  color:var(--wuselo-plum);
   font-size:0;
 }
 .app-shell.sidebar-collapsed .nav-icon svg{
