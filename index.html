@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   <title>WUSEL – Ordnung im Kita-Trubel.</title>
-  <link rel="stylesheet" href="./styles.css?v=wusel-brand-system-2">
+  <link rel="stylesheet" href="./styles.css?v=wusel-mobile-drawer-1">
 </head>
 <body>
   <div class="app-shell">
@@ -60,10 +60,11 @@
       </nav>
       <div class="sidebar-account"><button class="sidebar-user" id="sidebarProfile" type="button"><span class="sidebar-avatar" id="sidebarAvatar">L</span><span class="sidebar-user-copy"><strong id="sidebarUserName">Leitung</strong><small>Leitung</small></span></button><button class="sidebar-logout" id="sidebarLogout" type="button" aria-label="Abmelden" title="Abmelden">↗</button></div>
     </aside>
+      <button class="sidebar-backdrop" id="sidebarBackdrop" type="button" aria-label="Menü schließen" aria-hidden="true" tabindex="-1"></button>
 
     <main class="main-area">
       <header class="topbar">
-        <button class="mobile-menu" id="mobileMenu" aria-label="Menü öffnen">☰</button>
+        <button class="mobile-menu" id="mobileMenu" aria-label="Menü öffnen" aria-controls="sidebar" aria-expanded="false">☰</button>
         <label class="searchbox"><span>⌕</span><input id="globalSearch" placeholder="Mitarbeitende, Termine suchen …" aria-label="Suche"></label>
         <div class="topbar-right"><button class="avatar profile-avatar-button" id="profileAvatar" type="button" aria-label="Leitungsprofil öffnen" title="Leitungsprofil öffnen">L</button><span class="profile-name">Leitung</span></div>
       </header>
@@ -78,6 +79,6 @@
     </section>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./app.js?v=wusel-brand-system-1"></script>
+  <script src="./app.js?v=wusel-mobile-drawer-1"></script>
 </body>
 </html>
