@@ -554,12 +554,12 @@ function renderCoverageStrip(coverageShifts){
   const minimum=period.key==="core"?plannerSettings.minimumByGroup:period.key==="early"?plannerSettings.minimumEarlyByGroup:plannerSettings.minimumLateByGroup;
   const countAt=(t,g)=>coverageShifts.filter(s=>shiftCoversTime(s,t)&&(merged||s.group===g)).length;
   const entries=merged?[{label:"Gemeinsam",required:Number(period.key==="early"?plannerSettings.minimumEarlyCombined:plannerSettings.minimumLateCombined)||0,count:Math.min(...times.map(t=>countAt(t,groups[0])))}]:groups.map(g=>({label:g,required:Number(minimum[g])||0,count:Math.min(...times.map(t=>countAt(t,g)))}));
-  const relevant=entries.filter(x=>x.required>0),deficient=relevant.some(x=>x.count<x.required),exact=relevant.some(x=>x.count===x.required);
-  const status=deficient?"coverage-low":exact?"coverage-watch":"coverage-ok";
-  const statusLabel=!relevant.length?"Keine Sollvorgabe":deficient?"Unterbesetzt":exact?"Soll erreicht":"Über Soll";
+  const relevant=entries.filter(x=>x.required>0),deficient=relevant.some(x=>x.count<x.required),allExact=relevant.length>0&&relevant.every(x=>x.count===x.required);
+  const status=!relevant.length?"coverage-none":deficient?"coverage-low":allExact?"coverage-watch":"coverage-ok";
+  const statusLabel=!relevant.length?"Keine Sollvorgabe":deficient?"Unterbesetzt":allExact?"Soll erfüllt":"Gut besetzt";
   const detail=entries.map(x=>x.label+" "+x.count+"/"+x.required).join(" · ");
-  const rows=entries.map(x=>'<span class="day-coverage-entry"><span class="day-coverage-group">'+escapeHTML(x.label)+'</span><strong>'+x.count+'/'+x.required+'</strong></span>').join("");
-  return '<div class="day-coverage '+status+' coverage-period-'+period.key+'" data-period="'+period.key+'" title="'+escapeHTML(detail)+'" aria-label="'+period.label+' · '+statusLabel+' · Ist / Soll · '+escapeHTML(detail)+'"><div class="day-coverage-title"><strong>'+period.label+'</strong><small>'+period.time+'</small></div><small class="day-coverage-caption">'+statusLabel+' · Ist / Soll</small><div class="day-coverage-entries">'+rows+'</div></div>';
+  const rows=entries.map(x=>'<span class="day-coverage-entry'+(x.required>0&&x.count<x.required?" is-understaffed":"")+'"><span class="day-coverage-group">'+escapeHTML(x.label)+'</span><strong>'+x.count+'/'+x.required+'</strong></span>').join("");
+  return '<div class="day-coverage '+status+' coverage-period-'+period.key+'" data-period="'+period.key+'" data-status="'+(status==="coverage-none"?"none":status==="coverage-low"?"understaffed":status==="coverage-watch"?"fulfilled":"good")+'" title="'+escapeHTML(detail)+'" aria-label="'+period.label+' · '+statusLabel+' · Ist / Soll · '+escapeHTML(detail)+'"><div class="day-coverage-title"><strong>'+period.label+'</strong><small>'+period.time+'</small></div><div class="day-coverage-status"><span class="day-coverage-light" aria-hidden="true"></span><strong class="day-coverage-status-label">'+statusLabel+'</strong></div><small class="day-coverage-caption">Ist / Soll</small><div class="day-coverage-entries">'+rows+'</div></div>';
  }).join("");
 }
 function pageIcon(){return ({dashboard:"home",dienstplan:"calendar",kalender:"calendar",mitarbeitende:"users",abwesenheiten:"calendar",sondertermine:"calendar",teammeetings:"users",supervision:"users",fortbildungen:"briefcase",auswertungen:"chart",einstellungen:"settings",leitungsprofil:"user"})[currentPage]||"home"}
