@@ -501,6 +501,13 @@ test('weekly plan uses three aligned WUSELO staffing cards and grouped staff col
  expect(Math.max(...desktop.cardHeights)-Math.min(...desktop.cardHeights)).toBeLessThan(1);
  expect(desktop.names).toEqual(['Anna Nest','Zora Nest','Sarah Sonne','Tina Gruppe']);
  expect(desktop.headLeft).toEqual(desktop.columnLeft);
+ await page.setViewportSize({width:820,height:1000});
+ const tablet=await page.evaluate(()=>{
+  const day=document.querySelector('.day-calendar'),cards=[...day.querySelectorAll('.day-coverage')];
+  return {viewport:document.documentElement.clientWidth,page:document.documentElement.scrollWidth,cardWidths:cards.map(x=>x.getBoundingClientRect().width)};
+ });
+ expect(tablet.page).toBeLessThanOrEqual(tablet.viewport);
+ expect(Math.max(...tablet.cardWidths)-Math.min(...tablet.cardWidths)).toBeLessThan(1);
  await page.setViewportSize({width:390,height:844});
  const mobile=await page.evaluate(()=>{
   const day=document.querySelector('.day-calendar'),cards=[...day.querySelectorAll('.day-coverage')];
