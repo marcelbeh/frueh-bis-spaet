@@ -1,6 +1,6 @@
 :root{
  --wuselo-plum:#975C80;--wuselo-aubergine:#493C49;--wuselo-lavender:#E8D7E2;--wuselo-sage:#DDECE3;--wuselo-sand:#F4E5D2;--wuselo-cream:#F6F3F0;
- --wuselo-success:#477B5C;--wuselo-warning:#B98235;--wuselo-error:#B85D60;--wuselo-error-soft:#F4E1E2;--wuselo-white:#FFFFFF;--wuselo-muted:#746A74;--wuselo-line:#E4DDE3;
+ --wuselo-success:#477B5C;--wuselo-warning:#B98235;--wuselo-error:#B85D60;--wuselo-error-soft:var(--wuselo-lavender);--wuselo-white:#FFFFFF;--wuselo-muted:var(--wuselo-aubergine);--wuselo-line:var(--wuselo-lavender);
  --font-head:"Nunito Sans",Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--font-body:Inter,"Avenir Next",Avenir,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
  --ink:var(--wuselo-aubergine);--muted:var(--wuselo-muted);--line:var(--wuselo-line);--surface:var(--wuselo-white);--canvas:var(--wuselo-cream);
  --blue:var(--wuselo-plum);--blue-soft:var(--wuselo-lavender);--green:var(--wuselo-sage);--green-ink:var(--wuselo-success);--yellow:var(--wuselo-sand);--yellow-ink:var(--wuselo-warning);--purple:var(--wuselo-lavender);--purple-ink:var(--wuselo-aubergine);--red:var(--wuselo-error-soft);--red-ink:var(--wuselo-error);--teal:var(--wuselo-sage);
@@ -750,7 +750,7 @@ body.resizing-shift,body.resizing-shift *{cursor:ns-resize!important;user-select
 .employee-plan-status.is-empty{background:var(--wuselo-sand);color:var(--wuselo-warning)}
 .employee-week-nav{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:12px;margin:24px 0 18px;padding:10px;border:1px solid var(--wuselo-lavender);border-radius:14px;background:var(--wuselo-lavender);text-align:center}
 .employee-week-nav strong{font-size:17px}
-.employee-week-button{width:44px;height:40px;border:1px solid var(--wuselo-lavender);border-radius:10px;background:white;color:var(--wuselo-aubergine);font-size:27px;line-height:1;cursor:pointer}
+.employee-week-button{width:44px;height:40px;border:1px solid var(--wuselo-lavender);border-radius:10px;background:var(--wuselo-cream);color:var(--wuselo-aubergine);font-size:27px;line-height:1;cursor:pointer}
 .employee-week-button:hover:not(:disabled){border-color:var(--wuselo-success);color:var(--wuselo-success)}
 .employee-week-button:disabled{opacity:.45;cursor:wait}
 .employee-week-summary{display:flex;gap:14px;margin:0 0 14px;color:var(--wuselo-muted);font-size:14px}
@@ -1263,3 +1263,46 @@ body.sidebar-drawer-open{overflow:hidden}
 @media(prefers-reduced-motion:reduce){
  .sidebar,.sidebar-backdrop{transition:none}
 }
+
+
+/* WUSELO corporate color correction: consistent plum/lavender brand accents */
+.brand-mark,.employee-sidebar-mark{background:var(--wuselo-lavender)!important;color:var(--wuselo-plum)!important}
+.brand strong,.employee-sidebar-brand strong,.employee-portal-brand{color:var(--wuselo-aubergine)!important}
+.page-heading h1,.employee-workspace .employee-portal-header h1{color:var(--wuselo-aubergine)!important}
+.page-heading .page-title-icon,.main-area .card .card-title-icon,.card-title-icon{background:var(--wuselo-lavender)!important;color:var(--wuselo-plum)!important;box-shadow:inset 0 0 0 1px var(--wuselo-lavender)!important}
+.page-heading .page-title-icon svg,.main-area .card .card-title-icon svg,.card-title-icon svg{color:var(--wuselo-plum)!important}
+.stat-value{color:var(--wuselo-plum)!important}
+.stat-note{color:var(--wuselo-aubergine)!important}
+.nav-group[data-nav-group] .nav-icon,.sidebar .nav-group[data-nav-group] .nav-icon,.sidebar .nav-item:not(.nav-child) .nav-icon{background:var(--wuselo-cream)!important;color:var(--wuselo-aubergine)!important;border-color:var(--wuselo-lavender)!important}
+.nav-group[data-nav-group] .nav-child:before{background:var(--wuselo-lavender)!important}
+.nav-item:hover,.nav-parent:hover,.sidebar .nav-parent:hover{background:var(--wuselo-lavender)!important;color:var(--wuselo-aubergine)!important}
+.nav-item.active,.nav-child.active,.nav-parent[aria-expanded="true"],.sidebar .nav-child.active{background:var(--wuselo-lavender)!important;color:var(--wuselo-plum)!important;border-color:var(--wuselo-lavender)!important}
+.nav-item.active .nav-icon,.nav-parent[aria-expanded="true"] .nav-icon,.nav-parent:hover .nav-icon,.sidebar .nav-parent[aria-expanded="true"] .nav-icon{background:var(--wuselo-lavender)!important;color:var(--wuselo-plum)!important;border-color:var(--wuselo-lavender)!important}
+.nav-child.active:before,.sidebar .nav-child.active:before{background:var(--wuselo-plum)!important}
+.nav-parent:hover .nav-chevron,.nav-parent[aria-expanded="true"] .nav-chevron{color:var(--wuselo-plum)!important}
+.nav-children{border-left-color:var(--wuselo-lavender)!important}
+.sidebar-account,.employee-sidebar-footer{border-color:var(--wuselo-lavender)!important}
+.sidebar-avatar{background:var(--wuselo-lavender)!important;color:var(--wuselo-plum)!important}
+.sidebar-collapse:hover,.employee-sidebar-toggle:hover,.sidebar-logout:hover,.brand-row .sidebar-collapse{background:var(--wuselo-lavender)!important;border-color:var(--wuselo-lavender)!important;color:var(--wuselo-plum)!important}
+.searchbox:focus-within{border-color:var(--wuselo-plum)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--wuselo-plum) 18%,transparent)!important}
+.btn,.icon-button,.mobile-menu,.week-button,.calendar-nav button,.employee-week-button{border-color:var(--wuselo-lavender)!important;background:var(--wuselo-cream)!important;color:var(--wuselo-aubergine)!important;box-shadow:0 1px 2px color-mix(in srgb,var(--wuselo-aubergine) 5%,transparent)!important}
+.btn:hover,.icon-button:hover,.mobile-menu:hover,.week-button:hover,.calendar-nav button:hover,.employee-week-button:hover:not(:disabled){background:var(--wuselo-lavender)!important;border-color:var(--wuselo-plum)!important;color:var(--wuselo-aubergine)!important}
+.btn.primary,.btn.primary:hover{background:var(--wuselo-plum)!important;border-color:var(--wuselo-plum)!important;color:var(--wuselo-cream)!important}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline-color:var(--wuselo-plum)!important}
+.employee-nav-item:hover,.employee-nav-item[aria-current="page"]{background:var(--wuselo-lavender)!important;color:var(--wuselo-plum)!important}
+.employee-nav-item[aria-current="page"] .employee-nav-icon{color:var(--wuselo-plum)!important}
+.employee-shift time{color:var(--wuselo-plum)!important}
+.employee-own-tag{background:var(--wuselo-plum)!important;color:var(--wuselo-cream)!important}
+.employee-own-legend i{border-color:var(--wuselo-plum)!important;background:var(--wuselo-lavender)!important}
+.employee-person-head.is-own,.employee-person-lane.is-own-lane{background-color:var(--wuselo-lavender)!important;color:var(--wuselo-aubergine)!important}
+.employee-person-head.is-own{box-shadow:inset 0 -3px var(--wuselo-plum)!important}
+.employee-person-lane.is-own-lane{box-shadow:inset 2px 0 var(--wuselo-plum),inset -2px 0 var(--wuselo-plum)!important}
+.employee-group-head.pdf-group-0,.outlook-staff-head.shift-green{background:var(--wuselo-lavender)!important;border-color:var(--wuselo-lavender)!important;color:var(--wuselo-plum)!important}
+.shift-green,.event-green,.service-church,.outlook-shift.service-church,.pdf-time-shift.service-church,.pdf-dot.church{background:var(--wuselo-lavender)!important;border-color:var(--wuselo-lavender)!important;color:var(--wuselo-plum)!important}
+.outlook-shift.service-normal.shift-green,.pdf-time-shift.shift-green,.pdf-shift.shift-green,.employee-timeline-shift.service-normal.pdf-group-0,.employee-personal-shift.service-normal.pdf-group-0,.employee-timeline-shift.service-church,.employee-personal-shift.service-church,#pdfWeekView .pdf-shift.service-normal.pdf-group-0{background:var(--wuselo-lavender)!important;border-color:var(--wuselo-lavender)!important;border-left-color:var(--wuselo-plum)!important;color:var(--wuselo-plum)!important}
+.employee-plan-empty-icon{background:var(--wuselo-lavender)!important;color:var(--wuselo-plum)!important}
+.employee-personal-day-head,.employee-day-tab.is-active,.employee-view-switch button[aria-pressed="true"],.day-pill.selected{background:var(--wuselo-lavender)!important;border-color:var(--wuselo-lavender)!important;color:var(--wuselo-plum)!important}
+.employee-hours-summary strong.is-under{color:var(--wuselo-warning)!important}
+/* Keep green only for functional positive states and availability. */
+.status-dot,.status-success,.plan-status,.employee-plan-status:not(.is-empty),.coverage-ok,.day-coverage.coverage-ok,.coverage-ok-key:before,.pill.green{background:var(--wuselo-sage)!important;color:var(--wuselo-success)!important}
+.employee-plan-status:not(.is-empty),.status-dot{background:var(--wuselo-success)!important;color:var(--wuselo-cream)!important}
