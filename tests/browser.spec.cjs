@@ -21,7 +21,7 @@ test('employee login shows only the signed-in employee schedule',async({page})=>
    signOut:async()=>({error:null})
   },
   functions:{invoke:async name=>{window.__employeeFunction=name;return {data:{employeeName:'Mitarbeiter 01',shifts:[{date:'2026-10-31',start:'08:00',end:'14:00',serviceType:'Normaler Dienst'}]},error:null}}},
-  from:table=>{window.__employeeQueries.push(table);return {select(){return this},eq(){return this},maybeSingle:async()=>table==='app_owner'?{data:null,error:null}:table==='employee_access'?{data:{person_name:'Mitarbeiter 01'},error:null}:{data:null,error:{message:'Unexpected table query'}}}}
+  from:table=>{window.__employeeQueries.push(table);return {select(){return this},eq(){return this},maybeSingle:async()=>table==='app_owner'?{data:null,error:null}:table==='employee_access'?{data:{person_name:'Mitarbeiter 01',enabled:true},error:null}:{data:null,error:{message:'Unexpected table query'}}}}
  })};
  `;
  await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:stub}));
@@ -35,7 +35,7 @@ test('employee login shows only the signed-in employee schedule',async({page})=>
  await expect(page.locator('#employeePortal')).toContainText('31.10.');
  await expect(page.locator('.app-shell')).toBeHidden();
  expect(await page.evaluate(()=>window.__employeeFunction)).toBe('employee-schedule');
- expect(await page.evaluate(()=>window.__employeeQueries)).toEqual(['app_owner','employee_access']);
+ expect(await page.evaluate(()=>window.__employeeQueries)).toEqual(['app_owner','employee_access','app_owner']);
  await expect(page.locator('#employeePortal')).not.toContainText('Mitarbeiter 02');
 });
 
