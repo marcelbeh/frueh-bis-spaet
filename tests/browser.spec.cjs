@@ -452,7 +452,8 @@ test('leader can delete only the selected week after confirmation',async({page})
  `;
  await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:stub}));
  await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
- await page.locator('[data-page="leitungsprofil"]').click({force:true});
+ await page.evaluate(()=>{document.querySelector('.app-shell')?.classList.remove('sidebar-collapsed');document.querySelector('[data-nav-children="verwaltung"]').hidden=false;});
+ await page.locator('[data-page="leitungsprofil"]').click();
  await expect(page.getByRole('heading',{name:'Wochenplan löschen'})).toBeVisible();
  await page.locator('[data-action="delete-week-plan"]').click();
  await expect(page.getByRole('dialog')).toContainText('aktuell ausgewählten Kalenderwoche');
