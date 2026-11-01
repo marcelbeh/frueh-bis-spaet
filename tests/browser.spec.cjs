@@ -613,7 +613,6 @@ test('kitaplanio logo and app icon match the final brand specification',async({p
  expect(lightSvg).toContain('<path id="second-i-sparkle" d="M339.6 11.5C340.8 16 343.1 18.8 348.1 20 343.1 21.2 340.8 24 339.6 28.5 338.4 24 336.1 21.2 331.1 20 336.1 18.8 338.4 16 339.6 11.5Z" fill="#FFC107"/>');
  expect(lightSvg).not.toContain('id="second-i-dot"');
  expect((lightSvg.match(/id="second-i-sparkle"/g)||[]).length).toBe(1);
- expect((lightSvg.match(/id="second-i-dot"/g)||[]).length).toBe(1);
  expect(lightSvg).toContain('fill="#75608E">Dienstplanung, die mitdenkt.</text>');
  await page.evaluate(()=>{document.querySelector('#cloudLogin')?.remove();currentPage='dashboard';render()});
  const logo=page.locator('.brand-logo');
@@ -629,7 +628,6 @@ test('kitaplanio logo and app icon match the final brand specification',async({p
  expect(svg).toContain('M82 31V16H92V38');
  expect(svg).toContain('<tspan x="130" textLength="203" lengthAdjust="spacingAndGlyphs">kitaplan</tspan><tspan x="333" textLength="13.2" lengthAdjust="spacingAndGlyphs">ı</tspan><tspan x="346.2" textLength="34" lengthAdjust="spacingAndGlyphs">o</tspan>');
  expect(svg).not.toContain('<tspan x="333" textLength="13.2" lengthAdjust="spacingAndGlyphs">i</tspan>');
- expect((svg.match(/id="second-i-dot"/g)||[]).length).toBe(1);
  expect(svg).toContain('<path id="second-i-sparkle" d="M339.6 11.5C340.8 16 343.1 18.8 348.1 20 343.1 21.2 340.8 24 339.6 28.5 338.4 24 336.1 21.2 331.1 20 336.1 18.8 338.4 16 339.6 11.5Z" fill="#FFC107"/>');
  expect(svg).not.toContain('id="second-i-dot"');
  expect((svg.match(/id="second-i-sparkle"/g)||[]).length).toBe(1);
