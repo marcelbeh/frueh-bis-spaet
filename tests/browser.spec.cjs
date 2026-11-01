@@ -5,11 +5,40 @@ test('login screen loads and fits mobile viewport',async({page})=>{
  await page.setViewportSize({width:390,height:844});
  await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
  await expect(page.locator('#cloudLoginForm')).toBeVisible();
- await expect(page.getByText('Geschützter Leitungszugang',{exact:true})).toBeVisible();
+ await expect(page.getByText('Geschützter Zugang für Leitung und Mitarbeitende',{exact:true})).toBeVisible();
  await expect(page.locator('input[name="email"]')).toBeVisible();
  await expect(page.locator('input[name="password"]')).toBeVisible();
  expect(errors).toEqual([]);
 });
+test('employee login shows only the signed-in employee schedule',async({page})=>{
+ const stub=`
+ window.__employeeQueries=[];
+ window.supabase={createClient:()=>({
+  auth:{
+   getSession:async()=>({data:{session:null},error:null}),
+   signInWithPassword:async()=>({data:{user:{id:'employee-1',email:'employee@example.test'}},error:null}),
+   onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),
+   signOut:async()=>({error:null})
+  },
+  functions:{invoke:async name=>{window.__employeeFunction=name;return {data:{employeeName:'Mitarbeiter 01',shifts:[{date:'2026-10-31',start:'08:00',end:'14:00',serviceType:'Normaler Dienst'}]},error:null}}},
+  from:table=>{window.__employeeQueries.push(table);return {select(){return this},eq(){return this},maybeSingle:async()=>table==='app_owner'?{data:null,error:null}:table==='employee_access'?{data:{person_name:'Mitarbeiter 01'},error:null}:{data:null,error:{message:'Unexpected table query'}}}}
+ })};
+ `;
+ await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:stub}));
+ await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
+ await page.locator('input[name="email"]').fill('employee@example.test');
+ await page.locator('input[name="password"]').fill('test-password');
+ await page.locator('#cloudLoginForm button[type="submit"]').click();
+ await expect(page.locator('#employeePortal h1')).toHaveText('Meine Dienste');
+ await expect(page.locator('#employeePortal')).toContainText('Mitarbeiter 01');
+ await expect(page.locator('#employeePortal')).toContainText('08:00–14:00');
+ await expect(page.locator('#employeePortal')).toContainText('Samstag, 31. Oktober 2026');
+ await expect(page.locator('.app-shell')).toBeHidden();
+ expect(await page.evaluate(()=>window.__employeeFunction)).toBe('employee-schedule');
+ expect(await page.evaluate(()=>window.__employeeQueries)).toEqual(['app_owner','employee_access']);
+ await expect(page.locator('#employeePortal')).not.toContainText('Mitarbeiter 02');
+});
+
 test('desktop shell renders without overflow at initial screen',async({page})=>{
  await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};'}));
  await page.setViewportSize({width:1440,height:900});
