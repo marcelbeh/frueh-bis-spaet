@@ -465,20 +465,22 @@ test('closure periods are saved, visible, excluded from planning and not charged
  await expect(popup.locator('.pdf-time-closure').first()).toContainText('Herbstschließzeit');
 });
 
-test('every management submenu has a white icon on desktop and mobile',async({page})=>{
+test('navigation icon tiles use plum while menu text and unboxed icons remain white',async({page})=>{
  await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};'}));
  await page.setViewportSize({width:1440,height:1000});
  await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
  await page.evaluate(()=>{document.querySelector('#cloudLogin')?.remove();currentPage='dashboard';render();navigate('mitarbeitende')});
- const navColors=async()=>page.locator('#sidebar .nav-parent,#sidebar .nav-item').evaluateAll(items=>items.flatMap(item=>[item,...item.querySelectorAll('*')].map(node=>getComputedStyle(node).color)));
+ const whiteNavColors=async()=>page.locator('#sidebar .nav-parent .nav-label,#sidebar .nav-parent .nav-chevron,#sidebar .nav-item:not(.nav-child) > .nav-label,#sidebar .nav-child-label,#sidebar .nav-child-icon').evaluateAll(nodes=>nodes.map(node=>getComputedStyle(node).color));
+ const plumTileColors=async()=>page.locator('#sidebar .nav-parent .nav-icon,#sidebar .nav-item:not(.nav-child) .nav-icon').evaluateAll(nodes=>nodes.map(node=>({color:getComputedStyle(node).color,stroke:getComputedStyle(node.querySelector('svg')).stroke,background:getComputedStyle(node).backgroundColor})));
+ const expectNavColors=async()=>{expect((await whiteNavColors()).every(color=>color==='rgb(255, 255, 255)')).toBe(true);expect((await plumTileColors()).every(icon=>icon.color==='rgb(91, 42, 134)'&&icon.stroke==='rgb(91, 42, 134)'&&icon.background==='rgb(237, 230, 248)')).toBe(true)};
  for(const parent of await page.locator('.nav-parent').all()){
   if(await parent.getAttribute('aria-expanded')!=='true')await parent.click();
  }
- expect((await navColors()).every(color=>color==='rgb(255, 255, 255)')).toBe(true);
+ await expectNavColors();
  await page.locator('#sidebar [data-menu-toggle="verwaltung"]').click();
- expect((await navColors()).every(color=>color==='rgb(255, 255, 255)')).toBe(true);
+ await expectNavColors();
  await page.locator('#sidebarCollapse').click();
- expect((await navColors()).every(color=>color==='rgb(255, 255, 255)')).toBe(true);
+ await expectNavColors();
  await page.locator('#sidebarCollapse').click();
  const items=page.locator('.nav-child');
  await expect(items).toHaveCount(11);
@@ -494,7 +496,7 @@ test('every management submenu has a white icon on desktop and mobile',async({pa
  await page.locator('#mobileMenu').click();
  await expect(page.locator('.sidebar')).toHaveClass(/open/);
  await expect(page.locator('.nav-child-icon svg')).toHaveCount(11);
- expect((await navColors()).every(color=>color==='rgb(255, 255, 255)')).toBe(true);
+ await expectNavColors();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
 
