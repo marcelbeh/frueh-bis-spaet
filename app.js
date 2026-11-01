@@ -82,9 +82,9 @@ function showEmployeePortal(payload){
  removeEmployeePortal();
  const shell=document.querySelector(".app-shell");if(shell){shell.hidden=true;shell.style.display="none";}
  let weekOffset=Number.isInteger(payload?.weekOffset)?payload.weekOffset:0;
- let loading=false;
+ let loading=false,activeView="personal",selectedDay=0;
  const portal=document.createElement("main");portal.id="employeePortal";portal.className="employee-portal";
- portal.innerHTML='<header class="employee-portal-header"><div><span class="employee-portal-brand">🌈 Früh bis spät</span><h1>Meine Dienste</h1><p>Angemeldet als '+escapeHTML(payload?.employeeName||"Mitarbeitende")+' · Nur Ansicht</p></div><button class="btn small" type="button" data-employee-logout>Abmelden</button></header><section class="employee-schedule-card employee-overview-card"><div class="employee-overview-heading"><div><h2>Gesamtdienstplan</h2><p>Alle Dienste im Team für die ausgewählte Kalenderwoche</p></div><span id="employeePlanStatus" class="employee-plan-status" aria-live="polite"></span></div><nav class="employee-week-nav" aria-label="Kalenderwoche"><button class="employee-week-button" type="button" data-employee-week-step="-1" aria-label="Vorherige Kalenderwoche">‹</button><strong id="employeeWeekLabel"></strong><button class="employee-week-button" type="button" data-employee-week-step="1" aria-label="Nächste Kalenderwoche">›</button></nav><div id="employeeWeekContent" aria-live="polite"></div></section><section class="employee-schedule-card employee-personal-card"><h2>Meine Dienste</h2><div id="employeePersonalContent"></div></section>';
+ portal.innerHTML='<header class="employee-portal-header"><div><span class="employee-portal-brand">🌈 Früh bis spät</span><h1>Meine Dienste</h1><p>Angemeldet als '+escapeHTML(payload?.employeeName||"Mitarbeitende")+' · Nur Ansicht</p></div><button class="btn small" type="button" data-employee-logout>Abmelden</button></header><section class="employee-schedule-card employee-overview-card"><div class="employee-overview-heading"><div><h2 id="employeeViewTitle">Mein Dienstplan</h2><p id="employeeViewDescription">Deine eingetragenen Dienstzeiten für die ausgewählte Kalenderwoche</p></div><span id="employeePlanStatus" class="employee-plan-status" aria-live="polite"></span></div><nav class="employee-week-nav" aria-label="Kalenderwoche"><button class="employee-week-button" type="button" data-employee-week-step="-1" aria-label="Vorherige Kalenderwoche">‹</button><strong id="employeeWeekLabel"></strong><button class="employee-week-button" type="button" data-employee-week-step="1" aria-label="Nächste Kalenderwoche">›</button></nav><nav class="employee-view-switch" aria-label="Dienstplanansicht"><button type="button" data-employee-view="personal" aria-pressed="true">Mein Dienstplan</button><button type="button" data-employee-view="team" aria-pressed="false">Gesamtübersicht</button></nav><div id="employeePersonalPanel"><div id="employeePersonalContent"></div></div><div id="employeeTeamPanel" hidden><div id="employeeDayPicker" class="employee-day-picker" aria-label="Tag auswählen"></div><div id="employeeWeekContent" aria-live="polite"></div></div></section>';
  document.body.appendChild(portal);
  function weekMonday(offset){
   const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Berlin",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
@@ -103,7 +103,12 @@ function showEmployeePortal(payload){
   return (Array.isArray(payload?.shifts)?payload.shifts:[]).filter(s=>s&&/^\d{4}-\d{2}-\d{2}$/.test(s.date||"")&&/^\d{2}:\d{2}$/.test(s.start||"")&&/^\d{2}:\d{2}$/.test(s.end||"")).map(s=>({...s,person:typeof s.person==="string"?s.person:payload?.employeeName||"Team",group:typeof s.group==="string"?s.group:"Team"})).sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start));
  }
  function renderWeek(){
-  const label=portal.querySelector("#employeeWeekLabel"),content=portal.querySelector("#employeeWeekContent"),personal=portal.querySelector("#employeePersonalContent"),status=portal.querySelector("#employeePlanStatus");
+  const label=portal.querySelector("#employeeWeekLabel"),content=portal.querySelector("#employeeWeekContent"),personal=portal.querySelector("#employeePersonalContent"),status=portal.querySelector("#employeePlanStatus"),teamPanel=portal.querySelector("#employeeTeamPanel"),personalPanel=portal.querySelector("#employeePersonalPanel"),viewTitle=portal.querySelector("#employeeViewTitle"),viewDescription=portal.querySelector("#employeeViewDescription");
+  if(teamPanel)teamPanel.hidden=activeView!=="team";
+  if(personalPanel)personalPanel.hidden=activeView!=="personal";
+  portal.querySelectorAll("[data-employee-view]").forEach(button=>button.setAttribute("aria-pressed",String(button.dataset.employeeView===activeView)));
+  if(viewTitle)viewTitle.textContent=activeView==="team"?"Gesamtübersicht":"Mein Dienstplan";
+  if(viewDescription)viewDescription.textContent=activeView==="team"?"Alle Mitarbeitenden und ihre Dienste für den ausgewählten Tag":"Deine eingetragenen Dienstzeiten für die ausgewählte Kalenderwoche";
   if(label)label.textContent=weekLabel(weekOffset);
   portal.querySelectorAll("[data-employee-week-step]").forEach(button=>button.disabled=loading);
   if(loading){
@@ -116,6 +121,7 @@ function showEmployeePortal(payload){
   const planExists=payload?.planExists===true||(payload?.planExists===undefined&&shifts.length>0);
   if(status){status.textContent=planExists?"Dienstplan angelegt":"Noch kein Dienstplan angelegt";status.classList.toggle("is-empty",!planExists);}
   if(!planExists){
+   const dayPicker=portal.querySelector("#employeeDayPicker");if(dayPicker)dayPicker.replaceChildren();
    if(content)content.innerHTML='<div class="employee-plan-empty"><span class="employee-plan-empty-icon" aria-hidden="true">▦</span><strong>Für diese Kalenderwoche ist noch kein Dienstplan angelegt.</strong><p>Sobald die Leitung den Plan erstellt, erscheint hier die Teamübersicht.</p></div>';
    if(personal)personal.innerHTML='<p class="employee-empty">Deine Dienste erscheinen hier, sobald der Wochenplan angelegt ist.</p>';
    return;
@@ -123,30 +129,28 @@ function showEmployeePortal(payload){
   const groups=[...new Set(shifts.map(s=>String(s.group||"Team")))];
   if(content){
    const days=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"];
+   const shortDays=["Mo","Di","Mi","Do","Fr","Sa","So"];
    const monday=weekMonday(weekOffset);
+   const weekDates=days.map((day,index)=>{const date=new Date(monday);date.setDate(monday.getDate()+index);return date;});
+   const dayPicker=portal.querySelector("#employeeDayPicker");
+   if(dayPicker)dayPicker.innerHTML=days.map((day,index)=>'<button class="employee-day-tab'+(index===selectedDay?' is-active':'')+'" type="button" data-employee-day="'+index+'" aria-pressed="'+(index===selectedDay)+'"><span>'+shortDays[index]+'</span><time>'+new Intl.DateTimeFormat("de-DE",{day:"2-digit",month:"2-digit"}).format(weekDates[index])+'</time></button>').join("");
    const people=[...new Map(shifts.map(s=>[String(s.person||"Team"),{name:String(s.person||"Team"),group:String(s.group||"Team")}])).values()];
-   const dayCols=days.map((day,index)=>{
-    const date=new Date(monday);date.setDate(monday.getDate()+index);
-    const dateText=new Intl.DateTimeFormat("de-DE",{day:"2-digit",month:"2-digit"}).format(date);
-    const dayKey=isoDate(date);
-    const dayShifts=shifts.filter(s=>s.date===dayKey);
-    const lanes=people.map(person=>{
-     const own=person.name===payload?.employeeName;
-     const personShifts=dayShifts.filter(s=>String(s.person||"Team")===person.name).sort((x,y)=>x.start.localeCompare(y.start));
-     const blocks=personShifts.map(s=>{
-      const start=Math.max(360,Math.min(1320,Number(s.start.slice(0,2))*60+Number(s.start.slice(3))));
-      const end=Math.max(start+30,Math.min(1320,Number(s.end.slice(0,2))*60+Number(s.end.slice(3))));
-      const top=Math.max(0,Math.min(100,(start-360)/960*100));
-      const height=Math.max(4,(end-start)/960*100);
-      const groupIndex=Math.max(0,groups.indexOf(String(s.group||"Team")))%6;
-      return '<article class="employee-timeline-shift pdf-group-'+groupIndex+(own?' is-own':'')+'" style="top:'+top+'%;height:'+height+'%"'+(own?' aria-current="true"':'')+'><strong>'+escapeHTML(s.start)+'–'+escapeHTML(s.end)+'</strong><span class="employee-timeline-detail">'+escapeHTML(s.serviceType||s.group||"Dienst")+'</span></article>';
-     }).join("");
-     return '<div class="employee-person-lane'+(own?' is-own-lane':'')+'"><div class="employee-person-track">'+(blocks||'<span class="employee-person-free">Frei</span>')+'</div></div>';
+   const dayIndex=Math.max(0,Math.min(days.length-1,selectedDay)),day=days[dayIndex],date=weekDates[dayIndex],dateText=new Intl.DateTimeFormat("de-DE",{day:"2-digit",month:"2-digit"}).format(date),dayKey=isoDate(date);
+   const dayShifts=shifts.filter(s=>s.date===dayKey),dayGroups=[...new Set(dayShifts.map(s=>String(s.group||"Team")))];
+   const lanes=people.map(person=>{
+    const own=person.name===payload?.employeeName;
+    const personShifts=dayShifts.filter(s=>String(s.person||"Team")===person.name).sort((x,y)=>x.start.localeCompare(y.start));
+    const blocks=personShifts.map(s=>{
+     const start=Math.max(360,Math.min(1320,Number(s.start.slice(0,2))*60+Number(s.start.slice(3))));
+     const end=Math.max(start+30,Math.min(1320,Number(s.end.slice(0,2))*60+Number(s.end.slice(3))));
+     const top=Math.max(0,Math.min(100,(start-360)/960*100)),height=Math.max(4,(end-start)/960*100);
+     const groupIndex=Math.max(0,groups.indexOf(String(s.group||"Team")))%6;
+     return '<article class="employee-timeline-shift pdf-group-'+groupIndex+(own?' is-own':'')+'" style="top:'+top+'%;height:'+height+'%"'+(own?' aria-current="true"':'')+'><strong>'+escapeHTML(s.start)+'–'+escapeHTML(s.end)+'</strong><span class="employee-timeline-detail">'+escapeHTML(s.serviceType||s.group||"Dienst")+'</span></article>';
     }).join("");
-    const ticks=[6,8,10,12,14,16,18,20,22].map(hour=>'<span class="employee-time-tick" style="top:'+((hour-6)/16*100)+'%">'+String(hour).padStart(2,"0")+':00</span>').join("");
-    return '<section class="employee-timeline-day" style="--employee-lane-count:'+people.length+';--employee-day-width:'+(42+people.length*84)+'px"><header class="employee-timeline-day-title"><h3>'+day+'</h3><time>'+dateText+'</time></header><div class="employee-timeline-staff-heads"><div class="employee-staff-axis"></div>'+people.map(person=>'<div class="employee-person-head'+(person.name===payload?.employeeName?' is-own':'')+'" title="'+escapeHTML(person.name)+'"><strong>'+escapeHTML(person.name)+(person.name===payload?.employeeName?'<span class="employee-own-tag">Du</span>':'')+'</strong><small>'+escapeHTML(person.group)+'</small></div>').join("")+'</div><div class="employee-timeline-row"><div class="employee-time-axis" aria-hidden="true">'+ticks+'</div><div class="employee-person-lanes">'+lanes+'</div></div></section>';
+    return '<div class="employee-person-lane'+(own?' is-own-lane':'')+'"><div class="employee-person-track">'+(blocks||'<span class="employee-person-free">Frei</span>')+'</div></div>';
    }).join("");
-   content.innerHTML='<div class="employee-week-summary"><strong>'+shifts.length+' '+(shifts.length===1?'Dienst':'Dienste')+'</strong><span>'+groups.length+' '+(groups.length===1?'Gruppe':'Gruppen')+'</span><span>'+people.length+' '+(people.length===1?'Mitarbeitende':'Mitarbeitende')+'</span><span class="employee-own-legend"><i aria-hidden="true"></i>Deine Spalte</span></div><div class="employee-timeline-scroll"><div class="employee-timeline-board">'+dayCols+'</div></div>';
+   const ticks=[6,8,10,12,14,16,18,20,22].map(hour=>'<span class="employee-time-tick" style="top:'+((hour-6)/16*100)+'%">'+String(hour).padStart(2,"0")+':00</span>').join("");
+   content.innerHTML='<div class="employee-week-summary"><strong>'+dayShifts.length+' '+(dayShifts.length===1?'Dienst':'Dienste')+' am '+day+'</strong><span>'+people.length+' Mitarbeitende diese Woche</span><span class="employee-own-legend"><i aria-hidden="true"></i>Deine Spalte</span></div><div class="employee-day-canvas"><section class="employee-timeline-day" style="--employee-lane-count:'+people.length+';--employee-day-width:'+(42+people.length*126)+'px"><header class="employee-timeline-day-title"><h3>'+day+'</h3><time>'+dateText+'</time></header><div class="employee-timeline-staff-heads"><div class="employee-staff-axis"></div>'+people.map(person=>'<div class="employee-person-head'+(person.name===payload?.employeeName?' is-own':'')+'" title="'+escapeHTML(person.name)+'"><strong>'+escapeHTML(person.name)+(person.name===payload?.employeeName?'<span class="employee-own-tag">Du</span>':'')+'</strong><small>'+escapeHTML(person.group)+'</small></div>').join("")+'</div><div class="employee-timeline-row"><div class="employee-time-axis" aria-hidden="true">'+ticks+'</div><div class="employee-person-lanes">'+lanes+'</div></div></section></div>';
   }
   if(personal){
    const own=shifts.filter(s=>s.person===payload?.employeeName);
@@ -175,8 +179,12 @@ function showEmployeePortal(payload){
   renderWeek();
  }
  portal.addEventListener("click",event=>{
+  const view=event.target.closest("[data-employee-view]");
+  if(view){activeView=view.dataset.employeeView;renderWeek();return;}
+  const day=event.target.closest("[data-employee-day]");
+  if(day){selectedDay=Number(day.dataset.employeeDay);renderWeek();return;}
   const step=event.target.closest("[data-employee-week-step]");
-  if(step){loadWeek(weekOffset+Number(step.dataset.employeeWeekStep));return;}
+  if(step){selectedDay=0;loadWeek(weekOffset+Number(step.dataset.employeeWeekStep));return;}
   if(event.target.closest("[data-employee-week-retry]"))loadWeek(weekOffset);
  });
  portal.querySelector("[data-employee-logout]")?.addEventListener("click",async event=>{const button=event.currentTarget;button.disabled=true;await cloud.auth.signOut();cloudReady=false;cloudUser=null;removeEmployeePortal();showCloudLogin("Du wurdest abgemeldet.")});
