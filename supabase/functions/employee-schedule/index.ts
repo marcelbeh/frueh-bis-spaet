@@ -44,6 +44,31 @@ function isDate(value: unknown): value is string {
     && !Number.isNaN(Date.parse(`${value}T12:00:00Z`));
 }
 
+function timeToMinutes(value: string): number | null {
+  const match = /^(\d{2}):(\d{2})$/.exec(value);
+  if (!match) return null;
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  return hour < 24 && minute < 60 ? hour * 60 + minute : null;
+}
+
+function shiftWorkMinutes(start: string, end: string): number {
+  const from = timeToMinutes(start);
+  const to = timeToMinutes(end);
+  if (from === null || to === null || to <= from) return 0;
+  const span = to - from;
+  if (span <= 360) return span;
+  const pauseDuration = span > 570 ? 45 : 30;
+  return Math.max(0, span - Math.min(pauseDuration, to - (from + 240)));
+}
+
+function eventOccursOnDate(event: Record<string, unknown>, date: string): boolean {
+  if (event.date === date) return true;
+  if (event.repeatWeekly !== true || typeof event.date !== "string" || date < event.date) return false;
+  const repeatDay = Number(event.repeatDay);
+  const weekday = new Date(date + "T12:00:00Z").getUTCDay();
+  return Number.isInteger(repeatDay) && weekday === repeatDay;
+}
 Deno.serve(async (request: Request) => {
   const origin = request.headers.get("Origin");
   if (request.method === "OPTIONS") {
@@ -159,6 +184,44 @@ Deno.serve(async (request: Request) => {
       serviceType: typeof item.serviceType === "string" ? item.serviceType.slice(0, 80) : "Dienst",
     }];
   }).sort((a, b) => (a.date + a.start + a.person).localeCompare(b.date + b.start + b.person));
+  const rawWeeklyHours = (person as Record<string, unknown>).hours;
+  const weeklyHours = rawWeeklyHours !== null && rawWeeklyHours !== undefined && Number.isFinite(Number(rawWeeklyHours))
+    ? Math.max(0, Number(rawWeeklyHours))
+    : null;
+  const scheduleEvents: Array<Record<string, unknown>> = [];
+  if (Array.isArray(state.events)) {
+    for (let day = 0; day < 7; day += 1) {
+      const date = addDays(currentMonday, selectedWeekOffset * 7 + day);
+      for (const value of state.events) {
+        if (!value || typeof value !== "object") continue;
+        const event = value as Record<string, unknown>;
+        if (!Array.isArray(event.attendees) || !event.attendees.includes(personName)
+          || typeof event.date !== "string" || !eventOccursOnDate(event, date)
+          || typeof event.time !== "string") continue;
+        const [start, end] = event.time.split(/[–-]/).map((part) => part.trim());
+        if (!start || !end || timeToMinutes(start) === null || timeToMinutes(end) === null
+          || (timeToMinutes(end) as number) <= (timeToMinutes(start) as number)) continue;
+        scheduleEvents.push({
+          date,
+          start,
+          end,
+          title: typeof event.title === "string" ? event.title.slice(0, 120) : "Termin",
+          type: typeof event.type === "string" ? event.type.slice(0, 80) : "Termin",
+        });
+      }
+    }
+  }
+  scheduleEvents.sort((a, b) => String(a.date).concat(String(a.start)).localeCompare(String(b.date).concat(String(b.start))));
+  const ownShiftMinutes = ownShifts
+    .filter((shift) => shift.person === personName)
+    .reduce((sum, shift) => sum + shiftWorkMinutes(shift.start, shift.end), 0);
+  const eventMinutes = scheduleEvents.reduce((sum, event) => {
+    const start = timeToMinutes(String(event.start));
+    const end = timeToMinutes(String(event.end));
+    return sum + (start !== null && end !== null ? Math.max(0, end - start) : 0);
+  }, 0);
+  const distributedHours = Number(((ownShiftMinutes + eventMinutes) / 60).toFixed(2));
+
   const scheduleGroups = Array.isArray(state.groups)
     ? state.groups.filter((group: unknown): group is string => typeof group === "string").map((group: string) => group.slice(0, 80))
     : [];
@@ -166,6 +229,9 @@ Deno.serve(async (request: Request) => {
   return jsonResponse({
     employeeName: personName,
     weekOffset: selectedWeekOffset,
+    weeklyHours,
+    distributedHours,
+    events: scheduleEvents,
     planExists: ownShifts.length > 0,
     groups: scheduleGroups,
     shifts: ownShifts,

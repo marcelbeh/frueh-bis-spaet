@@ -818,7 +818,7 @@ body.resizing-shift,body.resizing-shift *{cursor:ns-resize!important;user-select
 .employee-nav-item{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:9px 11px;border:0;border-radius:10px;background:transparent;color:#52667c;text-align:left;font:inherit;font-size:14px;font-weight:650;cursor:pointer}
 .employee-nav-item:hover{background:#f4f7fb;color:#19304b}
 .employee-nav-item[aria-current="page"]{background:#eaf3ee;color:#1d6b54}
-.employee-nav-icon{display:grid;flex:none;place-items:center;width:24px;height:24px;font-size:20px;line-height:1}
+.employee-nav-icon{display:grid;flex:none;place-items:center;width:24px;height:24px;color:currentColor;line-height:1}.employee-nav-icon svg{display:block;width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .employee-nav-label{overflow:hidden;white-space:nowrap}
 .employee-sidebar-footer{display:grid;gap:5px;margin-top:auto;padding-top:12px;border-top:1px solid #e7edf2}
 .employee-sidebar.is-collapsed .employee-sidebar-brand,.employee-sidebar.is-collapsed .employee-nav-label{display:none}
@@ -843,6 +843,20 @@ body.resizing-shift,body.resizing-shift *{cursor:ns-resize!important;user-select
  .employee-workspace .employee-portal-header{align-items:flex-start}
 }
 
+
+.employee-hours-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 8px}
+.employee-hours-summary>div{display:grid;gap:5px;min-width:0;padding:14px 16px;border:1px solid #e1e9ef;border-radius:12px;background:#f8fafc}
+.employee-hours-summary span{color:#68788a;font-size:12px}
+.employee-hours-summary strong{color:#19304b;font-size:20px;font-variant-numeric:tabular-nums}
+.employee-hours-summary strong.is-over{color:#9a4d14}
+.employee-hours-summary strong.is-under{color:#1d6b54}
+.employee-hours-note{margin:0 0 18px;color:#738296;font-size:11px}
+.employee-personal-event{position:absolute;left:3px;right:3px;z-index:2;overflow:hidden;padding:4px;border:1px solid #d6c9ec;border-left:4px solid #8065b2;border-radius:6px;background:#f0eafb;color:#59447f;line-height:1.2}
+.employee-personal-event strong,.employee-personal-event span{display:block;overflow-wrap:anywhere}
+.employee-personal-event strong{font-size:9px}
+.employee-personal-event span{margin-top:3px;font-size:9px}
+@media(max-width:720px){.employee-hours-summary{gap:6px}.employee-hours-summary>div{padding:10px 8px}.employee-hours-summary span{font-size:10px}.employee-hours-summary strong{font-size:16px}}
+@media(max-width:420px){.employee-hours-summary{grid-template-columns:1fr}}
 .employee-personal-calendar-summary{display:flex;align-items:center;gap:14px;margin:2px 0 14px;color:#68788a;font-size:14px}
 .employee-personal-calendar-summary strong{color:#19304b}
 .employee-personal-calendar-scroll{overflow-x:auto;padding-bottom:8px}
