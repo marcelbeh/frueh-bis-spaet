@@ -43,7 +43,10 @@ test("client offers role controls and same-session area switching without signin
   assert.match(app, /data-access-role="leader"/);
   assert.match(app, /Mein Mitarbeiterbereich/);
   assert.match(app, /Zum Leitungsbereich wechseln/);
-  const portalSwitch = app.slice(app.indexOf("data-employee-to-leader"), app.indexOf("data-employee-logout"));
-  assert.doesNotMatch(portalSwitch, /signOut/);
+  const switchStart = app.indexOf('<button type="button" class="employee-nav-item" data-employee-to-leader');
+  const switchEnd = app.indexOf("</button>", switchStart);
+  assert.ok(switchStart >= 0 && switchEnd > switchStart);
+  assert.doesNotMatch(app.slice(switchStart, switchEnd), /signOut/);
+  assert.ok(app.includes("setInterval(check,15000)"));
   assert.doesNotThrow(() => new vm.Script(app));
 });
