@@ -789,6 +789,20 @@ body.resizing-shift,body.resizing-shift *{cursor:ns-resize!important;user-select
 .employee-own-tag{display:inline-block;margin-left:3px;padding:1px 3px;border-radius:999px;background:#123f35;color:#fff;font-size:8px;vertical-align:1px}
 .employee-own-legend{display:inline-flex;align-items:center;gap:6px;color:#205c3b!important}
 .employee-own-legend i{width:12px;height:12px;border:2px solid #123f35;border-radius:3px;background:#e5f3eb}
+.employee-portal-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.employee-profile-card[hidden]{display:none}
+.employee-profile-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px}
+.employee-profile-heading h2{margin:0}
+.employee-profile-heading p{margin:5px 0 0;color:#68788a}
+.employee-profile-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.employee-profile-field{display:grid;gap:6px;color:#334a63;font-size:13px;font-weight:700}
+.employee-profile-field input{width:100%;min-width:0;padding:10px 12px;border:1px solid #cfdbe6;border-radius:8px;background:#fff;color:#152b46;font:inherit;font-weight:400}
+.employee-profile-field input:focus{outline:3px solid rgba(23,105,224,.18);border-color:#1769e0}
+.employee-profile-note{margin:10px 0 18px;color:#68788a;font-size:13px;line-height:1.5}
+.employee-profile-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px}
+.employee-profile-footer p{margin:0;color:#27664f;font-size:13px}
+.employee-profile-footer p.is-error{color:#a33a3a}
+@media(max-width:560px){.employee-portal-actions{gap:5px}.employee-portal-actions .btn{padding:8px 9px}.employee-profile-fields{grid-template-columns:1fr}.employee-profile-footer{align-items:stretch;flex-direction:column-reverse}.employee-profile-footer .btn{width:100%}.employee-profile-heading .btn{white-space:nowrap}}
 .employee-person-free{position:absolute;inset:50% 0 auto;text-align:center;transform:translateY(-50%);color:#a0acb8;font-size:9px}
 .employee-day-empty{margin:0;padding:10px 2px;color:#9aa7b4;font-size:12px;text-align:center}
 .employee-plan-empty{display:grid;justify-items:center;gap:9px;padding:clamp(28px,5vw,52px) 18px;border:1px dashed #d5e0e9;border-radius:14px;background:#fbfcfe;text-align:center}
