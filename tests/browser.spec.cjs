@@ -465,14 +465,27 @@ test('closure periods are saved, visible, excluded from planning and not charged
  await expect(popup.locator('.pdf-time-closure').first()).toContainText('Herbstschließzeit');
 });
 
-test('navigation icon tiles use plum while menu text and unboxed icons remain white',async({page})=>{
+test('active sidebar items use lavender and plum on desktop and mobile',async({page})=>{
  await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:'window.supabase={createClient:()=>({auth:{getSession:async()=>({data:{session:null},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}})};'}));
  await page.setViewportSize({width:1440,height:1000});
  await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
  await page.evaluate(()=>{document.querySelector('#cloudLogin')?.remove();currentPage='dashboard';render();navigate('mitarbeitende')});
- const whiteNavColors=async()=>page.locator('#sidebar .nav-parent .nav-label,#sidebar .nav-parent .nav-chevron,#sidebar .nav-item:not(.nav-child) > .nav-label,#sidebar .nav-child-label,#sidebar .nav-child-icon').evaluateAll(nodes=>nodes.map(node=>getComputedStyle(node).color));
- const plumTileColors=async()=>page.locator('#sidebar .nav-parent .nav-icon,#sidebar .nav-item:not(.nav-child) .nav-icon').evaluateAll(nodes=>nodes.map(node=>({color:getComputedStyle(node).color,stroke:getComputedStyle(node.querySelector('svg')).stroke,background:getComputedStyle(node).backgroundColor})));
- const expectNavColors=async()=>{expect((await whiteNavColors()).every(color=>color==='rgb(255, 255, 255)')).toBe(true);expect((await plumTileColors()).every(icon=>icon.color==='rgb(91, 42, 134)'&&icon.stroke==='rgb(91, 42, 134)'&&icon.background==='rgb(237, 230, 248)')).toBe(true)};
+ const expectNavColors=async()=>{
+  const rows=await page.locator('#sidebar .nav-parent,#sidebar .nav-item:not(.nav-child),#sidebar .nav-child').evaluateAll(nodes=>nodes.map(node=>{
+   const parent=node.classList.contains('nav-parent'),child=node.classList.contains('nav-child');
+   const active=node.classList.contains('active')||(parent&&node.getAttribute('aria-expanded')==='true');
+   const label=node.querySelector('.nav-label,.nav-child-label');
+   const icon=node.querySelector('.nav-icon svg,.nav-child-icon svg');
+   const tile=node.querySelector('.nav-icon');
+   return {active,child,parent,bg:getComputedStyle(node).backgroundColor,label:getComputedStyle(label).color,icon:icon?getComputedStyle(icon).color:null,chevron:node.querySelector('.nav-chevron')?getComputedStyle(node.querySelector('.nav-chevron')).color:null,tile:tile?{color:getComputedStyle(tile).color,stroke:getComputedStyle(tile.querySelector('svg')).stroke,background:getComputedStyle(tile).backgroundColor}:null};
+  }));
+  const lavender='rgb(237, 230, 248)',plum='rgb(91, 42, 134)',white='rgb(255, 255, 255)';
+  expect(rows.every(row=>row.label===(row.active?plum:white))).toBe(true);
+  expect(rows.filter(row=>row.active).every(row=>row.bg===lavender)).toBe(true);
+  expect(rows.filter(row=>row.child).every(row=>row.icon===(row.active?plum:white))).toBe(true);
+  expect(rows.filter(row=>row.parent).every(row=>row.chevron===(row.active?plum:white))).toBe(true);
+  expect(rows.filter(row=>row.tile).every(row=>row.tile.color===plum&&row.tile.stroke===plum&&row.tile.background===lavender)).toBe(true);
+ };
  for(const parent of await page.locator('.nav-parent').all()){
   if(await parent.getAttribute('aria-expanded')!=='true')await parent.click();
  }
@@ -485,13 +498,8 @@ test('navigation icon tiles use plum while menu text and unboxed icons remain wh
  const items=page.locator('.nav-child');
  await expect(items).toHaveCount(11);
  await expect(page.locator('.nav-child-icon svg')).toHaveCount(11);
- const desktop=await items.evaluateAll(elements=>elements.map(item=>({
-  icon:item.querySelector('.nav-child-icon')?.dataset.icon,
-  color:getComputedStyle(item.querySelector('.nav-child-icon')).color,
-  stroke:getComputedStyle(item.querySelector('.nav-child-icon svg')).stroke,
-  marker:getComputedStyle(item,'::before').content
- })));
- expect(desktop.every(item=>item.icon&&item.color==='rgb(255, 255, 255)'&&item.stroke==='rgb(255, 255, 255)'&&item.marker==='none')).toBe(true);
+ const desktop=await items.evaluateAll(elements=>elements.map(item=>({active:item.classList.contains('active'),icon:item.querySelector('.nav-child-icon')?.dataset.icon,color:getComputedStyle(item.querySelector('.nav-child-icon')).color,stroke:getComputedStyle(item.querySelector('.nav-child-icon svg')).stroke,marker:getComputedStyle(item,'::before').content})));
+ expect(desktop.every(item=>item.icon&&item.color===(item.active?'rgb(91, 42, 134)':'rgb(255, 255, 255)')&&item.stroke===(item.active?'rgb(91, 42, 134)':'rgb(255, 255, 255)')&&item.marker==='none')).toBe(true);
  await page.setViewportSize({width:390,height:844});
  await page.locator('#mobileMenu').click();
  await expect(page.locator('.sidebar')).toHaveClass(/open/);
