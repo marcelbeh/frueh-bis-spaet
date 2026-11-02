@@ -1138,7 +1138,7 @@ footer{color:var(--wuselo-muted);border-top-color:var(--wuselo-line);font-size:1
 .sidebar .nav-child.active{border:1px solid var(--wuselo-lavender);background:var(--wuselo-lavender);color:var(--wuselo-plum);box-shadow:none}
 .sidebar .nav-child-icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 18px;width:18px;height:18px;color:var(--wuselo-white)}
 .sidebar .nav-child-icon svg{display:block;width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.sidebar .nav-child.active .nav-child-icon svg{stroke-width:2.2;color:var(--wuselo-plum)}
+.sidebar .nav-child.active .nav-child-icon{color:var(--wuselo-plum)}.sidebar .nav-child.active .nav-child-icon svg{stroke-width:2.2}
 .sidebar .nav-item.nav-child > .nav-child-label{display:block;width:auto;min-width:0;flex:none;color:var(--wuselo-white);font-size:inherit;text-align:left;overflow-wrap:anywhere}
 .sidebar .nav-chevron{color:var(--wuselo-white)}.sidebar .nav-parent:hover:not([aria-expanded="true"]) .nav-chevron{color:var(--wuselo-white)}.sidebar .nav-parent[aria-expanded="true"] .nav-chevron{color:var(--wuselo-plum)}
 
