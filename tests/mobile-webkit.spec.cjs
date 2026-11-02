@@ -34,6 +34,27 @@ test('WebKit mobile and tablet layouts stay within the viewport',async({browser}
  expect(submenuPositions.length).toBeGreaterThan(0);
  expect(new Set(submenuPositions.map(item=>item.icon)).size).toBe(1);
  expect(new Set(submenuPositions.map(item=>item.label)).size).toBe(1);
+ const activeColors=await page.evaluate(()=>{
+  const main=document.querySelector('#sidebar .nav-item[data-page="dashboard"]');
+  const child=document.querySelector('#sidebar .nav-child');
+  const parent=document.querySelector('#sidebar .nav-parent[aria-expanded="true"]');
+  main.classList.add('active');child.classList.add('active');
+  const style=el=>getComputedStyle(el);
+  return {
+   mainBg:style(main).backgroundColor,mainText:style(main).color,mainTextAlign:style(main).textAlign,
+   mainIcon:style(main.querySelector('.nav-icon svg')).color,
+   childBg:style(child).backgroundColor,childText:style(child.querySelector('.nav-child-label')).color,
+   childIcon:style(child.querySelector('.nav-child-icon svg')).color,childTextAlign:style(child.querySelector('.nav-child-label')).textAlign,
+   parentBg:style(parent).backgroundColor,parentText:style(parent).color,
+   parentIcon:style(parent.querySelector('.nav-icon svg')).color,parentChevron:style(parent.querySelector('.nav-chevron')).color
+  };
+ });
+ const activeLavender='rgb(237, 230, 248)',activePlum='rgb(91, 42, 134)';
+ expect(activeColors.mainBg).toBe(activeLavender);expect(activeColors.childBg).toBe(activeLavender);expect(activeColors.parentBg).toBe(activeLavender);
+ expect(activeColors.mainText).toBe(activePlum);expect(activeColors.mainIcon).toBe(activePlum);
+ expect(activeColors.childText).toBe(activePlum);expect(activeColors.childIcon).toBe(activePlum);
+ expect(activeColors.parentText).toBe(activePlum);expect(activeColors.parentIcon).toBe(activePlum);expect(activeColors.parentChevron).toBe(activePlum);
+ expect(activeColors.mainTextAlign).toBe('left');expect(activeColors.childTextAlign).toBe('left');
  await page.locator('#sidebar [data-page="mitarbeitende"]').click();
  await expect(page.locator(".page-heading h1")).toHaveText("Mitarbeitende");
  await expect(page.locator("#sidebar")).not.toHaveClass(/open/);
