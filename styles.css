@@ -1130,7 +1130,7 @@ footer{color:var(--wuselo-muted);border-top-color:var(--wuselo-line);font-size:1
 .sidebar .nav-parent,
 .sidebar .nav-item:not(.nav-child){background:transparent;color:var(--wuselo-white)}
 .sidebar .nav-parent:hover:not([aria-expanded="true"]){background:var(--wuselo-lavender);color:var(--wuselo-white)}
-.sidebar .nav-parent[aria-expanded="true"]{background:var(--wuselo-lavender);color:var(--wuselo-plum)}
+.sidebar .nav-parent[aria-expanded="true"]{background:var(--wuselo-lavender);color:var(--wuselo-plum)}.sidebar .nav-parent[aria-expanded="true"] .nav-label{color:var(--wuselo-plum)}
 .sidebar .nav-group[data-nav-group] .nav-icon,
 .sidebar .nav-item:not(.nav-child) .nav-icon{background:var(--wuselo-lavender);color:var(--wuselo-plum);border:1px solid var(--wuselo-lavender);border-radius:13px}
 .sidebar .nav-parent:hover .nav-icon,
