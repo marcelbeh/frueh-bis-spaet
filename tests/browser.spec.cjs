@@ -471,6 +471,7 @@ test('active sidebar items use lavender and plum on desktop and mobile',async({p
  await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});
  await page.evaluate(()=>{document.querySelector('#cloudLogin')?.remove();currentPage='dashboard';render();navigate('mitarbeitende')});
  const expectNavColors=async()=>{
+  await page.waitForTimeout(220);
   const rows=await page.locator('#sidebar .nav-parent,#sidebar .nav-item:not(.nav-child),#sidebar .nav-child').evaluateAll(nodes=>nodes.map(node=>{
    const parent=node.classList.contains('nav-parent'),child=node.classList.contains('nav-child');
    const active=node.classList.contains('active')||(parent&&node.getAttribute('aria-expanded')==='true');
