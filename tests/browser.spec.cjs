@@ -480,7 +480,7 @@ test('active sidebar items use lavender and plum on desktop and mobile',async({p
    return {active,child,parent,bg:getComputedStyle(node).backgroundColor,label:getComputedStyle(label).color,icon:icon?getComputedStyle(icon).color:null,chevron:node.querySelector('.nav-chevron')?getComputedStyle(node.querySelector('.nav-chevron')).color:null,tile:tile?{color:getComputedStyle(tile).color,stroke:getComputedStyle(tile.querySelector('svg')).stroke,background:getComputedStyle(tile).backgroundColor}:null};
   }));
   const lavender='rgb(237, 230, 248)',plum='rgb(91, 42, 134)',white='rgb(255, 255, 255)';
-  expect(rows.every(row=>row.label===(row.active?plum:white))).toBe(true);
+  expect(rows.every(row=>row.label===(row.active?plum:white)),JSON.stringify(rows)).toBe(true);
   expect(rows.filter(row=>row.active).every(row=>row.bg===lavender)).toBe(true);
   expect(rows.filter(row=>row.child).every(row=>row.icon===(row.active?plum:white))).toBe(true);
   expect(rows.filter(row=>row.parent).every(row=>row.chevron===(row.active?plum:white))).toBe(true);
